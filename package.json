@@ -1,0 +1,10 @@
+{
+  "name": "rossventures-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix spark-bash-hub run dev",
+    "install": "npm --prefix spark-bash-hub install",
+    "build": "npm --prefix spark-bash-hub run build",
+    "preview": "npm --prefix spark-bash-hub run preview"
+  }
+}
