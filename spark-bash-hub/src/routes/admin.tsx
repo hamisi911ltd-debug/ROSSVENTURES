@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -39,9 +39,6 @@ const eventSchema = z.object({
 
 function AdminPage() {
   const navigate = useNavigate();
-  const [authChecking, setAuthChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -83,31 +80,8 @@ function AdminPage() {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-    supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      if (!session) navigate({ to: "/auth" });
-    });
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session) {
-        navigate({ to: "/auth" });
-        return;
-      }
-      setUserEmail(sess.session.user.email ?? null);
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", sess.session.user.id);
-      const admin = (roles ?? []).some((r) => r.role === "admin");
-      setIsAdmin(admin);
-      setAuthChecking(false);
-      if (admin) loadEvents();
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [navigate, loadEvents]);
+    loadEvents();
+  }, [loadEvents]);
 
   function onPickFile(f: File | null) {
     setFile(f);
@@ -179,31 +153,8 @@ function AdminPage() {
     }
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
+  function signOut() {
     navigate({ to: "/auth" });
-  }
-
-  if (authChecking) {
-    return (
-      <main className="grid min-h-[60vh] place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-accent" />
-      </main>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <main className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="font-display text-3xl font-bold">Not authorized</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Your account ({userEmail}) doesn't have admin access. Ask the site owner to grant you the admin role.
-        </p>
-        <button onClick={signOut} className="mt-6 inline-flex items-center gap-2 rounded-xl border border-border/80 px-5 py-3 text-sm font-semibold hover:bg-secondary">
-          <LogOut className="h-4 w-4" /> Sign out
-        </button>
-      </main>
-    );
   }
 
   return (
@@ -211,7 +162,7 @@ function AdminPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-            Admin · {userEmail}
+            Admin dashboard
           </span>
           <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">Manage <span className="text-gradient-ember">events</span></h1>
           <p className="mt-1 text-sm text-muted-foreground">Upload posters and publish new Ross Ventures events.</p>
