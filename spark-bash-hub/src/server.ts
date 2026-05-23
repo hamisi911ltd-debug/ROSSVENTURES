@@ -18,6 +18,15 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
+function createJsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+    },
+  });
+}
+
 function brandedErrorResponse(): Response {
   return new Response(renderErrorPage(), {
     status: 500,
@@ -68,6 +77,44 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/admin-login" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const password = typeof body?.password === "string" ? body.password : "";
+        const adminPasswordFromEnv = typeof env === "object" && env !== null ? (env as Record<string, unknown>).ADMIN_PASSWORD : undefined;
+        const adminPasswordFromProcess =
+          typeof process !== "undefined" && process?.env && typeof (process.env as Record<string, unknown>).ADMIN_PASSWORD === "string"
+            ? (process.env as Record<string, unknown>).ADMIN_PASSWORD
+            : undefined;
+        const adminPasswordFromMeta =
+          typeof import.meta !== "undefined" && typeof (import.meta as any).env?.VITE_ADMIN_PASSWORD === "string"
+            ? (import.meta as any).env.VITE_ADMIN_PASSWORD
+            : undefined;
+        const adminPassword =
+          typeof adminPasswordFromEnv === "string" && adminPasswordFromEnv.length > 0
+            ? adminPasswordFromEnv
+            : typeof adminPasswordFromProcess === "string" && adminPasswordFromProcess.length > 0
+            ? adminPasswordFromProcess
+            : typeof adminPasswordFromMeta === "string" && adminPasswordFromMeta.length > 0
+            ? adminPasswordFromMeta
+            : undefined;
+
+        if (!adminPassword) {
+          return createJsonResponse({ ok: false, message: "Admin password is not configured." }, 500);
+        }
+
+        if (password === adminPassword) {
+          return createJsonResponse({ ok: true });
+        }
+
+        return createJsonResponse({ ok: false, message: "Invalid password." }, 401);
+      } catch (error) {
+        return createJsonResponse({ ok: false, message: "Invalid request." }, 400);
+      }
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
