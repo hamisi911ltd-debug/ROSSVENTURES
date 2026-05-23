@@ -1,0 +1,10 @@
+{
+  "name": "rossventures",
+  "compatibility_date": "2026-05-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "spark-bash-hub/dist/server/index.js",
+  "assets": {
+    "directory": "spark-bash-hub/dist/client",
+    "binding": "ASSETS"
+  }
+}
