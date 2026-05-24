@@ -17,5 +17,47 @@ export default defineConfig({
       host: "0.0.0.0",
       middlewareMode: false,
     },
+    plugins: [
+      {
+        name: "dev-admin-login-middleware",
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            try {
+              if (req.url === "/admin-login" && req.method === "POST") {
+                let body = "";
+                req.on("data", (chunk) => (body += chunk));
+                req.on("end", () => {
+                  res.setHeader("content-type", "application/json; charset=utf-8");
+                  try {
+                    const parsed = JSON.parse(body || "{}");
+                    const password = typeof parsed?.password === "string" ? parsed.password : "";
+                    const adminPassword = process.env.VITE_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
+                    if (!adminPassword) {
+                      res.statusCode = 500;
+                      res.end(JSON.stringify({ ok: false, message: "Admin password is not configured." }));
+                      return;
+                    }
+                    if (password === adminPassword) {
+                      res.statusCode = 200;
+                      res.end(JSON.stringify({ ok: true }));
+                      return;
+                    }
+                    res.statusCode = 401;
+                    res.end(JSON.stringify({ ok: false, message: "Invalid password." }));
+                  } catch (err) {
+                    res.statusCode = 400;
+                    res.end(JSON.stringify({ ok: false, message: "Invalid request." }));
+                  }
+                });
+                return;
+              }
+            } catch (e) {
+              // fallthrough to next
+            }
+            next();
+          });
+        },
+      },
+    ],
   },
 });
