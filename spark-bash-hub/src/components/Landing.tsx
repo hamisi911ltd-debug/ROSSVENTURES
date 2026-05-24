@@ -9,7 +9,12 @@ import jkuatFreshers from "@/assets/jkuat-freshers-night.svg";
 import mrMissJkuat from "@/assets/mr-miss-jkuat-awards.svg";
 import fyndrPoster from "@/assets/fyndr-poster.svg";
 import freshazNight from "@/assets/jkuat-freshaz-night.svg";
-import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
+import culturFmLogo from "@/assets/cultur-fm-logo.jpeg";
+import jkuatGotTalentLogo from "@/assets/jkuat-got-talent-logo.jpeg";
+import jkuatLogo from "@/assets/jkuat-logo.jpeg";
+import jkusaLogo from "@/assets/jkusa-logo.jpeg";
+import safaricomLogo from "@/assets/safaricom-logo.jpeg";
+import steamLogo from "@/assets/steam-logo.jpeg";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -42,6 +47,15 @@ const services = [
     title: "BTL Marketing",
     desc: "Below-the-line activations, roadshows, sampling and on-ground experiences that turn passers-by into loyal customers.",
   },
+];
+
+const partnerLogos = [
+  { name: "Cultur FM", img: culturFmLogo },
+  { name: "JKUAT Got Talent", img: jkuatGotTalentLogo },
+  { name: "JKUAT", img: jkuatLogo },
+  { name: "JKUSA", img: jkusaLogo },
+  { name: "Safaricom", img: safaricomLogo },
+  { name: "Steam", img: steamLogo },
 ];
 
 const portfolio = [
@@ -169,6 +183,27 @@ export default function Landing() {
             >
               See our events
             </Link>
+          </div>
+
+          <div className="mt-10 rounded-3xl border border-border/60 bg-card/50 p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Brands, partners and people we&apos;ve worked with
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              {partnerLogos.map((partner) => (
+                <div
+                  key={partner.name}
+                  title={partner.name}
+                  className="group flex h-20 items-center justify-center rounded-3xl border border-border/40 bg-background/80 p-4 transition hover:scale-105 hover:shadow-glow"
+                >
+                  <img
+                    src={partner.img}
+                    alt={partner.name}
+                    className="max-h-12 w-full object-contain opacity-90 transition group-hover:opacity-100"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <dl className="mt-10 grid max-w-2xl grid-cols-3 gap-6">
