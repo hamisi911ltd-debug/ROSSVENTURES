@@ -9,6 +9,7 @@ import jkuatFreshers from "@/assets/jkuat-freshers-night.svg";
 import mrMissJkuat from "@/assets/mr-miss-jkuat-awards.svg";
 import fyndrPoster from "@/assets/fyndr-poster.svg";
 import freshazNight from "@/assets/jkuat-freshaz-night.svg";
+import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
 import culturFmLogo from "@/assets/cultur-fm-logo.jpeg";
 import jkuatGotTalentLogo from "@/assets/jkuat-got-talent-logo.jpeg";
 import jkuatLogo from "@/assets/jkuat-logo.jpeg";
@@ -137,11 +138,14 @@ export default function Landing() {
   return (
     <main>
       {/* HERO */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-white">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-hero-soft" />
-          <div className="absolute inset-0 bg-hero-veil opacity-55" />
-          <div className="absolute inset-0 bg-radial-glow opacity-50" />
+          <div className="absolute inset-0 bg-white" />
+          <div
+            className="absolute inset-0 bg-center bg-no-repeat opacity-10"
+            style={{ backgroundImage: `url(${rossVenturesLogo})`, backgroundSize: "contain" }}
+          />
+          <div className="absolute inset-0 bg-radial-glow opacity-10" />
           {/* Event planning light and confetti accents */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute left-10 top-16 h-32 w-32 rounded-full bg-accent/15 blur-3xl animate-sparkle" />
@@ -185,21 +189,17 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div className="mt-10 rounded-3xl border border-border/60 bg-card/50 p-6">
+          <div className="mt-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Brands and people we&apos;ve worked with
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6 items-center">
               {partnerLogos.map((partner) => (
-                <div
-                  key={partner.name}
-                  title={partner.name}
-                  className="group flex h-20 items-center justify-center rounded-3xl border border-border/40 bg-background/80 p-4 transition hover:scale-105 hover:shadow-glow"
-                >
+                <div key={partner.name} title={partner.name} className="flex items-center justify-center">
                   <img
                     src={partner.img}
                     alt={partner.name}
-                    className="max-h-12 w-full object-contain opacity-90 transition group-hover:opacity-100"
+                    className="max-h-12 w-full object-contain opacity-90 transition hover:opacity-100"
                   />
                 </div>
               ))}
