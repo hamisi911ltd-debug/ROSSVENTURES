@@ -21,9 +21,6 @@ import {
   ArrowRight,
   Calendar,
   CalendarDays,
-  Megaphone,
-  PartyPopper,
-  Globe,
   Users,
   Sparkles,
   CheckCircle2,
@@ -31,24 +28,6 @@ import {
   Phone,
   Instagram,
 } from "lucide-react";
-
-const services = [
-  {
-    icon: PartyPopper,
-    title: "Event Planning",
-    desc: "Concerts, festivals, campus nights, brand launches and private functions — produced end-to-end by a team that lives for showtime.",
-  },
-  {
-    icon: Globe,
-    title: "Digital Marketing",
-    desc: "Social campaigns, influencer activations, paid media and content production that puts your brand in front of the right audience.",
-  },
-  {
-    icon: Megaphone,
-    title: "BTL Marketing",
-    desc: "Below-the-line activations, roadshows, sampling and on-ground experiences that turn passers-by into loyal customers.",
-  },
-];
 
 const partnerLogos = [
   { name: "Cultur FM", img: culturFmLogo },
@@ -193,13 +172,23 @@ export default function Landing() {
               Brands and people we&apos;ve worked with
             </p>
             <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6 items-center">
-              {partnerLogos.map((partner) => (
+              {partnerLogos.map((partner, idx) => (
                 <div key={partner.name} title={partner.name} className="flex items-center justify-center">
-                  <img
-                    src={partner.img}
-                    alt={partner.name}
-                    className="max-h-12 w-full object-contain opacity-90 transition hover:opacity-100"
-                  />
+                  {idx < 4 ? (
+                    <div className="h-16 w-16 overflow-hidden rounded-full bg-background/80">
+                      <img
+                        src={partner.img}
+                        alt={partner.name}
+                        className="h-full w-full object-cover transition hover:opacity-100"
+                      />
+                    </div>
+                  ) : (
+                    <img
+                      src={partner.img}
+                      alt={partner.name}
+                      className="max-h-12 w-auto object-contain opacity-90 transition hover:opacity-100"
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -217,40 +206,6 @@ export default function Landing() {
               </div>
             ))}
           </dl>
-        </div>
-      </section>
-
-      {/* SERVICES */}
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <div className="max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-            What we do
-          </span>
-          <h2 className="mt-4 font-display text-4xl font-bold sm:text-5xl">Three disciplines. <span className="text-gradient-ember">One creative engine.</span></h2>
-          <p className="mt-4 text-muted-foreground">We blend event production, digital strategy and on-ground activation under one roof — so your campaign doesn't get lost between agencies.</p>
-        </div>
-
-            <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {services.map((s, idx) => (
-            <article 
-              key={s.title} 
-                  className="group rounded-2xl border border-border/60 bg-card/60 p-7 transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-card-soft"
-              style={{ animationDelay: `${idx * 0.1}s` }}
-            >
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-ember shadow-ember animate-sparkle">
-                <s.icon className="h-6 w-6 text-primary-foreground" />
-              </span>
-              <h3 className="mt-5 font-display text-xl font-bold">{s.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
-              <Link
-                to="/organizers"
-                className="mt-5 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent transition group-hover:gap-2"
-                aria-label={`Learn more about ${s.title}`}
-              >
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </article>
-          ))}
         </div>
       </section>
 
@@ -378,12 +333,14 @@ export default function Landing() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link
-                to="/contact"
+              <a
+                href="https://wa.me/254705333198?text=Hi%20Ross%20Ventures%2C%20I%20have%20an%20event%20or%20brand%20launch%20idea.%20Let%27s%20talk."
+                target="_blank"
+                rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3.5 text-sm font-semibold text-background transition hover:opacity-90"
               >
-                <Phone className="h-4 w-4" /> Talk to our team
-              </Link>
+                <Phone className="h-4 w-4" /> WhatsApp us
+              </a>
               <a
                 href="https://instagram.com/rv_entertainment"
                 target="_blank"
