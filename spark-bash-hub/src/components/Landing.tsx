@@ -123,7 +123,7 @@ export default function Landing() {
             <img
               src={rossVenturesLogo}
               alt=""
-              className="opacity-10 w-20 sm:w-36 md:w-48 lg:w-72 object-contain"
+              className="opacity-15 w-28 sm:w-44 md:w-64 lg:w-80 object-contain"
             />
           </div>
           <div className="absolute inset-0 bg-radial-glow opacity-10" />
@@ -174,11 +174,11 @@ export default function Landing() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Brands and people we&apos;ve worked with
             </p>
-            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-3 lg:grid-cols-6 items-center">
+            <div className="mt-4 grid grid-cols-3 gap-3 justify-items-stretch sm:grid-cols-3 lg:grid-cols-6 items-center">
               {partnerLogos.map((partner, idx) => (
-                <div key={partner.name} title={partner.name} className="flex items-center justify-center">
+                <div key={partner.name} title={partner.name} className="flex w-full items-center justify-center">
                   {idx < 4 ? (
-                    <div className="h-10 w-10 sm:h-16 sm:w-16 overflow-hidden rounded-full bg-background/80">
+                    <div className="h-12 w-12 sm:h-16 sm:w-16 overflow-hidden rounded-full bg-background/80">
                       <img
                         src={partner.img}
                         alt={partner.name}
@@ -189,7 +189,7 @@ export default function Landing() {
                     <img
                       src={partner.img}
                       alt={partner.name}
-                      className="max-h-8 sm:max-h-12 w-auto object-contain opacity-90 transition hover:opacity-100"
+                      className="max-h-10 sm:max-h-12 w-auto object-contain opacity-90 transition hover:opacity-100"
                     />
                   )}
                 </div>
@@ -197,7 +197,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <dl className="mt-10 grid max-w-2xl grid-cols-1 sm:grid-cols-3 gap-6">
+          <dl className="mt-10 hidden md:grid max-w-2xl grid-cols-3 gap-6">
             {[
               { k: "50+", v: "events delivered" },
               { k: "1.7K+", v: "monthly reach" },
