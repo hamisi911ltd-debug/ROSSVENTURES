@@ -5,7 +5,17 @@ import adani from "@/assets/event-adani-chill.png";
 import jkuatTakeover from "@/assets/event-jkuat-takeover.png";
 import culturJkuat from "@/assets/event-cultur-jkuat.png";
 import extravaganzaMejja from "@/assets/event-extravaganza-mejja.png";
-import planners from "@/assets/team-planners.png";
+import jkuatFreshers from "@/assets/jkuat-freshers-night.svg";
+import mrMissJkuat from "@/assets/mr-miss-jkuat-awards.svg";
+import fyndrPoster from "@/assets/fyndr-poster.svg";
+import freshazNight from "@/assets/jkuat-freshaz-night.svg";
+import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
+import culturFmLogo from "@/assets/cultur-fm-logo.jpeg";
+import jkuatGotTalentLogo from "@/assets/jkuat-got-talent-logo.jpeg";
+import jkuatLogo from "@/assets/jkuat-logo.jpeg";
+import jkusaLogo from "@/assets/jkusa-logo.jpeg";
+import safaricomLogo from "@/assets/safaricom-logo.jpeg";
+import steamLogo from "@/assets/steam-logo.jpeg";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -19,8 +29,6 @@ import {
   MapPin,
   Phone,
   Instagram,
-  PlayCircle,
-  Handshake,
 } from "lucide-react";
 
 const services = [
@@ -93,14 +101,41 @@ const portfolio = [
   },
 ];
 
-const partners = [
-  "JKUSA",
-  "JKUAT",
-  "STADA-JKUAT",
-  "ArtsyRenaissance",
-  "Cultur FM",
-  "Club 033",
-  "Office of the Sports & Entertainment Secretary",
+const heroPosters = [
+  {
+    img: jkuatFreshers,
+    title: "JKUAT Freshers Night",
+    note: "26 Sept 2025 · JKUAT Main Campus headline show featuring MC Pharaoh and DJ Davir.",
+  },
+  {
+    img: mrMissJkuat,
+    title: "Mr & Miss JKUAT Awards",
+    note: "12 Dec 2025 · Pavilion JKUAT — stage awards, student hosts and live performances.",
+  },
+  {
+    img: fyndrPoster,
+    title: "Fyndr Brand Launch",
+    note: "A brand lifestyle activation, campaign creatives and app launch energy.",
+  },
+  {
+    img: freshazNight,
+    title: "JKUAT Freshaz Night",
+    note: "A student celebration with DJs, performances and campus culture moments.",
+  },
+];
+
+const partnerLogos = [
+  { name: "Cultur FM", img: culturFmLogo },
+  { name: "JKUAT Got Talent", img: jkuatGotTalentLogo },
+  { name: "JKUAT", img: jkuatLogo },
+  { name: "JKUSA", img: jkusaLogo },
+  { name: "Safaricom", img: safaricomLogo },
+  { name: "Steam", img: steamLogo },
+  { name: "STADA-JKUAT", img: usaniifest },
+  { name: "ArtsyRenaissance", img: extravaganzaMejja },
+  { name: "Club 033", img: adani },
+  { name: "Ross Ventures", img: rossVenturesLogo },
+  { name: "Comrades Festival", img: comrades },
 ];
 
 export default function Landing() {
@@ -128,16 +163,31 @@ export default function Landing() {
 
         <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-8 sm:pt-10 md:pt-12">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/40 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur animate-ticket-slide">
-            <Sparkles className="h-3.5 w-3.5" /> Ross Ventures Limited · Nairobi, Kenya
+            <Sparkles className="h-3.5 w-3.5" /> Book the next event
           </span>
 
           <h1 className="mt-4 max-w-4xl font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
-            Event planning, marketing, concerts and consultation — full‑service production for live events, campus activations and brand experiences.
+            Posters for the next event to book.
           </h1>
 
           <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            From campus festivals and concerts to digital activations and roadshows — Ross Ventures brings strategy, production, and audience energy together.
+            We produce live events, campus activations and brand experiences with energy, audience reach and unforgettable visuals.
           </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {heroPosters.map((event) => (
+              <article
+                key={event.title}
+                className="overflow-hidden rounded-3xl border border-border/60 bg-card/70 shadow-card-soft transition hover:-translate-y-1 hover:shadow-glow"
+              >
+                <img src={event.img} alt={event.title} className="h-56 w-full object-cover" />
+                <div className="p-4">
+                  <h3 className="font-display text-sm font-bold text-foreground">{event.title}</h3>
+                  <p className="mt-2 text-[13px] leading-5 text-muted-foreground">{event.note}</p>
+                </div>
+              </article>
+            ))}
+          </div>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
@@ -160,29 +210,20 @@ export default function Landing() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Brands, partners and people we've worked with
             </p>
-            <div className="mt-4 flex flex-wrap items-stretch gap-3">
-              {partners.map((p) => {
-                const stopwords = ["of", "the", "and", "&", "for"];
-                const parts = p.split(/\s+/).filter((w) => !stopwords.includes(w.toLowerCase()));
-                const initials = parts.length
-                  ? parts.slice(0, 2).map((s) => s[0]).join("")
-                  : p.slice(0, 2).toUpperCase();
-                return (
-                  <div
-                    key={p}
-                    title={p}
-                    className="group flex min-w-[180px] max-w-xs items-center gap-3 rounded-xl border border-border/40 bg-card/30 p-3 transition hover:scale-105 hover:shadow-glow"
-                  >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary-foreground shadow-card-soft">
-                      {initials.toUpperCase()}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-display text-sm font-bold text-foreground break-words leading-tight">{p}</div>
-                      <div className="text-[11px] text-muted-foreground">Partner</div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {partnerLogos.map((partner) => (
+                <div
+                  key={partner.name}
+                  title={partner.name}
+                  className="group flex min-h-[88px] items-center justify-center rounded-3xl border border-border/40 bg-card/30 p-4 transition hover:scale-105 hover:shadow-glow"
+                >
+                  <img
+                    src={partner.img}
+                    alt={partner.name}
+                    className="max-h-12 w-full object-contain opacity-90 transition group-hover:opacity-100"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -231,49 +272,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FEATURED EVENT — COMRADES FESTIVAL */}
-      <section className="relative overflow-hidden border-y border-border/60 bg-card/40 py-12">
-        <div className="absolute inset-0 bg-radial-glow opacity-40" />
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 lg:grid-cols-2 lg:items-center">
-          <div className="relative">
-            <div className="absolute -inset-6 rounded-3xl bg-gradient-ember opacity-20 blur-3xl" />
-            <img
-              src={comrades}
-              alt="Comrades Festival 1.0 poster — RV Entertainment x JKUSA"
-              className="relative w-full rounded-3xl border border-border/60 object-cover shadow-glow"
-              width={900}
-              height={1100}
-            />
-          </div>
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-              <CalendarDays className="h-3.5 w-3.5" /> Headline event · 2026
-            </span>
-            <h2 className="mt-4 font-display text-4xl font-bold leading-tight sm:text-5xl">
-              Comrades Festival <span className="text-gradient-ember">1.0</span>
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              In partnership with <strong className="text-foreground">JKUSA</strong>, RV Entertainment presents the launch edition of Comrades Festival — a full-day celebration of music, games and culture for the Kenyan campus community. Cool vibes. Live performances. Memories worth showing up for.
-            </p>
-            <ul className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
-              <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-accent" /> JKUAT, Juja</li>
-              <li className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-accent" /> 16th September 2026, from 2PM</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Early Bird KES 450</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Advance KES 600 · Gate KES 800</li>
-              <li className="flex items-center gap-2 sm:col-span-2"><CheckCircle2 className="h-4 w-4 text-accent" /> VVIP KES 2,000 — limited tickets</li>
-            </ul>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/events" className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-ember">
-                Get tickets <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a href="tel:+254705333198" className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-6 py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-secondary">
-                <Phone className="h-4 w-4" /> Sponsorships: +254 705 333 198
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* PORTFOLIO */}
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="flex items-end justify-between gap-6">
@@ -311,67 +309,6 @@ export default function Landing() {
               </div>
             </article>
           ))}
-        </div>
-      </section>
-
-      {/* SHOWREEL */}
-      <section className="border-y border-border/60 bg-card/40 py-12">
-        <div className="mx-auto max-w-5xl px-4">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-              <PlayCircle className="h-3.5 w-3.5" /> From the ground
-            </span>
-            <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">A look inside our productions</h2>
-          </div>
-          <div className="mt-8 overflow-hidden rounded-3xl border border-primary/30 shadow-glow">
-            <video
-              src="/events/showreel.mp4"
-              controls
-              playsInline
-              preload="metadata"
-              className="aspect-video w-full bg-black object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* THE PEOPLE BEHIND ROSS VENTURES */}
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-          <div className="relative">
-            <div className="absolute -inset-6 rounded-3xl bg-gradient-ember opacity-20 blur-3xl" />
-            <img
-              src={planners}
-              alt="The Ross Ventures planning team and partner network"
-              className="relative w-full rounded-3xl border border-border/60 object-cover shadow-glow"
-              width={900}
-              height={1100}
-            />
-          </div>
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-              <Handshake className="h-3.5 w-3.5" /> The team
-            </span>
-            <h2 className="mt-4 font-display text-4xl font-bold leading-tight sm:text-5xl">
-              The planners <span className="text-gradient-ember">and the network</span> behind the shows.
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Ross Ventures is led by a small, hands-on team of event producers and marketers — and powered by deep relationships with student leaders, university offices, artists, MCs, venue owners and brand partners across Kenya.
-            </p>
-            <ul className="mt-6 grid gap-3 text-sm">
-              <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-accent" /> Direct partnerships with JKUSA, STADA-JKUAT and the Office of the Sports & Entertainment Secretary.</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-accent" /> A trusted roster of hosts and performers including MC Pharaoh, Clinton Chief, ArtsyCulture The Band and more.</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-accent" /> Working relationships with venues, vendors and sponsors across Juja, Nairobi and beyond.</li>
-            </ul>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/about" className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-ember">
-                Meet the team <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-6 py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-secondary">
-                <Phone className="h-4 w-4" /> Partner with us
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 
