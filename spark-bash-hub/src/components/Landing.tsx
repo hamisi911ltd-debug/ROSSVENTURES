@@ -10,12 +10,6 @@ import mrMissJkuat from "@/assets/mr-miss-jkuat-awards.svg";
 import fyndrPoster from "@/assets/fyndr-poster.svg";
 import freshazNight from "@/assets/jkuat-freshaz-night.svg";
 import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
-import culturFmLogo from "@/assets/cultur-fm-logo.jpeg";
-import jkuatGotTalentLogo from "@/assets/jkuat-got-talent-logo.jpeg";
-import jkuatLogo from "@/assets/jkuat-logo.jpeg";
-import jkusaLogo from "@/assets/jkusa-logo.jpeg";
-import safaricomLogo from "@/assets/safaricom-logo.jpeg";
-import steamLogo from "@/assets/steam-logo.jpeg";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -125,15 +119,6 @@ const heroPosters = [
   },
 ];
 
-const partnerLogos = [
-  { name: "Cultur FM", img: culturFmLogo },
-  { name: "JKUAT Got Talent", img: jkuatGotTalentLogo },
-  { name: "JKUAT", img: jkuatLogo },
-  { name: "JKUSA", img: jkusaLogo },
-  { name: "Safaricom", img: safaricomLogo },
-  { name: "Steam", img: steamLogo },
-];
-
 export default function Landing() {
   return (
     <main>
@@ -184,47 +169,6 @@ export default function Landing() {
             >
               See our events
             </Link>
-          </div>
-
-          {/* Partner / brands strip */}
-          <div className="mt-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Brands, partners and people we've worked with
-            </p>
-            <div className="mt-4 space-y-4">
-              {/* First 4 circular logos - horizontal line */}
-              <div className="grid grid-cols-4 gap-4">
-                {partnerLogos.slice(0, 4).map((partner) => (
-                  <div
-                    key={partner.name}
-                    title={partner.name}
-                    className="group flex h-20 w-20 sm:h-24 sm:w-24 mx-auto items-center justify-center rounded-full border border-border/40 bg-card/30 transition hover:scale-110 hover:shadow-glow"
-                  >
-                    <img
-                      src={partner.img}
-                      alt={partner.name}
-                      className="h-14 w-14 sm:h-16 sm:w-16 rounded-full object-cover opacity-90 transition group-hover:opacity-100"
-                    />
-                  </div>
-                ))}
-              </div>
-              {/* Last 2 square logos - below */}
-              <div className="grid grid-cols-2 gap-4 max-w-xs">
-                {partnerLogos.slice(4, 6).map((partner) => (
-                  <div
-                    key={partner.name}
-                    title={partner.name}
-                    className="group flex items-center justify-center transition hover:scale-105"
-                  >
-                    <img
-                      src={partner.img}
-                      alt={partner.name}
-                      className="h-14 w-auto max-w-full object-contain opacity-80 transition group-hover:opacity-100"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           <dl className="mt-10 grid max-w-2xl grid-cols-3 gap-6">
@@ -378,31 +322,6 @@ export default function Landing() {
               </div>
             </article>
           ))}
-        </div>
-      </section>
-
-      {/* WHY US */}
-      <section className="border-y border-border/60 bg-card/40 py-12">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-              Why Ross Ventures
-            </span>
-            <h2 className="mt-4 font-display text-4xl font-bold sm:text-5xl">Built in Kenya. <span className="text-gradient-ember">Made for the culture.</span></h2>
-          </div>
-          <ol className="mt-12 grid gap-6 md:grid-cols-3">
-            {[
-              { n: "01", t: "Concept to gate", d: "We handle creative direction, production, ticketing partnerships and on-ground execution." },
-              { n: "02", t: "Campus & creative reach", d: "Strong partnerships with student bodies like JKUSA and a homegrown influencer network." },
-              { n: "03", t: "Brand-safe activations", d: "Sponsorship integrations designed to actually move product, not just place a logo." },
-            ].map((s) => (
-              <li key={s.n} className="rounded-2xl border border-border/60 bg-background/60 p-6 transition hover:border-primary/40">
-                <span className="font-display text-3xl font-bold text-gradient-ember">{s.n}</span>
-                <h3 className="mt-3 font-semibold">{s.t}</h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">{s.d}</p>
-              </li>
-            ))}
-          </ol>
         </div>
       </section>
 
