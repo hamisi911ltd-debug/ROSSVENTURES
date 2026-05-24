@@ -119,10 +119,13 @@ export default function Landing() {
       {/* HERO */}
       <section className="relative overflow-hidden min-h-screen">
         <div className="absolute inset-0">
-          <div
-            className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-10"
-            style={{ backgroundImage: `url(${rossVenturesLogo})` }}
-          />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <img
+              src={rossVenturesLogo}
+              alt=""
+              className="opacity-10 w-20 sm:w-36 md:w-48 lg:w-72 object-contain"
+            />
+          </div>
           <div className="absolute inset-0 bg-radial-glow opacity-10" />
           {/* Event planning light and confetti accents */}
           <div className="absolute inset-0 overflow-hidden">
@@ -143,39 +146,39 @@ export default function Landing() {
             <Sparkles className="h-3.5 w-3.5" /> Book the next event
           </span>
 
-          <h1 className="mt-4 max-w-4xl font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="mt-4 max-w-4xl font-display text-2xl font-extrabold leading-[1.1] tracking-tight sm:text-4xl md:text-6xl">
             Lit upcoming events to book.
           </h1>
 
-          <p className="mt-4 max-w-3xl text-base text-muted-foreground sm:text-lg leading-relaxed">
+          <p className="mt-4 max-w-3xl text-sm text-muted-foreground sm:text-base leading-relaxed">
             Ross Ventures Limited is a full-service event production and marketing agency built in Kenya and made for the culture. We specialize in creating unforgettable experiences—from intimate campus activations to headline festivals—combining creative excellence with audience reach. With expertise in event planning, digital marketing, and on-ground activations, we turn visions into reality with energy, authenticity, and impact.
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="mt-7 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <Link
               to="/contact"
-              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-card-soft transition hover:shadow-ember animate-float"
+              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-4 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold text-primary-foreground shadow-card-soft transition hover:shadow-ember animate-float"
             >
               Become a partner
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </Link>
             <Link
               to="/events"
-              className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-6 py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-secondary"
+              className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-4 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-secondary justify-center"
             >
               See our events
             </Link>
-          </div>
+          </div> 
 
           <div className="mt-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Brands and people we&apos;ve worked with
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6 items-center">
+            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-3 lg:grid-cols-6 items-center">
               {partnerLogos.map((partner, idx) => (
                 <div key={partner.name} title={partner.name} className="flex items-center justify-center">
                   {idx < 4 ? (
-                    <div className="h-16 w-16 overflow-hidden rounded-full bg-background/80">
+                    <div className="h-10 w-10 sm:h-16 sm:w-16 overflow-hidden rounded-full bg-background/80">
                       <img
                         src={partner.img}
                         alt={partner.name}
@@ -186,7 +189,7 @@ export default function Landing() {
                     <img
                       src={partner.img}
                       alt={partner.name}
-                      className="max-h-12 w-auto object-contain opacity-90 transition hover:opacity-100"
+                      className="max-h-8 sm:max-h-12 w-auto object-contain opacity-90 transition hover:opacity-100"
                     />
                   )}
                 </div>
@@ -194,7 +197,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <dl className="mt-10 grid max-w-2xl grid-cols-3 gap-6">
+          <dl className="mt-10 grid max-w-2xl grid-cols-1 sm:grid-cols-3 gap-6">
             {[
               { k: "50+", v: "events delivered" },
               { k: "1.7K+", v: "monthly reach" },
@@ -325,19 +328,19 @@ export default function Landing() {
           <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
           <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
             <div>
-              <h2 className="font-display text-4xl font-bold leading-tight sm:text-5xl">
+              <h2 className="font-display text-2xl font-bold leading-tight sm:text-4xl">
                 Have an event or a brand to launch?
               </h2>
-              <p className="mt-4 max-w-md text-primary-foreground/80">
+              <p className="mt-4 max-w-md text-sm text-primary-foreground/80">
                 Tell us the vision. We'll bring the production, the audience and the energy.
-              </p>
+              </p> 
             </div>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
               <a
                 href="https://wa.me/254705333198?text=Hi%20Ross%20Ventures%2C%20I%20have%20an%20event%20or%20brand%20launch%20idea.%20Let%27s%20talk."
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3.5 text-sm font-semibold text-background transition hover:opacity-90"
+                className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl bg-foreground px-3 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold text-background transition hover:opacity-90 justify-center"
               >
                 <Phone className="h-4 w-4" /> WhatsApp us
               </a>
@@ -345,10 +348,21 @@ export default function Landing() {
                 href="https://instagram.com/rv_entertainment"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-foreground/30 bg-foreground/10 px-6 py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-foreground/20"
+                className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-foreground/30 bg-foreground/10 px-3 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-foreground/20 justify-center"
               >
                 <Instagram className="h-4 w-4" /> Follow @rv_entertainment
               </a>
++              <a
++                href="https://www.tiktok.com/@rv_entertainment"
++                target="_blank"
++                rel="noreferrer"
++                className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-foreground/30 bg-foreground/10 px-3 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-foreground/20 justify-center"
++              >
++                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
++                  <path fill="currentColor" d="M16.5 6.5v4.1c0 1.1-.9 2-2 2-1.1 0-2-.9-2-2V7c.6.2 1.2.3 1.9.3 0 0 .1 0 .1 0V6.5h.1c.4 0 .8-.1 1.1-.3zM19 8.3c-.3.1-.6.1-.9.1-.3 0-.5-.1-.8-.1v6.1c0 2.9-2.4 5.3-5.3 5.3-2.9 0-5.3-2.4-5.3-5.3S9.1 9 12 9c.2 0 .4 0 .6.0v2.2c-.2 0-.4 0-.6 0-1.7 0-3 1.4-3 3.1s1.3 3.1 3 3.1 3-1.4 3-3.1V8.3h.4c.4 0 .8 0 1.2-.1v-1.2c-.4.1-.8.2-1.2.2z"/>
++                </svg>
++                TikTok
++              </a>
             </div>
           </div>
         </div>
