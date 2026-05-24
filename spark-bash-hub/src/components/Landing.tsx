@@ -138,12 +138,11 @@ export default function Landing() {
   return (
     <main>
       {/* HERO */}
-      <section className="relative overflow-hidden bg-white">
+      <section className="relative overflow-hidden min-h-screen">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-white" />
           <div
-            className="absolute inset-0 bg-center bg-no-repeat opacity-10"
-            style={{ backgroundImage: `url(${rossVenturesLogo})`, backgroundSize: "contain" }}
+            className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-10"
+            style={{ backgroundImage: `url(${rossVenturesLogo})` }}
           />
           <div className="absolute inset-0 bg-radial-glow opacity-10" />
           {/* Event planning light and confetti accents */}
