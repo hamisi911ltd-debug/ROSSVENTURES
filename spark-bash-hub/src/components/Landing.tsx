@@ -19,6 +19,7 @@ import steamLogo from "@/assets/steam-logo.jpeg";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
+  Calendar,
   CalendarDays,
   Megaphone,
   PartyPopper,
