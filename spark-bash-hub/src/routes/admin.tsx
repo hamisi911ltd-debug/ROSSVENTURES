@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Loader2, Upload, Trash2, LogOut, Eye, EyeOff, ImageIcon, Search } from "lucide-react";
@@ -21,12 +20,42 @@ type EventRow = {
   description: string | null;
   venue: string | null;
   event_date: string | null;
-  poster_url: string | null;
   ticket_price: string | null;
   tag: string | null;
   is_published: boolean;
   created_at: string;
+  poster_url: string | null;
 };
+
+function normalizeEventRow(raw: unknown): EventRow | null {
+  if (typeof raw !== "object" || raw === null) return null;
+
+  const data = raw as Record<string, unknown>;
+  const asString = (value: unknown): string =>
+    typeof value === "string" ? value : value === null || value === undefined ? "" : String(value);
+  const asNullableString = (value: unknown): string | null => {
+    if (value === null || value === undefined) return null;
+    return typeof value === "string" ? value : String(value);
+  };
+  const asBoolean = (value: unknown): boolean =>
+    typeof value === "boolean" ? value : value === "true" ? true : false;
+
+  const title = asString(data.title).trim();
+  if (!title) return null;
+
+  return {
+    id: asString(data.id) || crypto?.randomUUID?.() || Math.random().toString(36).slice(2),
+    title,
+    description: asNullableString(data.description),
+    venue: asNullableString(data.venue),
+    event_date: asNullableString(data.event_date),
+    ticket_price: asNullableString(data.ticket_price),
+    tag: asNullableString(data.tag),
+    is_published: asBoolean(data.is_published),
+    created_at: asString(data.created_at) || new Date().toISOString(),
+    poster_url: asNullableString(data.poster_url),
+  };
+}
 
 const eventSchema = z.object({
   title: z.string().trim().min(2, "Title is required").max(120),
@@ -37,12 +66,48 @@ const eventSchema = z.object({
   description: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
+const STORAGE_KEY = "rossventures-admin-events";
+const AUTH_KEY = "rossventures-admin-auth";
+
+function loadStoredEvents(): EventRow[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .map(normalizeEventRow)
+      .filter((event): event is EventRow => event !== null);
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredEvents(events: EventRow[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Failed to read image file."));
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function AdminPage() {
   const navigate = useNavigate();
   const [events, setEvents] = useState<EventRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [checkedAuth, setCheckedAuth] = useState(false);
 
-  // form
   const [title, setTitle] = useState("");
   const [venue, setVenue] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -68,20 +133,24 @@ function AdminPage() {
     );
   }, [events, searchQuery]);
 
-  const loadEvents = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    else setEvents((data ?? []) as EventRow[]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const authorized = window.sessionStorage.getItem(AUTH_KEY) === "true";
+    if (!authorized) {
+      setCheckedAuth(true);
+      navigate({ to: "/auth" });
+      return;
+    }
+    setEvents(loadStoredEvents());
+    setCheckedAuth(true);
     setLoading(false);
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   function onPickFile(f: File | null) {
     setFile(f);
@@ -94,39 +163,46 @@ function AdminPage() {
     const parsed = eventSchema.safeParse({
       title, venue, event_date: eventDate, ticket_price: ticketPrice, tag, description,
     });
+
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
+
     setSubmitting(true);
     try {
       let posterUrl: string | null = null;
       if (file) {
         if (file.size > 5 * 1024 * 1024) throw new Error("Image must be under 5 MB");
-        const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-        const path = `${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("event-posters")
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("event-posters").getPublicUrl(path);
-        posterUrl = pub.publicUrl;
+        posterUrl = await readFileAsDataUrl(file);
       }
-      const { error } = await supabase.from("events").insert({
-        title: parsed.data.title,
-        venue: parsed.data.venue || null,
-        event_date: parsed.data.event_date || null,
-        ticket_price: parsed.data.ticket_price || null,
-        tag: parsed.data.tag || null,
-        description: parsed.data.description || null,
-        poster_url: posterUrl,
-        is_published: true,
-      });
-      if (error) throw error;
+
+      const nextEvents = [
+        {
+          id: crypto.randomUUID(),
+          title: parsed.data.title,
+          venue: parsed.data.venue || null,
+          event_date: parsed.data.event_date || null,
+          ticket_price: parsed.data.ticket_price || null,
+          tag: parsed.data.tag || null,
+          description: parsed.data.description || null,
+          poster_url: posterUrl,
+          is_published: true,
+          created_at: new Date().toISOString(),
+        },
+        ...events,
+      ];
+
+      saveStoredEvents(nextEvents);
+      setEvents(nextEvents);
+      setTitle("");
+      setVenue("");
+      setEventDate("");
+      setTicketPrice("");
+      setTag("");
+      setDescription("");
+      onPickFile(null);
       toast.success("Event added");
-      setTitle(""); setVenue(""); setEventDate(""); setTicketPrice("");
-      setTag(""); setDescription(""); onPickFile(null);
-      loadEvents();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add event");
     } finally {
@@ -134,27 +210,29 @@ function AdminPage() {
     }
   }
 
-  async function togglePublish(ev: EventRow) {
-    const { error } = await supabase
-      .from("events")
-      .update({ is_published: !ev.is_published })
-      .eq("id", ev.id);
-    if (error) toast.error(error.message);
-    else loadEvents();
-  }
+  const togglePublish = useCallback((ev: EventRow) => {
+    const nextEvents = events.map((item) =>
+      item.id === ev.id ? { ...item, is_published: !item.is_published } : item,
+    );
+    setEvents(nextEvents);
+    saveStoredEvents(nextEvents);
+  }, [events]);
 
-  async function deleteEvent(ev: EventRow) {
+  const deleteEvent = useCallback((ev: EventRow) => {
     if (!confirm(`Delete "${ev.title}"?`)) return;
-    const { error } = await supabase.from("events").delete().eq("id", ev.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Deleted");
-      loadEvents();
-    }
-  }
+    const nextEvents = events.filter((item) => item.id !== ev.id);
+    setEvents(nextEvents);
+    saveStoredEvents(nextEvents);
+    toast.success("Deleted");
+  }, [events]);
 
-  function signOut() {
+  const signOut = useCallback(() => {
+    if (typeof window !== "undefined") window.sessionStorage.removeItem(AUTH_KEY);
     navigate({ to: "/auth" });
+  }, [navigate]);
+
+  if (!checkedAuth) {
+    return null;
   }
 
   return (
@@ -165,7 +243,7 @@ function AdminPage() {
             Admin dashboard
           </span>
           <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">Manage <span className="text-gradient-ember">events</span></h1>
-          <p className="mt-1 text-sm text-muted-foreground">Upload posters and publish new Ross Ventures events.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Store event data locally in Cloudflare deployment and avoid Supabase entirely.</p>
         </div>
         <button onClick={signOut} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary">
           <LogOut className="h-4 w-4" /> Sign out
@@ -191,7 +269,6 @@ function AdminPage() {
       </div>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_1.2fr]">
-        {/* FORM */}
         <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-border/60 bg-card/60 p-6">
           <h2 className="font-display text-xl font-bold">Add new event</h2>
 
@@ -200,7 +277,7 @@ function AdminPage() {
             <div className="mt-1.5 grid gap-3 sm:grid-cols-[120px_1fr]">
               <div className="relative grid aspect-[3/4] w-[120px] place-items-center overflow-hidden rounded-xl border border-dashed border-border bg-background">
                 {preview ? (
-                  <img src={preview} alt="" className="h-full w-full object-cover" />
+                  <img src={preview} alt="Poster preview" className="h-full w-full object-cover" />
                 ) : (
                   <ImageIcon className="h-6 w-6 text-muted-foreground" />
                 )}
@@ -246,7 +323,6 @@ function AdminPage() {
           </button>
         </form>
 
-        {/* LIST */}
         <section>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -280,7 +356,7 @@ function AdminPage() {
                 <li key={ev.id} className="flex gap-4 rounded-xl border border-border/60 bg-card/60 p-3">
                   <div className="grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-background">
                     {ev.poster_url ? (
-                      <img src={ev.poster_url} alt="" className="h-full w-full object-cover" />
+                      <img src={ev.poster_url} alt="Poster" className="h-full w-full object-cover" />
                     ) : (
                       <ImageIcon className="h-5 w-5 text-muted-foreground" />
                     )}
