@@ -119,11 +119,11 @@ export default function Landing() {
       {/* HERO */}
       <section className="relative overflow-hidden min-h-screen">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="absolute left-1/2 top-8 -translate-x-1/2 pointer-events-none">
             <img
               src={rossVenturesLogo}
-              alt=""
-              className="opacity-15 w-28 sm:w-44 md:w-64 lg:w-80 object-contain"
+              alt="Ross Ventures logo background"
+              className="opacity-20 w-32 sm:w-44 md:w-56 lg:w-72 xl:w-80 object-contain"
             />
           </div>
           <div className="absolute inset-0 bg-radial-glow opacity-10" />

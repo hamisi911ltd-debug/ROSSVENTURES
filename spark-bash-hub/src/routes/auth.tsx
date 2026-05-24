@@ -32,7 +32,19 @@ function AuthPage() {
         body: JSON.stringify({ password }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") ?? "";
+      const responseText = await response.text();
+      let data: { ok?: boolean; message?: string } = { ok: false };
+      if (contentType.includes("application/json")) {
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          data = { ok: false, message: `Invalid JSON response: ${responseText}` };
+        }
+      } else {
+        data = { ok: false, message: `Unexpected server response: ${responseText}` };
+      }
+
       if (!response.ok || !data.ok) {
         const message = data?.message ?? "Invalid password.";
         setError(message);
