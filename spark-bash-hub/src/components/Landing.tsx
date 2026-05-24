@@ -176,7 +176,9 @@ export default function Landing() {
                 key={event.title}
                 className="overflow-hidden rounded-3xl border border-border/60 bg-card/70 shadow-card-soft transition hover:-translate-y-1 hover:shadow-glow"
               >
-                <img src={event.img} alt={event.title} loading="lazy" className="h-56 w-full object-cover bg-gradient-ember" />
+                <div className="h-56 w-full bg-gradient-to-br from-accent/30 to-primary/30 overflow-hidden flex items-center justify-center">
+                  <img src={event.img} alt={event.title} loading="lazy" className="h-full w-full object-contain" />
+                </div>
                 <div className="p-4">
                   <h3 className="font-display text-sm font-bold text-foreground">{event.title}</h3>
                   <p className="mt-2 text-[13px] leading-5 text-muted-foreground">{event.note}</p>
@@ -207,17 +209,25 @@ export default function Landing() {
               Brands, partners and people we've worked with
             </p>
             <div className="mt-4 grid gap-6 sm:grid-cols-3 lg:grid-cols-6">
-              {partnerLogos.map((partner) => (
+              {partnerLogos.map((partner, idx) => (
                 <div
                   key={partner.name}
                   title={partner.name}
-                  className="group flex items-center justify-center transition hover:scale-105"
+                  className={idx < 4 ? "group flex h-24 w-24 mx-auto items-center justify-center rounded-full border border-border/40 bg-card/30 transition hover:scale-110 hover:shadow-glow" : "group flex items-center justify-center transition hover:scale-105"}
                 >
-                  <img
-                    src={partner.img}
-                    alt={partner.name}
-                    className="h-16 w-auto max-w-full object-contain opacity-80 transition group-hover:opacity-100"
-                  />
+                  {idx < 4 ? (
+                    <img
+                      src={partner.img}
+                      alt={partner.name}
+                      className="h-16 w-16 rounded-full object-cover opacity-90 transition group-hover:opacity-100"
+                    />
+                  ) : (
+                    <img
+                      src={partner.img}
+                      alt={partner.name}
+                      className="h-16 w-auto max-w-full object-contain opacity-80 transition group-hover:opacity-100"
+                    />
+                  )}
                 </div>
               ))}
             </div>
