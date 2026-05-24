@@ -201,21 +201,21 @@ export default function Landing() {
           </div>
 
           {/* Partner / brands strip */}
-          <div className="mt-8 rounded-2xl border border-border/50 bg-background/40 p-4 backdrop-blur">
+          <div className="mt-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Brands, partners and people we've worked with
             </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-4 grid gap-6 sm:grid-cols-3 lg:grid-cols-6">
               {partnerLogos.map((partner) => (
                 <div
                   key={partner.name}
                   title={partner.name}
-                  className="group flex h-24 w-24 mx-auto items-center justify-center rounded-full border border-border/40 bg-card/30 transition hover:scale-110 hover:shadow-glow"
+                  className="group flex items-center justify-center transition hover:scale-105"
                 >
                   <img
                     src={partner.img}
                     alt={partner.name}
-                    className="h-16 w-16 rounded-full object-cover opacity-90 transition group-hover:opacity-100"
+                    className="h-16 w-auto max-w-full object-contain opacity-80 transition group-hover:opacity-100"
                   />
                 </div>
               ))}
@@ -263,6 +263,75 @@ export default function Landing() {
                 Learn more <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </article>
+          ))}
+        </div>
+      </section>
+
+      {/* UPCOMING EVENTS TO BOOK */}
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <div className="flex items-end justify-between gap-6">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
+              <CalendarDays className="h-3.5 w-3.5" /> Book Now
+            </span>
+            <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Upcoming events to book</h2>
+          </div>
+        </div>
+
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              id: "comrades-festival",
+              img: comrades,
+              title: "Comrades Festival 1.0",
+              date: "16 September 2026",
+              venue: "JKUAT, Juja",
+              desc: "Afro-fusion artists, games and cool vibes for the campus crowd",
+            },
+            {
+              id: "jkuat-extravaganza",
+              img: extravaganza,
+              title: "JKUAT Extravaganza",
+              date: "27 March 2026",
+              venue: "JKUAT Pavilion Grounds",
+              desc: "Food, games, art & craft with the Office of the Sports & Entertainment Secretary",
+            },
+            {
+              id: "usaniifest",
+              img: usaniifest,
+              title: "UsaniiFest 001",
+              date: "6 March 2026",
+              venue: "JKUAT Assembly Hall",
+              desc: "Music, food, art & vibes celebrating campus creativity",
+            },
+          ].map((event) => (
+            <Link
+              key={event.id}
+              to={`/events/${event.id}`}
+              className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-2 hover:border-primary/40 hover:shadow-glow"
+            >
+              <div className="relative aspect-video overflow-hidden">
+                <img
+                  src={event.img}
+                  alt={event.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                />
+              </div>
+              <div className="p-5">
+                <h3 className="font-display text-lg font-bold leading-tight">{event.title}</h3>
+                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4 text-accent" /> {event.date}
+                </p>
+                <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground ml-0 block">
+                  <MapPin className="h-4 w-4 text-accent" /> {event.venue}
+                </p>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{event.desc}</p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent transition group-hover:gap-3">
+                  Book tickets <ArrowRight className="h-4 w-4" />
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
