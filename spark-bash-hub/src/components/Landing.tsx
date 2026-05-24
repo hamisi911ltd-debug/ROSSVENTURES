@@ -166,26 +166,9 @@ export default function Landing() {
             Lit upcoming events to book.
           </h1>
 
-          <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            We produce live events, campus activations and brand experiences with energy, audience reach and unforgettable visuals.
+          <p className="mt-4 max-w-3xl text-base text-muted-foreground sm:text-lg leading-relaxed">
+            Ross Ventures Limited is a full-service event production and marketing agency built in Kenya and made for the culture. We specialize in creating unforgettable experiences—from intimate campus activations to headline festivals—combining creative excellence with audience reach. With expertise in event planning, digital marketing, and on-ground activations, we turn visions into reality with energy, authenticity, and impact.
           </p>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {heroPosters.map((event) => (
-              <article
-                key={event.title}
-                className="overflow-hidden rounded-3xl border border-border/60 bg-card/70 shadow-card-soft transition hover:-translate-y-1 hover:shadow-glow"
-              >
-                <div className="h-56 w-full bg-gradient-to-br from-accent/30 to-primary/30 overflow-hidden flex items-center justify-center">
-                  <img src={event.img} alt={event.title} loading="lazy" className="h-full w-full object-contain" />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-display text-sm font-bold text-foreground">{event.title}</h3>
-                  <p className="mt-2 text-[13px] leading-5 text-muted-foreground">{event.note}</p>
-                </div>
-              </article>
-            ))}
-          </div>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
@@ -208,28 +191,39 @@ export default function Landing() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Brands, partners and people we've worked with
             </p>
-            <div className="mt-4 grid gap-6 sm:grid-cols-3 lg:grid-cols-6">
-              {partnerLogos.map((partner, idx) => (
-                <div
-                  key={partner.name}
-                  title={partner.name}
-                  className={idx < 4 ? "group flex h-24 w-24 mx-auto items-center justify-center rounded-full border border-border/40 bg-card/30 transition hover:scale-110 hover:shadow-glow" : "group flex items-center justify-center transition hover:scale-105"}
-                >
-                  {idx < 4 ? (
+            <div className="mt-4 space-y-4">
+              {/* First 4 circular logos - horizontal line */}
+              <div className="grid grid-cols-4 gap-4">
+                {partnerLogos.slice(0, 4).map((partner) => (
+                  <div
+                    key={partner.name}
+                    title={partner.name}
+                    className="group flex h-20 w-20 sm:h-24 sm:w-24 mx-auto items-center justify-center rounded-full border border-border/40 bg-card/30 transition hover:scale-110 hover:shadow-glow"
+                  >
                     <img
                       src={partner.img}
                       alt={partner.name}
-                      className="h-16 w-16 rounded-full object-cover opacity-90 transition group-hover:opacity-100"
+                      className="h-14 w-14 sm:h-16 sm:w-16 rounded-full object-cover opacity-90 transition group-hover:opacity-100"
                     />
-                  ) : (
+                  </div>
+                ))}
+              </div>
+              {/* Last 2 square logos - below */}
+              <div className="grid grid-cols-2 gap-4 max-w-xs">
+                {partnerLogos.slice(4, 6).map((partner) => (
+                  <div
+                    key={partner.name}
+                    title={partner.name}
+                    className="group flex items-center justify-center transition hover:scale-105"
+                  >
                     <img
                       src={partner.img}
                       alt={partner.name}
-                      className="h-16 w-auto max-w-full object-contain opacity-80 transition group-hover:opacity-100"
+                      className="h-14 w-auto max-w-full object-contain opacity-80 transition group-hover:opacity-100"
                     />
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
