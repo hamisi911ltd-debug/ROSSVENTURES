@@ -187,7 +187,7 @@ export default function Landing() {
 
           <div className="mt-10 rounded-3xl border border-border/60 bg-card/50 p-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Brands, partners and people we&apos;ve worked with
+              Brands and people we&apos;ve worked with
             </p>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
               {partnerLogos.map((partner) => (
@@ -243,8 +243,12 @@ export default function Landing() {
               </span>
               <h3 className="mt-5 font-display text-xl font-bold">{s.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
-              <Link to="/organizers" className="mt-5 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent transition group-hover:gap-2">
-                Learn more <ArrowRight className="h-3.5 w-3.5" />
+              <Link
+                to="/organizers"
+                className="mt-5 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent transition group-hover:gap-2"
+                aria-label={`Learn more about ${s.title}`}
+              >
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </article>
           ))}
