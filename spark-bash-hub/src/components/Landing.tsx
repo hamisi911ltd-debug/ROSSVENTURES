@@ -131,11 +131,6 @@ const partnerLogos = [
   { name: "JKUSA", img: jkusaLogo },
   { name: "Safaricom", img: safaricomLogo },
   { name: "Steam", img: steamLogo },
-  { name: "STADA-JKUAT", img: usaniifest },
-  { name: "ArtsyRenaissance", img: extravaganzaMejja },
-  { name: "Club 033", img: adani },
-  { name: "Ross Ventures", img: rossVenturesLogo },
-  { name: "Comrades Festival", img: comrades },
 ];
 
 export default function Landing() {
@@ -167,7 +162,7 @@ export default function Landing() {
           </span>
 
           <h1 className="mt-4 max-w-4xl font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
-            Posters for the next event to book.
+            Lit upcoming events to book.
           </h1>
 
           <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
@@ -180,7 +175,7 @@ export default function Landing() {
                 key={event.title}
                 className="overflow-hidden rounded-3xl border border-border/60 bg-card/70 shadow-card-soft transition hover:-translate-y-1 hover:shadow-glow"
               >
-                <img src={event.img} alt={event.title} className="h-56 w-full object-cover" />
+                <img src={event.img} alt={event.title} loading="lazy" className="h-56 w-full object-cover bg-gradient-ember" />
                 <div className="p-4">
                   <h3 className="font-display text-sm font-bold text-foreground">{event.title}</h3>
                   <p className="mt-2 text-[13px] leading-5 text-muted-foreground">{event.note}</p>
@@ -215,12 +210,12 @@ export default function Landing() {
                 <div
                   key={partner.name}
                   title={partner.name}
-                  className="group flex min-h-[88px] items-center justify-center rounded-3xl border border-border/40 bg-card/30 p-4 transition hover:scale-105 hover:shadow-glow"
+                  className="group flex h-24 w-24 mx-auto items-center justify-center rounded-full border border-border/40 bg-card/30 transition hover:scale-110 hover:shadow-glow"
                 >
                   <img
                     src={partner.img}
                     alt={partner.name}
-                    className="max-h-12 w-full object-contain opacity-90 transition group-hover:opacity-100"
+                    className="h-16 w-16 rounded-full object-cover opacity-90 transition group-hover:opacity-100"
                   />
                 </div>
               ))}
