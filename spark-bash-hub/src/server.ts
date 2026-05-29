@@ -79,7 +79,10 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
 
-    if (url.pathname === "/admin-login" && request.method === "POST") {
+    if (url.pathname === "/admin-login") {
+      if (request.method !== "POST") {
+        return createJsonResponse({ ok: false, message: "Invalid request method." }, 405);
+      }
       try {
         const body = await request.json();
         const password = typeof body?.password === "string" ? body.password : "";

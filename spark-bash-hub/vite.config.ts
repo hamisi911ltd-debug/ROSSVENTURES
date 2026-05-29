@@ -23,7 +23,9 @@ export default defineConfig({
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
             try {
-              if (req.url === "/admin-login" && req.method === "POST") {
+              const rawUrl = req.url ?? "";
+              const pathname = rawUrl.startsWith("http") ? new URL(rawUrl).pathname : rawUrl.split("?")[0];
+              if (pathname === "/admin-login" && req.method === "POST") {
                 let body = "";
                 req.on("data", (chunk) => (body += chunk));
                 req.on("end", () => {
