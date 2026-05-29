@@ -2,7 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Loader2, Upload, Trash2, LogOut, Eye, EyeOff, ImageIcon, Search } from "lucide-react";
+import {
+  Loader2, Upload, Trash2, LogOut, Eye, EyeOff, ImageIcon,
+  Search, RefreshCw, Ticket, TrendingUp, CalendarDays, DollarSign,
+} from "lucide-react";
+import type { EventRow, BookingRow, TicketTier } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -14,60 +18,16 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type EventRow = {
-  id: string;
-  title: string;
-  description: string | null;
-  venue: string | null;
-  event_date: string | null;
-  ticket_price: string | null;
-  tag: string | null;
-  is_published: boolean;
-  created_at: string;
-  poster_url: string | null;
-};
-
-function normalizeEventRow(raw: unknown): EventRow | null {
-  if (typeof raw !== "object" || raw === null) return null;
-
-  const data = raw as Record<string, unknown>;
-  const asString = (value: unknown): string =>
-    typeof value === "string" ? value : value === null || value === undefined ? "" : String(value);
-  const asNullableString = (value: unknown): string | null => {
-    if (value === null || value === undefined) return null;
-    return typeof value === "string" ? value : String(value);
-  };
-  const asBoolean = (value: unknown): boolean =>
-    typeof value === "boolean" ? value : value === "true" ? true : false;
-
-  const title = asString(data.title).trim();
-  if (!title) return null;
-
-  return {
-    id: asString(data.id) || crypto?.randomUUID?.() || Math.random().toString(36).slice(2),
-    title,
-    description: asNullableString(data.description),
-    venue: asNullableString(data.venue),
-    event_date: asNullableString(data.event_date),
-    ticket_price: asNullableString(data.ticket_price),
-    tag: asNullableString(data.tag),
-    is_published: asBoolean(data.is_published),
-    created_at: asString(data.created_at) || new Date().toISOString(),
-    poster_url: asNullableString(data.poster_url),
-  };
-}
+const AUTH_KEY = "rossventures-admin-auth";
+const STORAGE_KEY = "rossventures-admin-events";
 
 const eventSchema = z.object({
-  title: z.string().trim().min(2, "Title is required").max(120),
+  title: z.string().trim().min(2).max(120),
   venue: z.string().trim().max(160).optional().or(z.literal("")),
-  event_date: z.string().max(40).optional().or(z.literal("")),
-  ticket_price: z.string().trim().max(80).optional().or(z.literal("")),
+  event_date: z.string().max(60).optional().or(z.literal("")),
   tag: z.string().trim().max(40).optional().or(z.literal("")),
   description: z.string().trim().max(2000).optional().or(z.literal("")),
 });
-
-const STORAGE_KEY = "rossventures-admin-events";
-const AUTH_KEY = "rossventures-admin-auth";
 
 function loadStoredEvents(): EventRow[] {
   if (typeof window === "undefined") return [];
@@ -75,14 +35,8 @@ function loadStoredEvents(): EventRow[] {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-
-    return parsed
-      .map(normalizeEventRow)
-      .filter((event): event is EventRow => event !== null);
-  } catch {
-    return [];
-  }
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
 }
 
 function saveStoredEvents(events: EventRow[]) {
@@ -95,62 +49,86 @@ function readFileAsDataUrl(file: File): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") resolve(reader.result);
-      else reject(new Error("Failed to read image file."));
+      else reject(new Error("Failed to read image"));
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 }
 
+async function syncEventsToServer(events: EventRow[]) {
+  try {
+    await fetch("/api/events", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ events }),
+    });
+  } catch {}
+}
+
+async function fetchBookings(): Promise<BookingRow[]> {
+  try {
+    const res = await fetch("/api/bookings");
+    const data = await res.json() as { ok: boolean; bookings: BookingRow[] };
+    return data.ok ? data.bookings : [];
+  } catch { return []; }
+}
+
 function AdminPage() {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<"events" | "bookings">("events");
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Form state
   const [title, setTitle] = useState("");
   const [venue, setVenue] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const [ticketPrice, setTicketPrice] = useState("");
   const [tag, setTag] = useState("");
   const [description, setDescription] = useState("");
+  const [tiers, setTiers] = useState<TicketTier[]>([
+    { name: "Early Bird", price: 450, description: "Limited slots" },
+    { name: "Advance", price: 600, description: "Standard entry" },
+    { name: "Gate", price: 800, description: "Day-of pricing" },
+    { name: "VVIP", price: 2000, description: "Premium experience" },
+  ]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const publishedCount = useMemo(() => events.filter((ev) => ev.is_published).length, [events]);
-  const hiddenCount = useMemo(() => events.length - publishedCount, [events, publishedCount]);
+  const publishedCount = useMemo(() => events.filter(e => e.is_published).length, [events]);
+  const totalRevenue = useMemo(
+    () => bookings.filter(b => b.status === "paid").reduce((s, b) => s + b.amount, 0),
+    [bookings],
+  );
+  const paidBookings = useMemo(() => bookings.filter(b => b.status === "paid").length, [bookings]);
+
   const filteredEvents = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return events;
-    return events.filter((ev) =>
-      ev.title.toLowerCase().includes(query)
-      || (ev.venue ?? "").toLowerCase().includes(query)
-      || (ev.tag ?? "").toLowerCase().includes(query)
-      || (ev.ticket_price ?? "").toLowerCase().includes(query)
-      || (ev.description ?? "").toLowerCase().includes(query)
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return events;
+    return events.filter(e =>
+      e.title.toLowerCase().includes(q) || (e.venue ?? "").toLowerCase().includes(q),
     );
   }, [events, searchQuery]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const authorized = window.sessionStorage.getItem(AUTH_KEY) === "true";
-    if (!authorized) {
-      setCheckedAuth(true);
-      navigate({ to: "/auth" });
-      return;
-    }
-    setEvents(loadStoredEvents());
+    if (!authorized) { navigate({ to: "/auth" }); return; }
+    const stored = loadStoredEvents();
+    setEvents(stored);
     setCheckedAuth(true);
     setLoading(false);
+    // Sync to server on load
+    if (stored.length > 0) syncEventsToServer(stored);
+    fetchBookings().then(setBookings);
   }, [navigate]);
 
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
   function onPickFile(f: File | null) {
     setFile(f);
@@ -158,16 +136,23 @@ function AdminPage() {
     setPreview(f ? URL.createObjectURL(f) : null);
   }
 
+  function updateTier(idx: number, field: keyof TicketTier, value: string | number) {
+    setTiers(prev => prev.map((t, i) => i === idx ? { ...t, [field]: value } : t));
+  }
+
+  async function handleSync() {
+    setSyncing(true);
+    await syncEventsToServer(events);
+    const fresh = await fetchBookings();
+    setBookings(fresh);
+    toast.success("Synced to server");
+    setSyncing(false);
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = eventSchema.safeParse({
-      title, venue, event_date: eventDate, ticket_price: ticketPrice, tag, description,
-    });
-
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
-      return;
-    }
+    const parsed = eventSchema.safeParse({ title, venue, event_date: eventDate, tag, description });
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Invalid input"); return; }
 
     setSubmitting(true);
     try {
@@ -177,52 +162,48 @@ function AdminPage() {
         posterUrl = await readFileAsDataUrl(file);
       }
 
-      const nextEvents = [
-        {
-          id: crypto.randomUUID(),
-          title: parsed.data.title,
-          venue: parsed.data.venue || null,
-          event_date: parsed.data.event_date || null,
-          ticket_price: parsed.data.ticket_price || null,
-          tag: parsed.data.tag || null,
-          description: parsed.data.description || null,
-          poster_url: posterUrl,
-          is_published: true,
-          created_at: new Date().toISOString(),
-        },
-        ...events,
-      ];
+      const newEvent: EventRow = {
+        id: crypto.randomUUID(),
+        title: parsed.data.title,
+        venue: parsed.data.venue || "",
+        event_date: parsed.data.event_date || "",
+        tag: parsed.data.tag || "",
+        description: parsed.data.description || "",
+        tiers: tiers.map(t => ({ ...t, price: Number(t.price) })),
+        poster_url: posterUrl,
+        is_published: true,
+        created_at: new Date().toISOString(),
+      };
 
-      saveStoredEvents(nextEvents);
-      setEvents(nextEvents);
-      setTitle("");
-      setVenue("");
-      setEventDate("");
-      setTicketPrice("");
-      setTag("");
-      setDescription("");
+      const next = [newEvent, ...events];
+      saveStoredEvents(next);
+      setEvents(next);
+      await syncEventsToServer(next);
+      toast.success("Event added & synced");
+
+      // Reset
+      setTitle(""); setVenue(""); setEventDate(""); setTag(""); setDescription("");
+      setTiers([
+        { name: "Early Bird", price: 450, description: "Limited slots" },
+        { name: "Advance", price: 600, description: "Standard entry" },
+        { name: "Gate", price: 800, description: "Day-of pricing" },
+        { name: "VVIP", price: 2000, description: "Premium experience" },
+      ]);
       onPickFile(null);
-      toast.success("Event added");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add event");
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   }
 
   const togglePublish = useCallback((ev: EventRow) => {
-    const nextEvents = events.map((item) =>
-      item.id === ev.id ? { ...item, is_published: !item.is_published } : item,
-    );
-    setEvents(nextEvents);
-    saveStoredEvents(nextEvents);
+    const next = events.map(e => e.id === ev.id ? { ...e, is_published: !e.is_published } : e);
+    setEvents(next); saveStoredEvents(next); syncEventsToServer(next);
   }, [events]);
 
   const deleteEvent = useCallback((ev: EventRow) => {
     if (!confirm(`Delete "${ev.title}"?`)) return;
-    const nextEvents = events.filter((item) => item.id !== ev.id);
-    setEvents(nextEvents);
-    saveStoredEvents(nextEvents);
+    const next = events.filter(e => e.id !== ev.id);
+    setEvents(next); saveStoredEvents(next); syncEventsToServer(next);
     toast.success("Deleted");
   }, [events]);
 
@@ -231,9 +212,7 @@ function AdminPage() {
     navigate({ to: "/auth" });
   }, [navigate]);
 
-  if (!checkedAuth) {
-    return null;
-  }
+  if (!checkedAuth) return null;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14">
@@ -242,173 +221,210 @@ function AdminPage() {
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
             Admin dashboard
           </span>
-          <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">Manage <span className="text-gradient-ember">events</span></h1>
-          <p className="mt-1 text-sm text-muted-foreground">Store event data locally in Cloudflare deployment and avoid Supabase entirely.</p>
+          <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
+            Manage <span className="text-gradient-ember">events</span>
+          </h1>
         </div>
-        <button onClick={signOut} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary">
-          <LogOut className="h-4 w-4" /> Sign out
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleSync} disabled={syncing} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary disabled:opacity-50">
+            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} /> Sync
+          </button>
+          <button onClick={signOut} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary">
+            <LogOut className="h-4 w-4" /> Sign out
+          </button>
+        </div>
       </header>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total events</p>
-          <p className="mt-4 text-3xl font-semibold">{events.length}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Total events in the system</p>
-        </div>
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Live</p>
-          <p className="mt-4 text-3xl font-semibold text-accent">{publishedCount}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Published events visible on the site</p>
-        </div>
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Hidden</p>
-          <p className="mt-4 text-3xl font-semibold text-muted-foreground">{hiddenCount}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Draft or archived events</p>
-        </div>
+      {/* Stats */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-4">
+        {[
+          { icon: CalendarDays, label: "Total events", value: events.length, color: "text-foreground" },
+          { icon: Eye, label: "Live events", value: publishedCount, color: "text-accent" },
+          { icon: Ticket, label: "Bookings paid", value: paidBookings, color: "text-emerald-400" },
+          { icon: DollarSign, label: "Revenue (KES)", value: `${totalRevenue.toLocaleString()}`, color: "text-amber-400" },
+        ].map(s => (
+          <div key={s.label} className="rounded-2xl border border-border/60 bg-card/60 p-5">
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{s.label}</p>
+            <p className={`mt-4 text-3xl font-semibold ${s.color}`}>{s.value}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_1.2fr]">
-        <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-border/60 bg-card/60 p-6">
-          <h2 className="font-display text-xl font-bold">Add new event</h2>
-
-          <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Poster image</span>
-            <div className="mt-1.5 grid gap-3 sm:grid-cols-[120px_1fr]">
-              <div className="relative grid aspect-[3/4] w-[120px] place-items-center overflow-hidden rounded-xl border border-dashed border-border bg-background">
-                {preview ? (
-                  <img src={preview} alt="Poster preview" className="h-full w-full object-cover" />
-                ) : (
-                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                )}
-              </div>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold hover:bg-secondary">
-                <Upload className="h-4 w-4" />
-                {file ? file.name.slice(0, 24) : "Choose poster (JPG/PNG, ≤5MB)"}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
-                  onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
-                />
-              </label>
-            </div>
-          </label>
-
-          <Field label="Title" value={title} onChange={setTitle} required maxLength={120} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Tag (e.g. 2026 · Headline)" value={tag} onChange={setTag} maxLength={40} />
-            <Field label="Date / time" value={eventDate} onChange={setEventDate} placeholder="16 Sep 2026 · 2PM" maxLength={40} />
-          </div>
-          <Field label="Venue" value={venue} onChange={setVenue} placeholder="JKUAT, Juja" maxLength={160} />
-          <Field label="Ticket price" value={ticketPrice} onChange={setTicketPrice} placeholder="Early Bird KES 450" maxLength={80} />
-          <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Description</span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              maxLength={2000}
-              className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-            />
-          </label>
-
+      {/* Tabs */}
+      <div className="mt-10 flex gap-1 rounded-xl border border-border/60 bg-card/40 p-1 w-fit">
+        {(["events", "bookings"] as const).map(t => (
           <button
-            type="submit"
-            disabled={submitting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-ember disabled:opacity-60"
+            key={t}
+            onClick={() => setTab(t)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize transition ${tab === t ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            Publish event
+            {t}
           </button>
-        </form>
-
-        <section>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="font-display text-xl font-bold">All events</h2>
-              <p className="text-sm text-muted-foreground">Manage event visibility, delete outdated entries, or search by title, venue, tag, or description.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search events"
-                className="w-full min-w-[180px] rounded-xl border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between gap-4 text-xs text-muted-foreground">
-            <span>{filteredEvents.length} matching</span>
-            <span>{events.length} total</span>
-          </div>
-          {loading ? (
-            <div className="mt-6 grid place-items-center py-10"><Loader2 className="h-5 w-5 animate-spin text-accent" /></div>
-          ) : filteredEvents.length === 0 ? (
-            <p className="mt-6 rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-              {events.length === 0 ? "No events yet. Use the form to add the first one." : "No matching events. Try a different search term or add a new event."}
-            </p>
-          ) : (
-            <ul className="mt-6 space-y-3">
-              {filteredEvents.map((ev) => (
-                <li key={ev.id} className="flex gap-4 rounded-xl border border-border/60 bg-card/60 p-3">
-                  <div className="grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-background">
-                    {ev.poster_url ? (
-                      <img src={ev.poster_url} alt="Poster" className="h-full w-full object-cover" />
-                    ) : (
-                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h3 className="truncate font-display text-sm font-bold">{ev.title}</h3>
-                        <p className="truncate text-xs text-muted-foreground">{ev.venue}{ev.event_date ? ` · ${ev.event_date}` : ""}</p>
-                        {ev.ticket_price && <p className="mt-0.5 text-xs text-accent">{ev.ticket_price}</p>}
-                      </div>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${ev.is_published ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
-                        {ev.is_published ? "Live" : "Hidden"}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <button onClick={() => togglePublish(ev)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary">
-                        {ev.is_published ? <><EyeOff className="h-3 w-3" /> Hide</> : <><Eye className="h-3 w-3" /> Publish</>}
-                      </button>
-                      <button onClick={() => deleteEvent(ev)} className="inline-flex items-center gap-1 rounded-md border border-destructive/40 px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10">
-                        <Trash2 className="h-3 w-3" /> Delete
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        ))}
       </div>
+
+      {tab === "events" && (
+        <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_1.2fr]">
+          {/* Add Event Form */}
+          <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-border/60 bg-card/60 p-6">
+            <h2 className="font-display text-xl font-bold">Add new event</h2>
+
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Poster image</span>
+              <div className="mt-1.5 grid gap-3 sm:grid-cols-[100px_1fr]">
+                <div className="relative grid aspect-[3/4] w-[100px] place-items-center overflow-hidden rounded-xl border border-dashed border-border bg-background">
+                  {preview ? <img src={preview} alt="Preview" className="h-full w-full object-cover" /> : <ImageIcon className="h-6 w-6 text-muted-foreground" />}
+                </div>
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold hover:bg-secondary">
+                  <Upload className="h-4 w-4" />
+                  {file ? file.name.slice(0, 20) : "Choose poster (JPG/PNG, ≤5MB)"}
+                  <input type="file" accept="image/*" className="hidden" onChange={e => onPickFile(e.target.files?.[0] ?? null)} />
+                </label>
+              </div>
+            </label>
+
+            <Field label="Title *" value={title} onChange={setTitle} required maxLength={120} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Tag (e.g. 2026 · Headline)" value={tag} onChange={setTag} maxLength={40} />
+              <Field label="Date / time" value={eventDate} onChange={setEventDate} placeholder="16 Sep 2026 · 2PM" maxLength={60} />
+            </div>
+            <Field label="Venue" value={venue} onChange={setVenue} placeholder="JKUAT, Juja" maxLength={160} />
+
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Description</span>
+              <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} maxLength={2000}
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary" />
+            </label>
+
+            {/* Ticket Tiers */}
+            <div>
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Ticket tiers</span>
+              <div className="mt-2 space-y-2">
+                {tiers.map((tier, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_90px_1fr] gap-2 items-center">
+                    <input value={tier.name} onChange={e => updateTier(i, "name", e.target.value)} placeholder="Tier name" maxLength={30}
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+                    <input type="number" value={tier.price} onChange={e => updateTier(i, "price", Number(e.target.value))} placeholder="Price" min={0}
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+                    <input value={tier.description} onChange={e => updateTier(i, "description", e.target.value)} placeholder="Description" maxLength={50}
+                      className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button type="submit" disabled={submitting}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-ember disabled:opacity-60">
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              Publish event
+            </button>
+          </form>
+
+          {/* Events List */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <input type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search events"
+                className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary" />
+            </div>
+            {loading ? (
+              <div className="grid place-items-center py-10"><Loader2 className="h-5 w-5 animate-spin text-accent" /></div>
+            ) : filteredEvents.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                {events.length === 0 ? "No events yet. Use the form to add one." : "No matching events."}
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {filteredEvents.map(ev => (
+                  <li key={ev.id} className="flex gap-4 rounded-xl border border-border/60 bg-card/60 p-3">
+                    <div className="grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-background">
+                      {ev.poster_url ? <img src={ev.poster_url} alt="Poster" className="h-full w-full object-cover" /> : <ImageIcon className="h-5 w-5 text-muted-foreground" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="truncate font-display text-sm font-bold">{ev.title}</h3>
+                          <p className="truncate text-xs text-muted-foreground">{ev.venue}{ev.event_date ? ` · ${ev.event_date}` : ""}</p>
+                          <p className="mt-0.5 text-xs text-accent">{ev.tiers.map(t => `${t.name}: KES ${t.price}`).join(" · ")}</p>
+                        </div>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${ev.is_published ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
+                          {ev.is_published ? "Live" : "Hidden"}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <button onClick={() => togglePublish(ev)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary">
+                          {ev.is_published ? <><EyeOff className="h-3 w-3" /> Hide</> : <><Eye className="h-3 w-3" /> Publish</>}
+                        </button>
+                        <button onClick={() => deleteEvent(ev)} className="inline-flex items-center gap-1 rounded-md border border-destructive/40 px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-3 w-3" /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      )}
+
+      {tab === "bookings" && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-xl font-bold">All bookings</h2>
+            <button onClick={() => fetchBookings().then(setBookings)} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+              <RefreshCw className="h-4 w-4" /> Refresh
+            </button>
+          </div>
+          {bookings.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">No bookings yet.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-border/60">
+              <table className="w-full text-sm">
+                <thead className="border-b border-border/60 bg-card/40">
+                  <tr>
+                    {["Name", "Event", "Ticket", "Qty", "Amount", "Status", "M-Pesa Receipt", "Date"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40">
+                  {bookings.map(b => (
+                    <tr key={b.id} className="hover:bg-card/40">
+                      <td className="px-4 py-3 font-medium">{b.full_name}</td>
+                      <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">{b.event_title}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{b.ticket_type}</td>
+                      <td className="px-4 py-3">{b.quantity}</td>
+                      <td className="px-4 py-3 font-medium">KES {b.amount.toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold uppercase ${b.status === "paid" ? "bg-emerald-500/20 text-emerald-400" : b.status === "pending" ? "bg-amber-500/20 text-amber-400" : "bg-destructive/20 text-destructive"}`}>
+                          {b.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{b.mpesa_receipt ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(b.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </main>
   );
 }
 
-function Field({
-  label, value, onChange, placeholder, required, maxLength,
-}: {
+function Field({ label, value, onChange, placeholder, required, maxLength }: {
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; required?: boolean; maxLength?: number;
 }) {
   return (
     <label className="block">
       <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        maxLength={maxLength}
-        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-      />
+      <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        required={required} maxLength={maxLength}
+        className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary" />
     </label>
   );
 }

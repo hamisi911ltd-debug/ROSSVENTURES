@@ -1,255 +1,409 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { MapPin, Calendar, ArrowLeft, ChevronRight, Loader2, CheckCircle2, Smartphone, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
+import type { EventRow, BookingRow } from "@/lib/types";
+
+// Static fallback data (always visible even before admin syncs)
 import comrades from "@/assets/comrades-festival.jpg";
-import { MapPin, Calendar, ArrowRight, User, Mail, Phone, Users, BookOpen } from "lucide-react";
-import { useState } from "react";
+import extravaganza from "@/assets/event-jkuat-extravaganza.png";
+import usaniifest from "@/assets/event-usaniifest.png";
 
-export const Route = createFileRoute("/events/$eventId")({
-  head: () => ({
-    meta: [
-      { title: "Event Booking — Ross Ventures Limited" },
-      { name: "description", content: "Book your tickets for upcoming events by Ross Ventures Limited" },
-    ],
-  }),
-  component: EventDetailPage,
-});
-
-const EVENTS_DB: Record<string, any> = {
+const STATIC_EVENTS: Record<string, Omit<EventRow, "created_at" | "is_published">> = {
   "comrades-festival": {
     id: "comrades-festival",
-    img: comrades,
     title: "Comrades Festival 1.0",
     venue: "JKUAT, Juja",
-    date: "16 September 2026 · From 2PM",
-    copy: "RV Entertainment x JKUSA presents the launch edition of Comrades Festival — cool vibes, music, games and a stage built for the campus crowd.",
-    description: "Experience the ultimate campus celebration featuring afro-fusion artists, interactive games, amazing food, and unforgettable vibes. This is the headline event of 2026, bringing together the best of Nairobi's entertainment scene right to your doorstep.",
-    highlights: [
-      "Live performances by top afro-fusion artists",
-      "Interactive games and activities",
-      "Food and beverage stations",
-      "VIP lounge access",
-      "Networking opportunities",
-    ],
+    event_date: "16 September 2026 · From 2PM",
+    tag: "2026 · Headline",
+    description: "Experience the ultimate campus celebration featuring afro-fusion artists, interactive games, amazing food, and unforgettable vibes. RV Entertainment x JKUSA.",
+    poster_url: comrades,
     tiers: [
-      { name: "Early Bird", price: "KES 450", description: "Limited slots available" },
-      { name: "Advance", price: "KES 600", description: "Standard entry" },
-      { name: "Gate", price: "KES 800", description: "Day-of pricing" },
-      { name: "VVIP", price: "KES 2,000", description: "Premium experience" },
+      { name: "Early Bird", price: 450, description: "Limited slots available" },
+      { name: "Advance", price: 600, description: "Standard entry" },
+      { name: "Gate", price: 800, description: "Day-of pricing" },
+      { name: "VVIP", price: 2000, description: "Premium experience" },
+    ],
+  },
+  "jkuat-extravaganza": {
+    id: "jkuat-extravaganza",
+    title: "JKUAT Extravaganza",
+    venue: "JKUAT Pavilion Grounds",
+    event_date: "27 March 2026 · From 3PM",
+    tag: "2026",
+    description: "Produced with the Office of the Sports & Entertainment Secretary and JKUSA — food, games, art & craft, live performances.",
+    poster_url: extravaganza,
+    tiers: [
+      { name: "Early Bird", price: 300, description: "Limited slots" },
+      { name: "Advance", price: 500, description: "Standard entry" },
+      { name: "Gate", price: 700, description: "Day-of pricing" },
+    ],
+  },
+  "usaniifest": {
+    id: "usaniifest",
+    title: "UsaniiFest 001",
+    venue: "JKUAT Assembly Hall",
+    event_date: "6 March 2026 · From 2PM",
+    tag: "2026",
+    description: "STADA-JKUAT presents UsaniiFest in partnership with ArtsyRenaissance — music, food, art & vibes celebrating campus creativity.",
+    poster_url: usaniifest,
+    tiers: [
+      { name: "Early Bird", price: 200, description: "Limited slots" },
+      { name: "Standard", price: 350, description: "General entry" },
     ],
   },
 };
 
+export const Route = createFileRoute("/events/$eventId")({
+  head: () => ({ meta: [{ title: "Book Tickets — Ross Ventures Limited" }] }),
+  component: EventDetailPage,
+});
+
+type BookingStep = "details" | "payment" | "processing" | "success";
+
 function EventDetailPage() {
   const { eventId } = Route.useParams();
-  const event = EVENTS_DB[eventId];
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    numberOfTickets: "1",
-    ticketType: "Advance",
-    message: "",
-  });
+  const navigate = useNavigate();
+
+  const [event, setEvent] = useState<EventRow | null>(null);
+  const [loadingEvent, setLoadingEvent] = useState(true);
+  const [step, setStep] = useState<BookingStep>("details");
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [booking, setBooking] = useState<BookingRow | null>(null);
+
+  // Step 1: details form
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [ticketType, setTicketType] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Step 2: payment
+  const [mpesaPhone, setMpesaPhone] = useState("");
+  const [initiating, setInitiating] = useState(false);
+  const [simulation, setSimulation] = useState(false);
+
+  // Step 3: polling
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [pollCount, setPollCount] = useState(0);
+
+  // Load event from server, fall back to static
+  useEffect(() => {
+    const staticEv = STATIC_EVENTS[eventId];
+    if (staticEv) {
+      setEvent({ ...staticEv, is_published: true, created_at: "" });
+      setTicketType(staticEv.tiers[0]?.name ?? "");
+    }
+    // Try loading from server (might have richer data / admin-created)
+    fetch(`/api/events?all=1`)
+      .then(r => r.json())
+      .then((data: { ok: boolean; events: EventRow[] }) => {
+        if (data.ok) {
+          const found = data.events.find(e => e.id === eventId);
+          if (found) { setEvent(found); setTicketType(found.tiers[0]?.name ?? ""); }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingEvent(false));
+  }, [eventId]);
+
+  // Stop polling on unmount
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  useEffect(() => { if (phone && !mpesaPhone) setMpesaPhone(phone); }, [phone, mpesaPhone]);
+
+  if (loadingEvent && !event) {
+    return <main className="mx-auto max-w-6xl px-4 py-20 grid place-items-center"><Loader2 className="h-8 w-8 animate-spin text-accent" /></main>;
+  }
 
   if (!event) {
     return (
       <main className="mx-auto max-w-6xl px-4 py-20 text-center">
         <h1 className="font-display text-4xl font-bold">Event not found</h1>
-        <p className="mt-4 text-muted-foreground">The event you're looking for doesn't exist.</p>
+        <Link to="/events" className="mt-6 inline-flex items-center gap-2 text-accent hover:underline"><ArrowLeft className="h-4 w-4" /> Browse events</Link>
       </main>
     );
   }
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const selectedTier = event.tiers.find(t => t.name === ticketType) ?? event.tiers[0];
+  const totalAmount = (selectedTier?.price ?? 0) * quantity;
 
-  const handleSubmit = (e: any) => {
+  // ─── Step 1: Details form ────────────────────────────────────────────────────
+  async function submitDetails(e: React.FormEvent) {
     e.preventDefault();
-    // Handle form submission (integrate with backend/email service)
-    console.log("Booking submitted:", formData);
-    alert("Thank you for your booking! We'll send you a confirmation email shortly.");
-    setFormData({ fullName: "", email: "", phone: "", numberOfTickets: "1", ticketType: "Advance", message: "" });
-  };
+    if (!fullName.trim() || !email.trim() || !phone.trim()) { toast.error("Please fill in all required fields"); return; }
 
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventId: event.id, fullName, email, phone, ticketType, quantity }),
+      });
+      const data = await res.json() as { ok: boolean; bookingId?: string; error?: string };
+      if (!data.ok) throw new Error(data.error ?? "Booking failed");
+      setBookingId(data.bookingId!);
+      setMpesaPhone(phone);
+      setStep("payment");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create booking");
+    } finally { setSubmitting(false); }
+  }
+
+  // ─── Step 2: Initiate M-Pesa ─────────────────────────────────────────────────
+  async function initiatePayment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!bookingId) return;
+    const cleanPhone = mpesaPhone.trim();
+    if (!cleanPhone) { toast.error("Enter your M-Pesa phone number"); return; }
+
+    setInitiating(true);
+    try {
+      const res = await fetch("/api/mpesa/initiate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ bookingId, phone: cleanPhone }),
+      });
+      const data = await res.json() as { ok: boolean; checkoutRequestId?: string; simulation?: boolean; error?: string };
+      if (!data.ok) throw new Error(data.error ?? "Payment initiation failed");
+
+      setSimulation(data.simulation ?? false);
+      setStep("processing");
+      startPolling(bookingId, data.simulation ?? false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Payment failed");
+    } finally { setInitiating(false); }
+  }
+
+  // ─── Step 3: Poll for payment confirmation ────────────────────────────────────
+  function startPolling(bId: string, isSim: boolean) {
+    const maxAttempts = isSim ? 5 : 60; // sim: ~15s; real: ~3min
+    let attempts = 0;
+
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      setPollCount(attempts);
+      try {
+        const res = await fetch(`/api/bookings/${bId}`);
+        const data = await res.json() as { ok: boolean; booking: BookingRow };
+        if (data.ok && data.booking.status === "paid") {
+          clearInterval(pollRef.current!);
+          setBooking(data.booking);
+          setStep("success");
+          return;
+        }
+        if (data.ok && data.booking.status === "failed") {
+          clearInterval(pollRef.current!);
+          toast.error("Payment failed or was cancelled. Please try again.");
+          setStep("payment");
+          return;
+        }
+        // Simulation: auto-confirm after 3 polls
+        if (isSim && attempts >= 3) {
+          clearInterval(pollRef.current!);
+          // Simulate success with mock data
+          setBooking({
+            id: bId, event_id: event.id, event_title: event.title,
+            event_date: event.event_date, event_venue: event.venue,
+            full_name: fullName, email, phone: mpesaPhone,
+            ticket_type: ticketType, ticket_price: selectedTier?.price ?? 0,
+            quantity, amount: totalAmount, status: "paid",
+            mpesa_receipt: `SIM${Date.now().toString().slice(-8)}`,
+            mpesa_checkout_id: null, created_at: new Date().toISOString(),
+            paid_at: new Date().toISOString(),
+          });
+          setStep("success");
+          return;
+        }
+      } catch {}
+      if (attempts >= maxAttempts) {
+        clearInterval(pollRef.current!);
+        toast.error("Payment timeout. Please check your M-Pesa and try again.");
+        setStep("payment");
+      }
+    }, 3000);
+  }
+
+  // ─── Step 4: Success — go to ticket ──────────────────────────────────────────
+  useEffect(() => {
+    if (step === "success" && bookingId) {
+      setTimeout(() => navigate({ to: `/ticket/${bookingId}` }), 1500);
+    }
+  }, [step, bookingId, navigate]);
+
+  // ─── Layout ───────────────────────────────────────────────────────────────────
   return (
-    <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
+      <Link to="/events" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8">
+        <ArrowLeft className="h-4 w-4" /> All events
+      </Link>
+
       <div className="grid gap-10 lg:grid-cols-3">
         {/* Event Details */}
         <div className="lg:col-span-2">
           <div className="rounded-2xl overflow-hidden border border-border/60">
-            <img src={event.img} alt={event.title} className="h-96 w-full object-cover" />
+            <img src={event.poster_url ?? comrades} alt={event.title} className="h-80 w-full object-cover sm:h-96" />
           </div>
+          <div className="mt-8 space-y-1">
+            {event.tag && <span className="inline-block rounded-full bg-accent/20 px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-accent">{event.tag}</span>}
+            <h1 className="font-display text-3xl font-bold sm:text-4xl">{event.title}</h1>
+            <div className="flex flex-wrap gap-4 pt-1">
+              <p className="inline-flex items-center gap-2 text-muted-foreground"><MapPin className="h-4 w-4 text-accent" />{event.venue}</p>
+              <p className="inline-flex items-center gap-2 text-muted-foreground"><Calendar className="h-4 w-4 text-accent" />{event.event_date}</p>
+            </div>
+          </div>
+          {event.description && <p className="mt-6 text-muted-foreground leading-relaxed">{event.description}</p>}
 
           <div className="mt-8">
-            <h1 className="font-display text-4xl font-bold sm:text-5xl">{event.title}</h1>
-            <div className="mt-4 space-y-2">
-              <p className="inline-flex items-center gap-2 text-lg text-muted-foreground">
-                <MapPin className="h-5 w-5 text-accent" /> {event.venue}
-              </p>
-              <p className="inline-flex items-center gap-2 text-lg text-muted-foreground ml-4">
-                <Calendar className="h-5 w-5 text-accent" /> {event.date}
-              </p>
-            </div>
-
-            <p className="mt-6 text-lg text-muted-foreground leading-relaxed">{event.copy}</p>
-
-            <div className="mt-8">
-              <h2 className="font-display text-2xl font-bold">About This Event</h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">{event.description}</p>
-            </div>
-
-            <div className="mt-8">
-              <h3 className="font-display text-xl font-bold mb-4">Event Highlights</h3>
-              <ul className="space-y-3">
-                {event.highlights.map((highlight: string) => (
-                  <li key={highlight} className="inline-flex items-start gap-3">
-                    <span className="mt-1 h-2 w-2 rounded-full bg-accent flex-shrink-0" />
-                    <span className="text-muted-foreground">{highlight}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mt-8">
-              <h3 className="font-display text-xl font-bold mb-4">Ticket Tiers</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {event.tiers.map((tier: any) => (
-                  <div key={tier.name} className="rounded-xl border border-border/60 bg-card/60 p-6">
-                    <h4 className="font-display font-bold text-lg">{tier.name}</h4>
-                    <p className="mt-1 text-xs text-muted-foreground">{tier.description}</p>
-                    <p className="mt-3 font-display text-2xl font-bold text-gradient-ember">{tier.price}</p>
-                  </div>
-                ))}
-              </div>
+            <h3 className="font-display text-xl font-bold mb-4">Ticket tiers</h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
+              {event.tiers.map(tier => (
+                <div key={tier.name} className="rounded-xl border border-border/60 bg-card/60 p-5">
+                  <h4 className="font-display font-bold">{tier.name}</h4>
+                  <p className="text-xs text-muted-foreground">{tier.description}</p>
+                  <p className="mt-2 font-display text-2xl font-bold text-gradient-ember">KES {tier.price.toLocaleString()}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Booking Form */}
+        {/* Booking Sidebar */}
         <div className="lg:col-span-1">
           <div className="sticky top-8 rounded-2xl border border-border/60 bg-card/60 p-6 backdrop-blur">
-            <h2 className="font-display text-2xl font-bold">Book Your Tickets</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Fill in your details to reserve your spot</p>
-
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Full Name *</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm focus:border-accent focus:outline-none"
-                  placeholder="Your full name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm focus:border-accent focus:outline-none"
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Phone Number *</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm focus:border-accent focus:outline-none"
-                  placeholder="+254 7XX XXX XXX"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Number of Tickets *</label>
-                <select
-                  name="numberOfTickets"
-                  value={formData.numberOfTickets}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm focus:border-accent focus:outline-none"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <option key={num} value={num}>
-                      {num} {num === 1 ? "Ticket" : "Tickets"}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Ticket Type *</label>
-                <select
-                  name="ticketType"
-                  value={formData.ticketType}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm focus:border-accent focus:outline-none"
-                >
-                  {event.tiers.map((tier: any) => (
-                    <option key={tier.name} value={tier.name}>
-                      {tier.name} - {tier.price}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Message (Optional)</label>
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm focus:border-accent focus:outline-none resize-none"
-                  placeholder="Any special requests or questions?"
-                  rows={3}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full rounded-xl bg-gradient-ember px-6 py-3 font-semibold text-primary-foreground shadow-ember transition hover:shadow-glow"
-              >
-                Complete Booking
-              </button>
-            </form>
-
-            <div className="mt-6 space-y-3 border-t border-border/30 pt-6">
-              <div className="flex items-start gap-3">
-                <BookOpen className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                <div className="text-sm">
-                  <p className="font-medium">E-ticket & Details</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Sent to your email</p>
+            {/* Step indicator */}
+            <div className="flex items-center gap-2 mb-6">
+              {(["details", "payment", "processing", "success"] as BookingStep[]).map((s, i) => (
+                <div key={s} className="flex items-center gap-1">
+                  <div className={`h-6 w-6 rounded-full text-[10px] font-bold grid place-items-center transition ${step === s ? "bg-accent text-background" : i < (["details","payment","processing","success"].indexOf(step)) ? "bg-accent/30 text-accent" : "bg-muted text-muted-foreground"}`}>
+                    {i + 1}
+                  </div>
+                  {i < 3 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Users className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                <div className="text-sm">
-                  <p className="font-medium">Group Bookings</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">10+ tickets get discounts</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                <div className="text-sm">
-                  <p className="font-medium">Need Help?</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Call +254 705 333 198</p>
-                </div>
-              </div>
+              ))}
             </div>
+
+            {/* ── Step 1: Details ── */}
+            {step === "details" && (
+              <>
+                <h2 className="font-display text-xl font-bold">Book your tickets</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Fill in your details to reserve your spot</p>
+                <form onSubmit={submitDetails} className="mt-5 space-y-3">
+                  <BookingInput label="Full Name *" value={fullName} onChange={setFullName} required placeholder="Your full name" />
+                  <BookingInput label="Email *" type="email" value={email} onChange={setEmail} required placeholder="your@email.com" />
+                  <BookingInput label="Phone *" type="tel" value={phone} onChange={setPhone} required placeholder="+254 7XX XXX XXX" />
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Ticket type</label>
+                    <select value={ticketType} onChange={e => setTicketType(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent">
+                      {event.tiers.map(t => (
+                        <option key={t.name} value={t.name}>{t.name} — KES {t.price.toLocaleString()}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Quantity</label>
+                    <select value={quantity} onChange={e => setQuantity(Number(e.target.value))}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent">
+                      {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n===1?"ticket":"tickets"}</option>)}
+                    </select>
+                  </div>
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
+                    <div className="flex justify-between"><span className="text-muted-foreground">{ticketType} × {quantity}</span><span className="font-semibold">KES {totalAmount.toLocaleString()}</span></div>
+                  </div>
+                  <button type="submit" disabled={submitting}
+                    className="w-full rounded-xl bg-gradient-ember px-6 py-3 font-semibold text-primary-foreground shadow-ember disabled:opacity-60 flex items-center justify-center gap-2">
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Continue to payment
+                  </button>
+                </form>
+              </>
+            )}
+
+            {/* ── Step 2: Payment ── */}
+            {step === "payment" && (
+              <>
+                <h2 className="font-display text-xl font-bold">Pay with M-Pesa</h2>
+                <p className="mt-1 text-xs text-muted-foreground">We'll send an STK Push to your phone</p>
+                <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-1.5 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Event</span><span className="font-medium truncate max-w-[140px]">{event.title}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Ticket</span><span>{ticketType} × {quantity}</span></div>
+                  <div className="flex justify-between border-t border-border/30 pt-2 mt-2"><span className="font-semibold">Total</span><span className="font-bold text-accent">KES {totalAmount.toLocaleString()}</span></div>
+                </div>
+                <form onSubmit={initiatePayment} className="mt-5 space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">M-Pesa Phone Number</label>
+                    <input type="tel" value={mpesaPhone} onChange={e => setMpesaPhone(e.target.value)} placeholder="07XX XXX XXX" required
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-accent" />
+                    <p className="mt-1 text-[11px] text-muted-foreground">Enter the number to receive the STK Push prompt</p>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-xl border border-accent/20 bg-accent/5 p-3 text-xs text-muted-foreground">
+                    <Smartphone className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                    <span>You'll get a prompt on your phone. Enter your M-Pesa PIN to confirm. Do not share your PIN with anyone.</span>
+                  </div>
+                  <button type="submit" disabled={initiating}
+                    className="w-full rounded-xl bg-gradient-ember px-6 py-3 font-semibold text-primary-foreground shadow-ember disabled:opacity-60 flex items-center justify-center gap-2">
+                    {initiating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
+                    {initiating ? "Sending prompt…" : `Pay KES ${totalAmount.toLocaleString()}`}
+                  </button>
+                  <button type="button" onClick={() => setStep("details")} className="w-full text-center text-xs text-muted-foreground hover:text-foreground">
+                    ← Back to details
+                  </button>
+                </form>
+              </>
+            )}
+
+            {/* ── Step 3: Processing ── */}
+            {step === "processing" && (
+              <div className="py-8 text-center space-y-4">
+                <div className="mx-auto h-16 w-16 rounded-full border-4 border-accent/30 border-t-accent animate-spin" />
+                <h2 className="font-display text-lg font-bold">Waiting for payment…</h2>
+                {simulation ? (
+                  <p className="text-sm text-muted-foreground">Simulation mode — auto-confirming in a moment…</p>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">Check your phone <span className="font-medium text-foreground">{mpesaPhone}</span> and enter your M-Pesa PIN</p>
+                    <p className="text-xs text-muted-foreground">Checking payment status ({pollCount}s)…</p>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ── Step 4: Success ── */}
+            {step === "success" && (
+              <div className="py-6 text-center space-y-4">
+                <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/20 grid place-items-center">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                </div>
+                <h2 className="font-display text-xl font-bold">Payment confirmed!</h2>
+                <p className="text-sm text-muted-foreground">Redirecting to your ticket…</p>
+                {booking?.mpesa_receipt && (
+                  <p className="text-xs text-muted-foreground">M-Pesa Receipt: <span className="font-mono font-medium text-foreground">{booking.mpesa_receipt}</span></p>
+                )}
+                {bookingId && (
+                  <Link to={`/ticket/${bookingId}`} className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+                    View my ticket →
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+function BookingInput({ label, value, onChange, type = "text", required, placeholder }: {
+  label: string; value: string; onChange: (v: string) => void;
+  type?: string; required?: boolean; placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-muted-foreground mb-1">{label}</label>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} required={required} placeholder={placeholder}
+        className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-accent" />
+    </div>
   );
 }

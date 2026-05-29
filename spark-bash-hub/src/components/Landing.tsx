@@ -1,3 +1,5 @@
+import { Route } from "@/routes/index";
+import type { EventRow } from "@/lib/types";
 import comrades from "@/assets/comrades-festival.jpg";
 import usaniifest from "@/assets/event-usaniifest.png";
 import extravaganza from "@/assets/event-jkuat-extravaganza.png";
@@ -113,7 +115,16 @@ const heroPosters = [
   },
 ];
 
+// Static fallback events shown when no admin events exist
+const STATIC_UPCOMING = [
+  { id: "comrades-festival", img: comrades, title: "Comrades Festival 1.0", date: "16 September 2026", venue: "JKUAT, Juja", desc: "Afro-fusion artists, games and cool vibes for the campus crowd" },
+  { id: "jkuat-extravaganza", img: extravaganza, title: "JKUAT Extravaganza", date: "27 March 2026", venue: "JKUAT Pavilion Grounds", desc: "Food, games, art & craft with the Office of the Sports & Entertainment Secretary" },
+  { id: "usaniifest", img: usaniifest, title: "UsaniiFest 001", date: "6 March 2026", venue: "JKUAT Assembly Hall", desc: "Music, food, art & vibes celebrating campus creativity" },
+];
+
 export default function Landing() {
+  const loaderData = Route.useLoaderData();
+  const dynamicEvents: EventRow[] = loaderData?.dynamicEvents ?? [];
   return (
     <main>
       {/* HERO */}
@@ -224,32 +235,17 @@ export default function Landing() {
         </div>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              id: "comrades-festival",
-              img: comrades,
-              title: "Comrades Festival 1.0",
-              date: "16 September 2026",
-              venue: "JKUAT, Juja",
-              desc: "Afro-fusion artists, games and cool vibes for the campus crowd",
-            },
-            {
-              id: "jkuat-extravaganza",
-              img: extravaganza,
-              title: "JKUAT Extravaganza",
-              date: "27 March 2026",
-              venue: "JKUAT Pavilion Grounds",
-              desc: "Food, games, art & craft with the Office of the Sports & Entertainment Secretary",
-            },
-            {
-              id: "usaniifest",
-              img: usaniifest,
-              title: "UsaniiFest 001",
-              date: "6 March 2026",
-              venue: "JKUAT Assembly Hall",
-              desc: "Music, food, art & vibes celebrating campus creativity",
-            },
-          ].map((event) => (
+          {(dynamicEvents.length > 0
+            ? dynamicEvents.slice(0, 6).map(e => ({
+                id: e.id,
+                img: e.poster_url ?? comrades,
+                title: e.title,
+                date: e.event_date,
+                venue: e.venue,
+                desc: e.description?.slice(0, 100) ?? "",
+              }))
+            : STATIC_UPCOMING
+          ).map((event) => (
             <Link
               key={event.id}
               to={`/events/${event.id}`}
