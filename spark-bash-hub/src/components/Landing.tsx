@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { EventRow } from "@/lib/types";
+import { PurchaseTicketModal } from "@/components/PurchaseTicketModal";
 import comrades from "@/assets/comrades-festival.jpg";
 import usaniifest from "@/assets/event-usaniifest.png";
 import extravaganza from "@/assets/event-jkuat-extravaganza.png";
@@ -142,6 +143,7 @@ function getLocalStorageEvents(): EventRow[] {
 
 export default function Landing() {
   const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
+  const [modalEvent, setModalEvent] = useState<EventRow | null>(null);
 
   useEffect(() => {
     // 1. Immediately show admin's localStorage events (same device)
@@ -273,45 +275,62 @@ export default function Landing() {
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {(dynamicEvents.length > 0
             ? dynamicEvents.slice(0, 6).map(e => ({
+                eventObj: e,
                 id: e.id,
                 img: e.poster_url ?? comrades,
                 title: e.title,
                 date: e.event_date,
                 venue: e.venue,
-                desc: e.description?.slice(0, 100) ?? "",
+                desc: (e.description ?? "").slice(0, 100),
               }))
-            : STATIC_UPCOMING
-          ).map((event) => (
-            <Link
-              key={event.id}
-              to={`/events/${event.id}`}
-              className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-2 hover:border-primary/40 hover:shadow-glow"
+            : STATIC_UPCOMING.map(s => ({
+                eventObj: {
+                  id: s.id, title: s.title, venue: s.venue, event_date: s.date,
+                  description: s.desc, tag: "", poster_url: s.img,
+                  is_published: true, created_at: "",
+                  tiers: [
+                    { name: "Early Bird", price: 450, description: "Limited slots" },
+                    { name: "Advance",    price: 600, description: "Standard entry" },
+                    { name: "Gate",       price: 800, description: "Day-of pricing" },
+                  ],
+                } as EventRow,
+                ...s,
+              }))
+          ).map((ev) => (
+            <div key={ev.id}
+              className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-2 hover:border-primary/40 hover:shadow-glow cursor-pointer"
+              onClick={() => setModalEvent(ev.eventObj)}
             >
               <div className="relative aspect-video overflow-hidden">
-                <img
-                  src={event.img}
-                  alt={event.title}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                />
+                <img src={ev.img} alt={ev.title} loading="lazy"
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
               </div>
               <div className="p-5">
-                <h3 className="font-display text-lg font-bold leading-tight">{event.title}</h3>
+                <h3 className="font-display text-lg font-bold leading-tight">{ev.title}</h3>
                 <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4 text-accent" /> {event.date}
+                  <Calendar className="h-4 w-4 text-accent" /> {ev.date}
                 </p>
-                <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground ml-0 block">
-                  <MapPin className="h-4 w-4 text-accent" /> {event.venue}
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4 text-accent" /> {ev.venue}
                 </p>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{event.desc}</p>
-                <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent transition group-hover:gap-3">
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-2">{ev.desc}</p>
+                <button type="button"
+                  onClick={e => { e.stopPropagation(); setModalEvent(ev.eventObj); }}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-4 py-2 text-sm font-bold text-primary-foreground shadow-ember transition hover:shadow-glow">
                   Purchase Ticket <ArrowRight className="h-4 w-4" />
-                </div>
+                </button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </section>
+
+      {/* Purchase Ticket Modal */}
+      <PurchaseTicketModal
+        event={modalEvent}
+        open={modalEvent !== null}
+        onClose={() => setModalEvent(null)}
+      />
 
       {/* PORTFOLIO */}
       <section className="mx-auto max-w-6xl px-4 py-12">

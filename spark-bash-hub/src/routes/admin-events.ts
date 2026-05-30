@@ -1,81 +1,86 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { EventRow } from "@/lib/types";
 
-// ─── Module-level store ───────────────────────────────────────────────────────
-// Cloudflare Workers keep an isolate warm for hours on a live site.
-// Any POST from the admin populates this store; subsequent GETs from any
-// device on the same isolate return the events.  When KV is configured
-// the data is also persisted across cold-starts.
-const _events: EventRow[] = [];
+// ─── Module-level fallback store ──────────────────────────────────────────────
+// Used when Cloudflare KV is not configured. Persists within one Worker isolate
+// (typically hours on a live site). Admin re-syncing from the admin panel
+// refreshes this store so users on the same isolate always see fresh events.
+const _mem: EventRow[] = [];
 
-type KV = {
-  get(k: string): Promise<string | null>;
-  put(k: string, v: string, opts?: { expirationTtl?: number }): Promise<void>;
-};
+// ─── KV access ────────────────────────────────────────────────────────────────
+// We try three approaches in order:
+//  1. cloudflare:env virtual module  (@cloudflare/vite-plugin provides this)
+//  2. context.cloudflare.env         (passed by @cloudflare/vite-plugin adapter)
+//  3. context.env                    (older adapter format)
+// If none is available we fall back to the in-memory store.
 
-function getKV(context: unknown): KV | null {
-  const env = (context as any)?.cloudflare?.env ?? (context as any)?.env;
-  const kv = env?.EVENTS_KV;
-  return kv && typeof kv.get === "function" ? (kv as KV) : null;
-}
-
-async function readFromKV(kv: KV): Promise<EventRow[]> {
+async function tryGetKV(context: unknown): Promise<{ get(k:string):Promise<string|null>; put(k:string,v:string):Promise<void> } | null> {
+  // Method 1: cloudflare:env virtual module
   try {
-    const raw = await kv.get("events:all");
-    if (raw) return JSON.parse(raw) as EventRow[];
+    // Using new Function to avoid TypeScript static analysis of the unknown module
+    const cfEnv = await new Function('return import("cloudflare:env")')() as any;
+    if (cfEnv?.EVENTS_KV?.get) return cfEnv.EVENTS_KV;
   } catch {}
-  return [];
+
+  // Method 2 & 3: context object (passed by @cloudflare/vite-plugin)
+  const envObj =
+    (context as any)?.cloudflare?.env ??
+    (context as any)?.env ??
+    {};
+  if (envObj?.EVENTS_KV?.get) return envObj.EVENTS_KV;
+
+  return null; // KV not configured — use in-memory store
 }
 
-async function writeToKV(kv: KV, events: EventRow[]) {
+const KEY = "events:all";
+
+async function readEvents(kv: Awaited<ReturnType<typeof tryGetKV>>): Promise<EventRow[]> {
+  if (!kv) return [..._mem];
   try {
-    await kv.put("events:all", JSON.stringify(events));
+    const raw = await kv.get(KEY);
+    if (raw) {
+      const parsed: EventRow[] = JSON.parse(raw);
+      // Warm the in-memory cache
+      _mem.length = 0;
+      _mem.push(...parsed);
+      return parsed;
+    }
   } catch {}
+  return [..._mem];
 }
 
+async function writeEvents(kv: Awaited<ReturnType<typeof tryGetKV>>, events: EventRow[]) {
+  _mem.length = 0;
+  _mem.push(...events);
+  if (!kv) return;
+  try { await kv.put(KEY, JSON.stringify(events)); } catch {}
+}
+
+// ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/admin-events")({
   beforeLoad: () => { throw redirect({ to: "/" }); },
   server: {
     handlers: {
-      // GET /admin-events → return published events (all devices)
+      // GET /admin-events — fetch published events (any device)
       GET: async ({ context }) => {
-        const kv = getKV(context);
-        let events: EventRow[] = _events;
-
-        if (kv && _events.length === 0) {
-          // Cold start: try to restore from KV
-          const fromKV = await readFromKV(kv);
-          if (fromKV.length > 0) {
-            _events.push(...fromKV);
-            events = _events;
-          }
-        }
-
-        const published = events.filter(e => e.is_published);
-        return new Response(JSON.stringify({ ok: true, events: published }), {
-          headers: {
-            "content-type": "application/json; charset=utf-8",
-            "cache-control": "no-store",
-          },
-        });
+        const kv = await tryGetKV(context);
+        const all = await readEvents(kv);
+        const published = all.filter(e => e.is_published);
+        return new Response(
+          JSON.stringify({ ok: true, events: published }),
+          { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } },
+        );
       },
 
-      // POST /admin-events → admin saves/syncs events
+      // POST /admin-events — admin saves/syncs events
       POST: async ({ request, context }) => {
-        const kv = getKV(context);
+        const kv = await tryGetKV(context);
         try {
           const body = await request.json() as { events?: EventRow[] };
           const incoming: EventRow[] = Array.isArray(body.events) ? body.events : [];
-
-          // Update module store
-          _events.length = 0;
-          _events.push(...incoming);
-
-          // Persist to KV when available (cross-isolate / cold-start resilience)
-          if (kv) await writeToKV(kv, incoming);
-
+          await writeEvents(kv, incoming);
           return new Response(
-            JSON.stringify({ ok: true, saved: incoming.length }),
+            JSON.stringify({ ok: true, saved: incoming.length, kv: kv !== null }),
             { headers: { "content-type": "application/json; charset=utf-8" } },
           );
         } catch {
