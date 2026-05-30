@@ -193,16 +193,11 @@ function EventDetailPage() {
   const totalAmount = (selectedTier?.price ?? 0) * quantity;
 
   // ─── Step 1: Create booking client-side ──────────────────────────────────────
-  function submitDetails(e: React.FormEvent) {
-    e.preventDefault();
-    if (!fullName.trim() || !email.trim() || !phone.trim()) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    if (tiers.length === 0) {
-      toast.error("No ticket types available for this event");
-      return;
-    }
+  function submitDetails() {
+    if (!fullName.trim()) { toast.error("Please enter your full name"); return; }
+    if (!email.trim()) { toast.error("Please enter your email"); return; }
+    if (!phone.trim()) { toast.error("Please enter your phone number"); return; }
+    if (tiers.length === 0) { toast.error("No ticket types available for this event"); return; }
 
     // Generate booking locally — no server call needed
     const bId = crypto.randomUUID();
@@ -236,8 +231,7 @@ function EventDetailPage() {
   }
 
   // ─── Step 2: Initiate M-Pesa payment ─────────────────────────────────────────
-  async function initiatePayment(e: React.FormEvent) {
-    e.preventDefault();
+  async function initiatePayment() {
     if (!bookingId || !mpesaPhone.trim()) {
       toast.error("Enter your M-Pesa phone number");
       return;
@@ -414,10 +408,10 @@ function EventDetailPage() {
               <>
                 <h2 className="font-display text-xl font-bold">Book your tickets</h2>
                 <p className="mt-1 text-xs text-muted-foreground">Fill in your details</p>
-                <form onSubmit={submitDetails} className="mt-5 space-y-3">
-                  <BookingInput label="Full Name *" value={fullName} onChange={setFullName} required placeholder="Your full name" />
-                  <BookingInput label="Email *" type="email" value={email} onChange={setEmail} required placeholder="your@email.com" />
-                  <BookingInput label="Phone *" type="tel" value={phone} onChange={setPhone} required placeholder="+254 7XX XXX XXX" />
+                <div className="mt-5 space-y-3">
+                  <BookingInput label="Full Name *" value={fullName} onChange={setFullName} placeholder="Your full name" />
+                  <BookingInput label="Email *" type="email" value={email} onChange={setEmail} placeholder="your@email.com" />
+                  <BookingInput label="Phone *" type="tel" value={phone} onChange={setPhone} placeholder="+254 7XX XXX XXX" />
 
                   {tiers.length > 0 && (
                     <div>
@@ -459,12 +453,13 @@ function EventDetailPage() {
                   )}
 
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={submitDetails}
                     className="w-full rounded-xl bg-gradient-ember px-6 py-3.5 font-semibold text-primary-foreground shadow-ember transition hover:shadow-glow"
                   >
                     Continue to payment →
                   </button>
-                </form>
+                </div>
               </>
             )}
 
@@ -487,7 +482,7 @@ function EventDetailPage() {
                     <span className="font-bold text-accent">KES {totalAmount.toLocaleString()}</span>
                   </div>
                 </div>
-                <form onSubmit={initiatePayment} className="mt-5 space-y-3">
+                <div className="mt-5 space-y-3">
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1">M-Pesa Phone Number</label>
                     <input
@@ -495,7 +490,6 @@ function EventDetailPage() {
                       value={mpesaPhone}
                       onChange={e => setMpesaPhone(e.target.value)}
                       placeholder="07XX XXX XXX"
-                      required
                       className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-accent"
                     />
                     <p className="mt-1 text-[11px] text-muted-foreground">Number to receive the M-Pesa prompt</p>
@@ -505,8 +499,9 @@ function EventDetailPage() {
                     <span>Check your phone for the M-Pesa PIN prompt and enter it to confirm payment.</span>
                   </div>
                   <button
-                    type="submit"
+                    type="button"
                     disabled={initiating}
+                    onClick={initiatePayment}
                     className="w-full rounded-xl bg-gradient-ember px-6 py-3.5 font-semibold text-primary-foreground shadow-ember disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {initiating
@@ -521,7 +516,7 @@ function EventDetailPage() {
                   >
                     ← Edit details
                   </button>
-                </form>
+                </div>
               </>
             )}
 
@@ -568,9 +563,9 @@ function EventDetailPage() {
   );
 }
 
-function BookingInput({ label, value, onChange, type = "text", required, placeholder }: {
+function BookingInput({ label, value, onChange, type = "text", placeholder }: {
   label: string; value: string; onChange: (v: string) => void;
-  type?: string; required?: boolean; placeholder?: string;
+  type?: string; placeholder?: string;
 }) {
   return (
     <div>
@@ -579,7 +574,6 @@ function BookingInput({ label, value, onChange, type = "text", required, placeho
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
-        required={required}
         placeholder={placeholder}
         className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-accent"
       />
