@@ -86,14 +86,17 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-async function syncEventsToServer(events: EventRow[]) {
+async function syncEventsToServer(events: EventRow[]): Promise<boolean> {
   try {
-    await fetch("/admin-events", {
+    const res = await fetch("/admin-events", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ events }),
     });
-  } catch {}
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 async function fetchBookings(): Promise<BookingRow[]> {
@@ -114,6 +117,7 @@ function AdminPage() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncOk, setSyncOk] = useState<boolean | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -175,10 +179,11 @@ function AdminPage() {
 
   async function handleSync() {
     setSyncing(true);
-    await syncEventsToServer(events);
+    const ok = await syncEventsToServer(events);
+    setSyncOk(ok);
     const fresh = await fetchBookings();
     setBookings(fresh);
-    toast.success("Synced to server");
+    toast[ok ? "success" : "error"](ok ? "Events synced to all devices ✓" : "Sync failed — check connection");
     setSyncing(false);
   }
 
@@ -211,8 +216,9 @@ function AdminPage() {
       const next = [newEvent, ...events];
       saveStoredEvents(next);
       setEvents(next);
-      await syncEventsToServer(next);
-      toast.success("Event added & synced");
+      const ok = await syncEventsToServer(next);
+      setSyncOk(ok);
+      toast.success(ok ? "Event published & synced to all devices ✓" : "Event saved locally (sync failed — tap Sync)");
 
       // Reset
       setTitle(""); setVenue(""); setEventDate(""); setTag(""); setDescription("");
@@ -228,15 +234,21 @@ function AdminPage() {
     } finally { setSubmitting(false); }
   }
 
-  const togglePublish = useCallback((ev: EventRow) => {
+  const togglePublish = useCallback(async (ev: EventRow) => {
     const next = events.map(e => e.id === ev.id ? { ...e, is_published: !e.is_published } : e);
-    setEvents(next); saveStoredEvents(next); syncEventsToServer(next);
+    setEvents(next);
+    saveStoredEvents(next);
+    const ok = await syncEventsToServer(next);
+    setSyncOk(ok);
   }, [events]);
 
-  const deleteEvent = useCallback((ev: EventRow) => {
+  const deleteEvent = useCallback(async (ev: EventRow) => {
     if (!confirm(`Delete "${ev.title}"?`)) return;
     const next = events.filter(e => e.id !== ev.id);
-    setEvents(next); saveStoredEvents(next); syncEventsToServer(next);
+    setEvents(next);
+    saveStoredEvents(next);
+    const ok = await syncEventsToServer(next);
+    setSyncOk(ok);
     toast.success("Deleted");
   }, [events]);
 
@@ -258,9 +270,19 @@ function AdminPage() {
             Manage <span className="text-gradient-ember">events</span>
           </h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {syncOk === true && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Synced to all devices
+            </span>
+          )}
+          {syncOk === false && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Local only — tap Sync
+            </span>
+          )}
           <button onClick={handleSync} disabled={syncing} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary disabled:opacity-50">
-            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} /> Sync
+            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} /> Sync to all devices
           </button>
           <button onClick={signOut} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary">
             <LogOut className="h-4 w-4" /> Sign out

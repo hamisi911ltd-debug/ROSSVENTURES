@@ -70,7 +70,7 @@ function EventsPage() {
     const local = getLocalStorageEvents();
     if (local.length > 0) setDynamicEvents(local);
 
-    fetch("/admin-events")
+    fetch("/admin-events", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
         if (data.ok && Array.isArray(data.events) && data.events.length > 0) {

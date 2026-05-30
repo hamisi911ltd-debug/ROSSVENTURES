@@ -147,7 +147,7 @@ function EventDetailPage() {
     } catch {}
 
     // 3. Server (cross-device)
-    fetch("/admin-events")
+    fetch("/admin-events", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
         if (data.ok && Array.isArray(data.events)) {

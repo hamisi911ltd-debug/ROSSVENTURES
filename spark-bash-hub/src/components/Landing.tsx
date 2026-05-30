@@ -150,8 +150,8 @@ export default function Landing() {
     const local = getLocalStorageEvents();
     if (local.length > 0) setDynamicEvents(local);
 
-    // 2. Then try the server API (catches events synced across devices)
-    fetch("/admin-events")
+    // 2. Server API — reads from Cloudflare CDN cache (shared across all devices)
+    fetch("/admin-events", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
         if (data.ok && Array.isArray(data.events) && data.events.length > 0) {

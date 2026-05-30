@@ -1,59 +1,42 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { EventRow } from "@/lib/types";
 
-// ─── Module-level fallback store ──────────────────────────────────────────────
-// Used when Cloudflare KV is not configured. Persists within one Worker isolate
-// (typically hours on a live site). Admin re-syncing from the admin panel
-// refreshes this store so users on the same isolate always see fresh events.
+// ─── Storage layers (tried in order) ─────────────────────────────────────────
+// 1. Cloudflare Cache API  — shared across ALL Worker isolates in the zone.
+//    Zero setup, zero external services. Data survives isolate cold-starts.
+// 2. Module-level array    — fast in-process fallback (local dev / cache miss).
+
 const _mem: EventRow[] = [];
+const CACHE_TTL = 60 * 60 * 24; // 24 hours
 
-// ─── KV access ────────────────────────────────────────────────────────────────
-// We try three approaches in order:
-//  1. cloudflare:env virtual module  (@cloudflare/vite-plugin provides this)
-//  2. context.cloudflare.env         (passed by @cloudflare/vite-plugin adapter)
-//  3. context.env                    (older adapter format)
-// If none is available we fall back to the in-memory store.
-
-async function tryGetKV(context: unknown): Promise<{ get(k:string):Promise<string|null>; put(k:string,v:string):Promise<void> } | null> {
-  // Method 1: cloudflare:env virtual module
-  try {
-    // Using new Function to avoid TypeScript static analysis of the unknown module
-    const cfEnv = await new Function('return import("cloudflare:env")')() as any;
-    if (cfEnv?.EVENTS_KV?.get) return cfEnv.EVENTS_KV;
-  } catch {}
-
-  // Method 2 & 3: context object (passed by @cloudflare/vite-plugin)
-  const envObj =
-    (context as any)?.cloudflare?.env ??
-    (context as any)?.env ??
-    {};
-  if (envObj?.EVENTS_KV?.get) return envObj.EVENTS_KV;
-
-  return null; // KV not configured — use in-memory store
+function cacheKey(origin: string) {
+  return `${origin}/__rv_events_v1__`;
 }
 
-const KEY = "events:all";
-
-async function readEvents(kv: Awaited<ReturnType<typeof tryGetKV>>): Promise<EventRow[]> {
-  if (!kv) return [..._mem];
+async function readCache(origin: string): Promise<EventRow[] | null> {
   try {
-    const raw = await kv.get(KEY);
-    if (raw) {
-      const parsed: EventRow[] = JSON.parse(raw);
-      // Warm the in-memory cache
-      _mem.length = 0;
-      _mem.push(...parsed);
-      return parsed;
-    }
-  } catch {}
-  return [..._mem];
+    // caches.default is only available in the deployed Cloudflare Worker
+    const cached = await (caches as any).default.match(cacheKey(origin));
+    if (!cached) return null;
+    const data = await cached.json() as { events?: EventRow[] };
+    return Array.isArray(data.events) ? data.events : null;
+  } catch {
+    return null; // local dev / not in Cloudflare environment
+  }
 }
 
-async function writeEvents(kv: Awaited<ReturnType<typeof tryGetKV>>, events: EventRow[]) {
-  _mem.length = 0;
-  _mem.push(...events);
-  if (!kv) return;
-  try { await kv.put(KEY, JSON.stringify(events)); } catch {}
+async function writeCache(origin: string, events: EventRow[]) {
+  try {
+    const res = new Response(JSON.stringify({ events }), {
+      headers: {
+        "content-type": "application/json",
+        "cache-control": `public, max-age=${CACHE_TTL}`,
+      },
+    });
+    await (caches as any).default.put(cacheKey(origin), res);
+  } catch {
+    // silently ignore — falls back to in-memory
+  }
 }
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -61,26 +44,46 @@ export const Route = createFileRoute("/admin-events")({
   beforeLoad: () => { throw redirect({ to: "/" }); },
   server: {
     handlers: {
-      // GET /admin-events — fetch published events (any device)
-      GET: async ({ context }) => {
-        const kv = await tryGetKV(context);
-        const all = await readEvents(kv);
-        const published = all.filter(e => e.is_published);
-        return new Response(
-          JSON.stringify({ ok: true, events: published }),
-          { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } },
-        );
+      // GET /admin-events  — any device reads published events
+      GET: async ({ request }) => {
+        const origin = new URL(request.url).origin;
+
+        // Try Cache API first (shared across all Worker instances)
+        const fromCache = await readCache(origin);
+        if (fromCache !== null) {
+          // Warm in-memory store from cache
+          if (_mem.length === 0 && fromCache.length > 0) {
+            _mem.push(...fromCache);
+          }
+          const published = fromCache.filter(e => e.is_published);
+          return new Response(JSON.stringify({ ok: true, events: published, source: "cache" }), {
+            headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+          });
+        }
+
+        // Fallback: in-memory store
+        const published = _mem.filter(e => e.is_published);
+        return new Response(JSON.stringify({ ok: true, events: published, source: "memory" }), {
+          headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+        });
       },
 
-      // POST /admin-events — admin saves/syncs events
-      POST: async ({ request, context }) => {
-        const kv = await tryGetKV(context);
+      // POST /admin-events — admin saves events (syncs to all devices)
+      POST: async ({ request }) => {
+        const origin = new URL(request.url).origin;
         try {
           const body = await request.json() as { events?: EventRow[] };
           const incoming: EventRow[] = Array.isArray(body.events) ? body.events : [];
-          await writeEvents(kv, incoming);
+
+          // Update in-memory store
+          _mem.length = 0;
+          _mem.push(...incoming);
+
+          // Write to Cache API — this makes events visible on ALL devices
+          await writeCache(origin, incoming);
+
           return new Response(
-            JSON.stringify({ ok: true, saved: incoming.length, kv: kv !== null }),
+            JSON.stringify({ ok: true, saved: incoming.length }),
             { headers: { "content-type": "application/json; charset=utf-8" } },
           );
         } catch {
@@ -89,6 +92,18 @@ export const Route = createFileRoute("/admin-events")({
             { status: 400, headers: { "content-type": "application/json; charset=utf-8" } },
           );
         }
+      },
+
+      // DELETE /admin-events — clear the cache (e.g. when all events removed)
+      DELETE: async ({ request }) => {
+        const origin = new URL(request.url).origin;
+        try {
+          await (caches as any).default.delete(cacheKey(origin));
+        } catch {}
+        _mem.length = 0;
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { "content-type": "application/json; charset=utf-8" },
+        });
       },
     },
   },

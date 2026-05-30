@@ -3,12 +3,5 @@
   "name": "rossventures",
   "compatibility_date": "2026-05-23",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
-  "kv_namespaces": [
-    {
-      "binding": "EVENTS_KV",
-      "id": "create_with_wrangler_kv_namespace_create_events",
-      "preview_id": "create_with_wrangler_kv_namespace_create_events_preview"
-    }
-  ]
+  "main": "@tanstack/react-start/server-entry"
 }
