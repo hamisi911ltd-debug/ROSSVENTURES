@@ -5,7 +5,9 @@ import { z } from "zod";
 import {
   Loader2, Upload, Trash2, LogOut, Eye, EyeOff, ImageIcon,
   Search, RefreshCw, Ticket, TrendingUp, CalendarDays, DollarSign,
+  Camera, Link as LinkIcon, X,
 } from "lucide-react";
+import type { GalleryPhoto } from "@/lib/types";
 import type { EventRow, BookingRow, TicketTier } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
@@ -20,6 +22,35 @@ export const Route = createFileRoute("/admin")({
 
 const AUTH_KEY = "rossventures-admin-auth";
 const STORAGE_KEY = "rossventures-admin-events";
+const GALLERY_STORAGE_KEY = "rossventures-gallery";
+
+function loadStoredGallery(): GalleryPhoto[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(GALLERY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+}
+
+function saveStoredGallery(photos: GalleryPhoto[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(photos));
+}
+
+async function syncGalleryToServer(photos: GalleryPhoto[]): Promise<boolean> {
+  try {
+    const res = await fetch("/admin-gallery", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ photos }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 const eventSchema = z.object({
   title: z.string().trim().min(2).max(120),
@@ -112,7 +143,7 @@ async function fetchBookings(): Promise<BookingRow[]> {
 
 function AdminPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"events" | "bookings">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "gallery">("events");
   const [events, setEvents] = useState<EventRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,6 +168,16 @@ function AdminPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Gallery state
+  const [gallery, setGallery] = useState<GalleryPhoto[]>([]);
+  const [galleryUrl, setGalleryUrl] = useState("");
+  const [galleryCaption, setGalleryCaption] = useState("");
+  const [galleryEventName, setGalleryEventName] = useState("");
+  const [galleryFile, setGalleryFile] = useState<File | null>(null);
+  const [galleryPreview, setGalleryPreview] = useState<string | null>(null);
+  const [gallerySubmitting, setGallerySubmitting] = useState(false);
+  const [gallerySyncOk, setGallerySyncOk] = useState<boolean | null>(null);
+
   const publishedCount = useMemo(() => events.filter(e => e.is_published).length, [events]);
   const totalRevenue = useMemo(
     () => bookings.filter(b => b.status === "paid").reduce((s, b) => s + b.amount, 0),
@@ -158,11 +199,23 @@ function AdminPage() {
     if (!authorized) { navigate({ to: "/auth" }); return; }
     const stored = loadStoredEvents();
     setEvents(stored);
+    const storedGallery = loadStoredGallery();
+    setGallery(storedGallery);
     setCheckedAuth(true);
     setLoading(false);
-    // Sync to server on load
     if (stored.length > 0) syncEventsToServer(stored);
+    if (storedGallery.length > 0) syncGalleryToServer(storedGallery);
     fetchBookings().then(setBookings);
+    // Fetch server gallery (cross-device)
+    fetch("/admin-gallery", { cache: "no-store" })
+      .then(r => r.json())
+      .then((data: { ok: boolean; photos: GalleryPhoto[] }) => {
+        if (data.ok && Array.isArray(data.photos) && data.photos.length > 0) {
+          setGallery(data.photos);
+          saveStoredGallery(data.photos);
+        }
+      })
+      .catch(() => {});
   }, [navigate]);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
@@ -175,6 +228,69 @@ function AdminPage() {
 
   function updateTier(idx: number, field: keyof TicketTier, value: string | number) {
     setTiers(prev => prev.map((t, i) => i === idx ? { ...t, [field]: value } : t));
+  }
+
+  function onPickGalleryFile(f: File | null) {
+    setGalleryFile(f);
+    if (galleryPreview) URL.revokeObjectURL(galleryPreview);
+    setGalleryPreview(f ? URL.createObjectURL(f) : null);
+  }
+
+  async function handleAddPhoto(e: React.FormEvent) {
+    e.preventDefault();
+    const hasFile = !!galleryFile;
+    const hasUrl = galleryUrl.trim().length > 0;
+    if (!hasFile && !hasUrl) { toast.error("Provide an image file or URL"); return; }
+    setGallerySubmitting(true);
+    try {
+      let finalUrl = galleryUrl.trim();
+      if (hasFile) {
+        if (galleryFile!.size > 5 * 1024 * 1024) throw new Error("Image must be under 5 MB");
+        finalUrl = await readFileAsDataUrl(galleryFile!);
+      }
+      const newPhoto: GalleryPhoto = {
+        id: crypto.randomUUID(),
+        url: finalUrl,
+        caption: galleryCaption.trim(),
+        event_name: galleryEventName.trim(),
+        is_published: true,
+        created_at: new Date().toISOString(),
+      };
+      const next = [newPhoto, ...gallery];
+      saveStoredGallery(next);
+      setGallery(next);
+      const ok = await syncGalleryToServer(next);
+      setGallerySyncOk(ok);
+      toast.success(ok ? "Photo published & synced ✓" : "Photo saved locally (tap Sync)");
+      setGalleryUrl(""); setGalleryCaption(""); setGalleryEventName("");
+      onPickGalleryFile(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add photo");
+    } finally { setGallerySubmitting(false); }
+  }
+
+  async function handleSyncGallery() {
+    const ok = await syncGalleryToServer(gallery);
+    setGallerySyncOk(ok);
+    toast[ok ? "success" : "error"](ok ? "Gallery synced to all devices ✓" : "Sync failed");
+  }
+
+  async function togglePhotoPublish(photo: GalleryPhoto) {
+    const next = gallery.map(p => p.id === photo.id ? { ...p, is_published: !p.is_published } : p);
+    setGallery(next);
+    saveStoredGallery(next);
+    const ok = await syncGalleryToServer(next);
+    setGallerySyncOk(ok);
+  }
+
+  async function deletePhoto(photo: GalleryPhoto) {
+    if (!confirm(`Delete this photo?`)) return;
+    const next = gallery.filter(p => p.id !== photo.id);
+    setGallery(next);
+    saveStoredGallery(next);
+    const ok = await syncGalleryToServer(next);
+    setGallerySyncOk(ok);
+    toast.success("Photo deleted");
   }
 
   async function handleSync() {
@@ -307,7 +423,7 @@ function AdminPage() {
 
       {/* Tabs */}
       <div className="mt-10 flex gap-1 rounded-xl border border-border/60 bg-card/40 p-1 w-fit">
-        {(["events", "bookings"] as const).map(t => (
+        {(["events", "bookings", "gallery"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -418,6 +534,131 @@ function AdminPage() {
                   </li>
                 ))}
               </ul>
+            )}
+          </section>
+        </div>
+      )}
+
+      {tab === "gallery" && (
+        <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+          {/* Add Photo Form */}
+          <form onSubmit={handleAddPhoto} className="space-y-4 rounded-2xl border border-border/60 bg-card/60 p-6 h-fit">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold">Add photo</h2>
+              <div className="flex items-center gap-2">
+                {gallerySyncOk === true && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Synced
+                  </span>
+                )}
+                <button type="button" onClick={handleSyncGallery} className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 px-3 py-1.5 text-xs font-semibold hover:bg-secondary">
+                  <RefreshCw className="h-3.5 w-3.5" /> Sync
+                </button>
+              </div>
+            </div>
+
+            {/* File or URL */}
+            <div>
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Photo (upload file or paste URL)</span>
+              <div className="mt-2 space-y-2">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-3 text-sm font-semibold hover:bg-secondary">
+                  <Camera className="h-4 w-4" />
+                  {galleryFile ? galleryFile.name.slice(0, 24) : "Upload image (≤5 MB)"}
+                  <input type="file" accept="image/*" className="hidden" onChange={e => onPickGalleryFile(e.target.files?.[0] ?? null)} />
+                </label>
+                {galleryPreview && (
+                  <div className="relative overflow-hidden rounded-xl">
+                    <img src={galleryPreview} alt="Preview" className="w-full max-h-40 object-cover" />
+                    <button type="button" onClick={() => onPickGalleryFile(null)} className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-border/60" />
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <div className="h-px flex-1 bg-border/60" />
+                </div>
+                <label className="block">
+                  <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-3">
+                    <LinkIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <input
+                      type="url"
+                      value={galleryUrl}
+                      onChange={e => setGalleryUrl(e.target.value)}
+                      placeholder="https://example.com/photo.jpg"
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+                    />
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Event name</span>
+              <input type="text" value={galleryEventName} onChange={e => setGalleryEventName(e.target.value)}
+                placeholder="e.g. Comrades Festival 1.0" maxLength={80}
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary" />
+            </label>
+
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Caption (optional)</span>
+              <input type="text" value={galleryCaption} onChange={e => setGalleryCaption(e.target.value)}
+                placeholder="Add a short caption…" maxLength={160}
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary" />
+            </label>
+
+            <button type="submit" disabled={gallerySubmitting}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-ember disabled:opacity-60">
+              {gallerySubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              Post to gallery
+            </button>
+          </form>
+
+          {/* Gallery grid */}
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold">
+                {gallery.length} photo{gallery.length !== 1 ? "s" : ""}
+              </h2>
+            </div>
+            {gallery.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                No photos yet. Use the form to add your first one.
+              </p>
+            ) : (
+              <div className="columns-2 gap-3 sm:columns-3">
+                {gallery.map(photo => (
+                  <div key={photo.id} className="mb-3 break-inside-avoid overflow-hidden rounded-xl border border-border/60 group relative">
+                    <img src={photo.url} alt={photo.caption || photo.event_name || "Gallery"} loading="lazy"
+                      className="w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 rounded-xl" />
+                    <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      {photo.event_name && (
+                        <span className="inline-block rounded-full bg-accent/80 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                          {photo.event_name}
+                        </span>
+                      )}
+                      {photo.caption && (
+                        <p className="mt-0.5 text-[11px] text-white/80 line-clamp-1">{photo.caption}</p>
+                      )}
+                      <div className="mt-1.5 flex gap-1.5">
+                        <button onClick={() => togglePhotoPublish(photo)}
+                          className="inline-flex items-center gap-1 rounded-md bg-white/20 px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/30 backdrop-blur-sm">
+                          {photo.is_published ? <><EyeOff className="h-3 w-3" /> Hide</> : <><Eye className="h-3 w-3" /> Show</>}
+                        </button>
+                        <button onClick={() => deletePhoto(photo)}
+                          className="inline-flex items-center gap-1 rounded-md bg-red-500/60 px-2 py-1 text-[10px] font-semibold text-white hover:bg-red-500/80 backdrop-blur-sm">
+                          <Trash2 className="h-3 w-3" /> Del
+                        </button>
+                      </div>
+                    </div>
+                    {!photo.is_published && (
+                      <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-muted-foreground">Hidden</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </section>
         </div>

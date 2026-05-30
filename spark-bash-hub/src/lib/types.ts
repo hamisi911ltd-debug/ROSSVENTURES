@@ -17,6 +17,15 @@ export type EventRow = {
   tiers: TicketTier[];
 };
 
+export type GalleryPhoto = {
+  id: string;
+  url: string;
+  caption: string;
+  event_name: string;
+  is_published: boolean;
+  created_at: string;
+};
+
 export type BookingStatus = "pending" | "paid" | "failed" | "cancelled";
 
 export type BookingRow = {

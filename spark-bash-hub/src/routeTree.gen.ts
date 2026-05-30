@@ -10,27 +10,34 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OrganizersRouteImport } from './routes/organizers'
+import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AmbassadorsRouteImport } from './routes/ambassadors'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AdminLoginRouteImport } from './routes/admin-login'
-import { Route as AdminEventsRouteImport } from './routes/admin-events'
 import { Route as AdminMpesaRouteImport } from './routes/admin-mpesa'
+import { Route as AdminLoginRouteImport } from './routes/admin-login'
+import { Route as AdminGalleryRouteImport } from './routes/admin-gallery'
+import { Route as AdminEventsRouteImport } from './routes/admin-events'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as TicketBookingIdRouteImport } from './routes/ticket.$bookingId'
+import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as ApiEventsRouteImport } from './routes/api.events'
 import { Route as ApiBookingsRouteImport } from './routes/api.bookings'
-import { Route as ApiBookingsBookingIdRouteImport } from './routes/api.bookings.$bookingId'
 import { Route as ApiMpesaInitiateRouteImport } from './routes/api.mpesa.initiate'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api.mpesa.callback'
+import { Route as ApiBookingsBookingIdRouteImport } from './routes/api.bookings.$bookingId'
 
 const OrganizersRoute = OrganizersRouteImport.update({
   id: '/organizers',
   path: '/organizers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsRoute = EventsRouteImport.update({
@@ -53,9 +60,9 @@ const AmbassadorsRoute = AmbassadorsRouteImport.update({
   path: '/ambassadors',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AdminMpesaRoute = AdminMpesaRouteImport.update({
+  id: '/admin-mpesa',
+  path: '/admin-mpesa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
@@ -63,44 +70,19 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin-login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminGalleryRoute = AdminGalleryRouteImport.update({
+  id: '/admin-gallery',
+  path: '/admin-gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminEventsRoute = AdminEventsRouteImport.update({
   id: '/admin-events',
   path: '/admin-events',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminMpesaRoute = AdminMpesaRouteImport.update({
-  id: '/admin-mpesa',
-  path: '/admin-mpesa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TicketBookingIdRoute = TicketBookingIdRouteImport.update({
-  id: '/ticket/$bookingId',
-  path: '/ticket/$bookingId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiEventsRoute = ApiEventsRouteImport.update({
-  id: '/api/events',
-  path: '/api/events',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBookingsRoute = ApiBookingsRouteImport.update({
-  id: '/api/bookings',
-  path: '/api/bookings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBookingsBookingIdRoute = ApiBookingsBookingIdRouteImport.update({
-  id: '/api/bookings/$bookingId',
-  path: '/api/bookings/$bookingId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiMpesaInitiateRoute = ApiMpesaInitiateRouteImport.update({
-  id: '/api/mpesa/initiate',
-  path: '/api/mpesa/initiate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
-  id: '/api/mpesa/callback',
-  path: '/api/mpesa/callback',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -113,66 +95,108 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TicketBookingIdRoute = TicketBookingIdRouteImport.update({
+  id: '/ticket/$bookingId',
+  path: '/ticket/$bookingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsEventIdRoute = EventsEventIdRouteImport.update({
   id: '/$eventId',
   path: '/$eventId',
   getParentRoute: () => EventsRoute,
+} as any)
+const ApiEventsRoute = ApiEventsRouteImport.update({
+  id: '/api/events',
+  path: '/api/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingsRoute = ApiBookingsRouteImport.update({
+  id: '/api/bookings',
+  path: '/api/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMpesaInitiateRoute = ApiMpesaInitiateRouteImport.update({
+  id: '/api/mpesa/initiate',
+  path: '/api/mpesa/initiate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
+  id: '/api/mpesa/callback',
+  path: '/api/mpesa/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingsBookingIdRoute = ApiBookingsBookingIdRouteImport.update({
+  id: '/$bookingId',
+  path: '/$bookingId',
+  getParentRoute: () => ApiBookingsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/admin-events': typeof AdminEventsRoute
+  '/admin-gallery': typeof AdminGalleryRoute
   '/admin-login': typeof AdminLoginRoute
+  '/admin-mpesa': typeof AdminMpesaRoute
   '/ambassadors': typeof AmbassadorsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/events': typeof EventsRouteWithChildren
+  '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/api/events': typeof ApiEventsRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
-  '/api/events': typeof ApiEventsRoute
-  '/api/bookings': typeof ApiBookingsRoute
   '/api/bookings/$bookingId': typeof ApiBookingsBookingIdRoute
-  '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
+  '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/admin-events': typeof AdminEventsRoute
+  '/admin-gallery': typeof AdminGalleryRoute
   '/admin-login': typeof AdminLoginRoute
+  '/admin-mpesa': typeof AdminMpesaRoute
   '/ambassadors': typeof AmbassadorsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/events': typeof EventsRouteWithChildren
+  '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/api/events': typeof ApiEventsRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
-  '/api/events': typeof ApiEventsRoute
-  '/api/bookings': typeof ApiBookingsRoute
   '/api/bookings/$bookingId': typeof ApiBookingsBookingIdRoute
-  '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
+  '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/admin-events': typeof AdminEventsRoute
+  '/admin-gallery': typeof AdminGalleryRoute
   '/admin-login': typeof AdminLoginRoute
+  '/admin-mpesa': typeof AdminMpesaRoute
   '/ambassadors': typeof AmbassadorsRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/events': typeof EventsRouteWithChildren
+  '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/api/events': typeof ApiEventsRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
-  '/api/events': typeof ApiEventsRoute
-  '/api/bookings': typeof ApiBookingsRoute
   '/api/bookings/$bookingId': typeof ApiBookingsBookingIdRoute
-  '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
+  '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -180,75 +204,88 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/admin-events'
+    | '/admin-gallery'
     | '/admin-login'
+    | '/admin-mpesa'
     | '/ambassadors'
     | '/auth'
     | '/contact'
     | '/events'
+    | '/gallery'
     | '/organizers'
+    | '/api/bookings'
+    | '/api/events'
     | '/events/$eventId'
     | '/ticket/$bookingId'
-    | '/api/events'
-    | '/api/bookings'
     | '/api/bookings/$bookingId'
-    | '/api/mpesa/initiate'
     | '/api/mpesa/callback'
+    | '/api/mpesa/initiate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/admin'
+    | '/admin-events'
+    | '/admin-gallery'
     | '/admin-login'
+    | '/admin-mpesa'
     | '/ambassadors'
     | '/auth'
     | '/contact'
     | '/events'
+    | '/gallery'
     | '/organizers'
+    | '/api/bookings'
+    | '/api/events'
     | '/events/$eventId'
     | '/ticket/$bookingId'
-    | '/api/events'
-    | '/api/bookings'
     | '/api/bookings/$bookingId'
-    | '/api/mpesa/initiate'
     | '/api/mpesa/callback'
+    | '/api/mpesa/initiate'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
+    | '/admin-events'
+    | '/admin-gallery'
     | '/admin-login'
+    | '/admin-mpesa'
     | '/ambassadors'
     | '/auth'
     | '/contact'
     | '/events'
+    | '/gallery'
     | '/organizers'
+    | '/api/bookings'
+    | '/api/events'
     | '/events/$eventId'
     | '/ticket/$bookingId'
-    | '/api/events'
-    | '/api/bookings'
     | '/api/bookings/$bookingId'
-    | '/api/mpesa/initiate'
     | '/api/mpesa/callback'
+    | '/api/mpesa/initiate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
-  AdminLoginRoute: typeof AdminLoginRoute
   AdminEventsRoute: typeof AdminEventsRoute
+  AdminGalleryRoute: typeof AdminGalleryRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminMpesaRoute: typeof AdminMpesaRoute
   AmbassadorsRoute: typeof AmbassadorsRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   EventsRoute: typeof EventsRouteWithChildren
+  GalleryRoute: typeof GalleryRoute
   OrganizersRoute: typeof OrganizersRoute
-  TicketBookingIdRoute: typeof TicketBookingIdRoute
+  ApiBookingsRoute: typeof ApiBookingsRouteWithChildren
   ApiEventsRoute: typeof ApiEventsRoute
-  ApiBookingsRoute: typeof ApiBookingsRoute
-  ApiBookingsBookingIdRoute: typeof ApiBookingsBookingIdRoute
-  ApiMpesaInitiateRoute: typeof ApiMpesaInitiateRoute
+  TicketBookingIdRoute: typeof TicketBookingIdRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
+  ApiMpesaInitiateRoute: typeof ApiMpesaInitiateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -258,6 +295,13 @@ declare module '@tanstack/react-router' {
       path: '/organizers'
       fullPath: '/organizers'
       preLoaderRoute: typeof OrganizersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events': {
@@ -288,11 +332,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AmbassadorsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/admin-mpesa': {
+      id: '/admin-mpesa'
+      path: '/admin-mpesa'
+      fullPath: '/admin-mpesa'
+      preLoaderRoute: typeof AdminMpesaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-login': {
@@ -302,46 +346,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ticket/$bookingId': {
-      id: '/ticket/$bookingId'
-      path: '/ticket/$bookingId'
-      fullPath: '/ticket/$bookingId'
-      preLoaderRoute: typeof TicketBookingIdRouteImport
+    '/admin-gallery': {
+      id: '/admin-gallery'
+      path: '/admin-gallery'
+      fullPath: '/admin-gallery'
+      preLoaderRoute: typeof AdminGalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/events': {
-      id: '/api/events'
-      path: '/api/events'
-      fullPath: '/api/events'
-      preLoaderRoute: typeof ApiEventsRouteImport
+    '/admin-events': {
+      id: '/admin-events'
+      path: '/admin-events'
+      fullPath: '/admin-events'
+      preLoaderRoute: typeof AdminEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/bookings': {
-      id: '/api/bookings'
-      path: '/api/bookings'
-      fullPath: '/api/bookings'
-      preLoaderRoute: typeof ApiBookingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/bookings/$bookingId': {
-      id: '/api/bookings/$bookingId'
-      path: '/api/bookings/$bookingId'
-      fullPath: '/api/bookings/$bookingId'
-      preLoaderRoute: typeof ApiBookingsBookingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/mpesa/initiate': {
-      id: '/api/mpesa/initiate'
-      path: '/api/mpesa/initiate'
-      fullPath: '/api/mpesa/initiate'
-      preLoaderRoute: typeof ApiMpesaInitiateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/mpesa/callback': {
-      id: '/api/mpesa/callback'
-      path: '/api/mpesa/callback'
-      fullPath: '/api/mpesa/callback'
-      preLoaderRoute: typeof ApiMpesaCallbackRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -358,12 +381,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ticket/$bookingId': {
+      id: '/ticket/$bookingId'
+      path: '/ticket/$bookingId'
+      fullPath: '/ticket/$bookingId'
+      preLoaderRoute: typeof TicketBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/$eventId': {
       id: '/events/$eventId'
       path: '/$eventId'
       fullPath: '/events/$eventId'
       preLoaderRoute: typeof EventsEventIdRouteImport
       parentRoute: typeof EventsRoute
+    }
+    '/api/events': {
+      id: '/api/events'
+      path: '/api/events'
+      fullPath: '/api/events'
+      preLoaderRoute: typeof ApiEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bookings': {
+      id: '/api/bookings'
+      path: '/api/bookings'
+      fullPath: '/api/bookings'
+      preLoaderRoute: typeof ApiBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mpesa/initiate': {
+      id: '/api/mpesa/initiate'
+      path: '/api/mpesa/initiate'
+      fullPath: '/api/mpesa/initiate'
+      preLoaderRoute: typeof ApiMpesaInitiateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mpesa/callback': {
+      id: '/api/mpesa/callback'
+      path: '/api/mpesa/callback'
+      fullPath: '/api/mpesa/callback'
+      preLoaderRoute: typeof ApiMpesaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bookings/$bookingId': {
+      id: '/api/bookings/$bookingId'
+      path: '/$bookingId'
+      fullPath: '/api/bookings/$bookingId'
+      preLoaderRoute: typeof ApiBookingsBookingIdRouteImport
+      parentRoute: typeof ApiBookingsRoute
     }
   }
 }
@@ -379,24 +444,37 @@ const EventsRouteChildren: EventsRouteChildren = {
 const EventsRouteWithChildren =
   EventsRoute._addFileChildren(EventsRouteChildren)
 
+interface ApiBookingsRouteChildren {
+  ApiBookingsBookingIdRoute: typeof ApiBookingsBookingIdRoute
+}
+
+const ApiBookingsRouteChildren: ApiBookingsRouteChildren = {
+  ApiBookingsBookingIdRoute: ApiBookingsBookingIdRoute,
+}
+
+const ApiBookingsRouteWithChildren = ApiBookingsRoute._addFileChildren(
+  ApiBookingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
-  AdminLoginRoute: AdminLoginRoute,
   AdminEventsRoute: AdminEventsRoute,
+  AdminGalleryRoute: AdminGalleryRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminMpesaRoute: AdminMpesaRoute,
   AmbassadorsRoute: AmbassadorsRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   EventsRoute: EventsRouteWithChildren,
+  GalleryRoute: GalleryRoute,
   OrganizersRoute: OrganizersRoute,
-  TicketBookingIdRoute: TicketBookingIdRoute,
+  ApiBookingsRoute: ApiBookingsRouteWithChildren,
   ApiEventsRoute: ApiEventsRoute,
-  ApiBookingsRoute: ApiBookingsRoute,
-  ApiBookingsBookingIdRoute: ApiBookingsBookingIdRoute,
-  ApiMpesaInitiateRoute: ApiMpesaInitiateRoute,
+  TicketBookingIdRoute: TicketBookingIdRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,
+  ApiMpesaInitiateRoute: ApiMpesaInitiateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
