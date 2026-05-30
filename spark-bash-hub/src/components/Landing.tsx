@@ -149,7 +149,7 @@ export default function Landing() {
     if (local.length > 0) setDynamicEvents(local);
 
     // 2. Then try the server API (catches events synced across devices)
-    fetch("/api/events")
+    fetch("/admin-events")
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
         if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
@@ -305,7 +305,7 @@ export default function Landing() {
                 </p>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{event.desc}</p>
                 <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent transition group-hover:gap-3">
-                  Book tickets <ArrowRight className="h-4 w-4" />
+                  Purchase Ticket <ArrowRight className="h-4 w-4" />
                 </div>
               </div>
             </Link>

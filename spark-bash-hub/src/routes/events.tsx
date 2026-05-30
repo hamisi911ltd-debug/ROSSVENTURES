@@ -70,7 +70,7 @@ function EventsPage() {
     const local = getLocalStorageEvents();
     if (local.length > 0) setDynamicEvents(local);
 
-    fetch("/api/events")
+    fetch("/admin-events")
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
         if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
@@ -117,7 +117,7 @@ function EventsPage() {
               ))}
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to={`/events/${featured.id}`} className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-ember">Book tickets <ArrowRight className="h-4 w-4" /></Link>
+              <Link to={`/events/${featured.id}`} className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-ember">Purchase Ticket <ArrowRight className="h-4 w-4" /></Link>
               <a href="tel:+254705333198" className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-5 py-3 text-sm font-semibold hover:bg-secondary">Sponsor this event</a>
             </div>
           </div>
@@ -141,7 +141,7 @@ function EventsPage() {
               ))}
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to={`/events/${STATIC_FEATURED.id}`} className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-ember">Book tickets <ArrowRight className="h-4 w-4" /></Link>
+              <Link to={`/events/${STATIC_FEATURED.id}`} className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-ember">Purchase Ticket <ArrowRight className="h-4 w-4" /></Link>
               <a href="tel:+254705333198" className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-5 py-3 text-sm font-semibold hover:bg-secondary">Sponsor this event</a>
             </div>
           </div>
@@ -163,7 +163,7 @@ function EventsPage() {
                 <div className="p-5">
                   <h3 className="font-display text-base font-bold leading-tight">{ev.title}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{ev.venue} · {ev.date}</p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-accent">Book tickets <ArrowRight className="h-3 w-3" /></span>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-accent">Purchase Ticket <ArrowRight className="h-3 w-3" /></span>
                 </div>
               </Link>
             ))}

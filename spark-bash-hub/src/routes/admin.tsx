@@ -88,7 +88,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
 
 async function syncEventsToServer(events: EventRow[]) {
   try {
-    await fetch("/api/events", {
+    await fetch("/admin-events", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ events }),
@@ -97,10 +97,13 @@ async function syncEventsToServer(events: EventRow[]) {
 }
 
 async function fetchBookings(): Promise<BookingRow[]> {
+  // Bookings are stored in localStorage on each user's device.
+  // The admin can see bookings that were made on this same device.
+  if (typeof window === "undefined") return [];
   try {
-    const res = await fetch("/api/bookings");
-    const data = await res.json() as { ok: boolean; bookings: BookingRow[] };
-    return data.ok ? data.bookings : [];
+    const raw = window.localStorage.getItem("rossventures-bookings");
+    if (!raw) return [];
+    return JSON.parse(raw) as BookingRow[];
   } catch { return []; }
 }
 

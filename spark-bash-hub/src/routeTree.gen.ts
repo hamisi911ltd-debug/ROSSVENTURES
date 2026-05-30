@@ -16,6 +16,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AmbassadorsRouteImport } from './routes/ambassadors'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
+import { Route as AdminEventsRouteImport } from './routes/admin-events'
+import { Route as AdminMpesaRouteImport } from './routes/admin-mpesa'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
@@ -59,6 +61,16 @@ const AdminRoute = AdminRouteImport.update({
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin-login',
   path: '/admin-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEventsRoute = AdminEventsRouteImport.update({
+  id: '/admin-events',
+  path: '/admin-events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMpesaRoute = AdminMpesaRouteImport.update({
+  id: '/admin-mpesa',
+  path: '/admin-mpesa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketBookingIdRoute = TicketBookingIdRouteImport.update({
@@ -224,6 +236,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminEventsRoute: typeof AdminEventsRoute
+  AdminMpesaRoute: typeof AdminMpesaRoute
   AmbassadorsRoute: typeof AmbassadorsRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
@@ -370,6 +384,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminEventsRoute: AdminEventsRoute,
+  AdminMpesaRoute: AdminMpesaRoute,
   AmbassadorsRoute: AmbassadorsRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
