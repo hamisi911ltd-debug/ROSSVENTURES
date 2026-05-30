@@ -29,13 +29,43 @@ const eventSchema = z.object({
   description: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
+function migrateEvent(raw: any): EventRow {
+  // Support old format that had ticket_price string instead of tiers array
+  const tiers: EventRow["tiers"] = Array.isArray(raw.tiers) && raw.tiers.length > 0
+    ? raw.tiers.map((t: any) => ({
+        name: String(t.name ?? "General"),
+        price: Number(t.price ?? 0),
+        description: String(t.description ?? ""),
+      }))
+    : raw.ticket_price
+      ? [{ name: "General", price: parseInt(String(raw.ticket_price).replace(/\D/g, "")) || 0, description: "Standard entry" }]
+      : [{ name: "General", price: 0, description: "Standard entry" }];
+
+  return {
+    id: String(raw.id ?? crypto.randomUUID()),
+    title: String(raw.title ?? "Untitled"),
+    description: String(raw.description ?? ""),
+    venue: String(raw.venue ?? ""),
+    event_date: String(raw.event_date ?? ""),
+    tag: String(raw.tag ?? ""),
+    is_published: Boolean(raw.is_published),
+    created_at: String(raw.created_at ?? new Date().toISOString()),
+    poster_url: raw.poster_url ?? null,
+    tiers,
+  };
+}
+
 function loadStoredEvents(): EventRow[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    const migrated = parsed.map(migrateEvent);
+    // Re-save in new format so future loads are clean
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+    return migrated;
   } catch { return []; }
 }
 
@@ -345,7 +375,7 @@ function AdminPage() {
                         <div>
                           <h3 className="truncate font-display text-sm font-bold">{ev.title}</h3>
                           <p className="truncate text-xs text-muted-foreground">{ev.venue}{ev.event_date ? ` · ${ev.event_date}` : ""}</p>
-                          <p className="mt-0.5 text-xs text-accent">{ev.tiers.map(t => `${t.name}: KES ${t.price}`).join(" · ")}</p>
+                          <p className="mt-0.5 text-xs text-accent">{(ev.tiers ?? []).map(t => `${t.name}: KES ${t.price}`).join(" · ")}</p>
                         </div>
                         <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${ev.is_published ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"}`}>
                           {ev.is_published ? "Live" : "Hidden"}

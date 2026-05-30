@@ -88,20 +88,40 @@ function EventDetailPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [pollCount, setPollCount] = useState(0);
 
-  // Load event from server, fall back to static
+  // Load event: static → localStorage → server API
   useEffect(() => {
+    // 1. Check static fallback first
     const staticEv = STATIC_EVENTS[eventId];
     if (staticEv) {
       setEvent({ ...staticEv, is_published: true, created_at: "" });
       setTicketType(staticEv.tiers[0]?.name ?? "");
     }
-    // Try loading from server (might have richer data / admin-created)
+
+    // 2. Check admin's localStorage (works on same device)
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("rossventures-admin-events") : null;
+      if (raw) {
+        const all = JSON.parse(raw) as any[];
+        const found = all.find((e: any) => e.id === eventId);
+        if (found && found.title) {
+          const tiers = Array.isArray(found.tiers) ? found.tiers : [];
+          setEvent({ ...found, tiers, is_published: true, created_at: found.created_at ?? "" });
+          setTicketType(tiers[0]?.name ?? "");
+        }
+      }
+    } catch {}
+
+    // 3. Try the server API (cross-device, picks up synced events)
     fetch(`/api/events?all=1`)
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
-        if (data.ok) {
+        if (data.ok && Array.isArray(data.events)) {
           const found = data.events.find(e => e.id === eventId);
-          if (found) { setEvent(found); setTicketType(found.tiers[0]?.name ?? ""); }
+          if (found) {
+            const tiers = Array.isArray(found.tiers) ? found.tiers : [];
+            setEvent({ ...found, tiers });
+            setTicketType(found.tiers[0]?.name ?? "");
+          }
         }
       })
       .catch(() => {})
@@ -126,7 +146,8 @@ function EventDetailPage() {
     );
   }
 
-  const selectedTier = event.tiers.find(t => t.name === ticketType) ?? event.tiers[0];
+  const tiers = event?.tiers ?? [];
+  const selectedTier = tiers.find(t => t.name === ticketType) ?? tiers[0];
   const totalAmount = (selectedTier?.price ?? 0) * quantity;
 
   // ─── Step 1: Details form ────────────────────────────────────────────────────
@@ -258,7 +279,7 @@ function EventDetailPage() {
           <div className="mt-8">
             <h3 className="font-display text-xl font-bold mb-4">Ticket tiers</h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
-              {event.tiers.map(tier => (
+              {tiers.map(tier => (
                 <div key={tier.name} className="rounded-xl border border-border/60 bg-card/60 p-5">
                   <h4 className="font-display font-bold">{tier.name}</h4>
                   <p className="text-xs text-muted-foreground">{tier.description}</p>
@@ -297,7 +318,7 @@ function EventDetailPage() {
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Ticket type</label>
                     <select value={ticketType} onChange={e => setTicketType(e.target.value)}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent">
-                      {event.tiers.map(t => (
+                      {tiers.map(t => (
                         <option key={t.name} value={t.name}>{t.name} — KES {t.price.toLocaleString()}</option>
                       ))}
                     </select>

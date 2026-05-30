@@ -1,4 +1,4 @@
-import { Route } from "@/routes/index";
+import { useState, useEffect } from "react";
 import type { EventRow } from "@/lib/types";
 import comrades from "@/assets/comrades-festival.jpg";
 import usaniifest from "@/assets/event-usaniifest.png";
@@ -122,9 +122,45 @@ const STATIC_UPCOMING = [
   { id: "usaniifest", img: usaniifest, title: "UsaniiFest 001", date: "6 March 2026", venue: "JKUAT Assembly Hall", desc: "Music, food, art & vibes celebrating campus creativity" },
 ];
 
+const ADMIN_STORAGE_KEY = "rossventures-admin-events";
+
+function getLocalStorageEvents(): EventRow[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(ADMIN_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((e: any) => e.is_published && e.title)
+          .map((e: any) => ({
+            ...e,
+            tiers: Array.isArray(e.tiers) ? e.tiers : [],
+          }))
+      : [];
+  } catch { return []; }
+}
+
 export default function Landing() {
-  const loaderData = Route.useLoaderData();
-  const dynamicEvents: EventRow[] = loaderData?.dynamicEvents ?? [];
+  const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
+
+  useEffect(() => {
+    // 1. Immediately show admin's localStorage events (same device)
+    const local = getLocalStorageEvents();
+    if (local.length > 0) setDynamicEvents(local);
+
+    // 2. Then try the server API (catches events synced across devices)
+    fetch("/api/events")
+      .then(r => r.json())
+      .then((data: { ok: boolean; events: EventRow[] }) => {
+        if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
+          // Merge: server events take precedence, but include local-only ones too
+          const serverIds = new Set(data.events.map(e => e.id));
+          const localOnly = local.filter(e => !serverIds.has(e.id));
+          setDynamicEvents([...data.events, ...localOnly]);
+        }
+      })
+      .catch(() => {}); // silently keep localStorage events on error
+  }, []);
   return (
     <main>
       {/* HERO */}

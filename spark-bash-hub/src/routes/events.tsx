@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import comrades from "@/assets/comrades-festival.jpg";
 import extravaganza from "@/assets/event-jkuat-extravaganza.png";
 import usaniifest from "@/assets/event-usaniifest.png";
@@ -17,13 +18,6 @@ export const Route = createFileRoute("/events")({
       { property: "og:description", content: "Comrades Festival, UsaniiFest, Adani Chill & Vibe and more." },
     ],
   }),
-  loader: async () => {
-    try {
-      const res = await fetch("/api/events");
-      const data = await res.json() as { ok: boolean; events: EventRow[] };
-      return { dynamicEvents: data.ok ? data.events : [] };
-    } catch { return { dynamicEvents: [] }; }
-  },
   component: EventsPage,
 });
 
@@ -54,11 +48,43 @@ const STATIC_UPCOMING = [
   { id: "usaniifest", img: usaniifest, title: "UsaniiFest 001", date: "6 March 2026", venue: "JKUAT Assembly Hall", tag: "2026" },
 ];
 
+const ADMIN_STORAGE_KEY = "rossventures-admin-events";
+
+function getLocalStorageEvents(): EventRow[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(ADMIN_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((e: any) => e.is_published && e.title)
+          .map((e: any) => ({ ...e, tiers: Array.isArray(e.tiers) ? e.tiers : [] }))
+      : [];
+  } catch { return []; }
+}
+
 function EventsPage() {
-  const { dynamicEvents } = Route.useLoaderData();
+  const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
+
+  useEffect(() => {
+    const local = getLocalStorageEvents();
+    if (local.length > 0) setDynamicEvents(local);
+
+    fetch("/api/events")
+      .then(r => r.json())
+      .then((data: { ok: boolean; events: EventRow[] }) => {
+        if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
+          const serverIds = new Set(data.events.map(e => e.id));
+          const localOnly = local.filter(e => !serverIds.has(e.id));
+          setDynamicEvents([...data.events, ...localOnly]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const featured = dynamicEvents.length > 0 ? dynamicEvents[0] : null;
   const upcomingList = dynamicEvents.length > 0
-    ? dynamicEvents.map(e => ({ id: e.id, img: e.poster_url ?? comrades, title: e.title, date: e.event_date, venue: e.venue, tag: e.tag, tiers: e.tiers }))
+    ? dynamicEvents.map(e => ({ id: e.id, img: e.poster_url ?? comrades, title: e.title, date: e.event_date, venue: e.venue, tag: e.tag, tiers: e.tiers ?? [] }))
     : STATIC_UPCOMING;
 
   return (
