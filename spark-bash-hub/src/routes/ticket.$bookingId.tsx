@@ -12,6 +12,18 @@ export const Route = createFileRoute("/ticket/$bookingId")({
   component: TicketPage,
 });
 
+const LS_BOOKINGS_KEY = "rossventures-bookings";
+
+function getBookingFromLocalStorage(id: string): BookingRow | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LS_BOOKINGS_KEY);
+    if (!raw) return null;
+    const all: BookingRow[] = JSON.parse(raw);
+    return Array.isArray(all) ? (all.find(b => b.id === id) ?? null) : null;
+  } catch { return null; }
+}
+
 function TicketPage() {
   const { bookingId } = Route.useParams();
   const [booking, setBooking] = useState<BookingRow | null>(null);
@@ -20,6 +32,15 @@ function TicketPage() {
   const ticketRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 1. Try localStorage first (fastest, works without server)
+    const local = getBookingFromLocalStorage(bookingId);
+    if (local) {
+      setBooking(local);
+      setLoading(false);
+      return;
+    }
+
+    // 2. Fall back to server API
     fetch(`/api/bookings/${bookingId}`)
       .then(r => r.json())
       .then((data: { ok: boolean; booking: BookingRow; error?: string }) => {
@@ -31,7 +52,6 @@ function TicketPage() {
   }, [bookingId]);
 
   function handleDownload() {
-    if (!ticketRef.current) return;
     window.print();
   }
 
@@ -60,7 +80,6 @@ function TicketPage() {
 
   return (
     <>
-      {/* Print-only styles */}
       <style>{`
         @media print {
           body * { visibility: hidden !important; }
@@ -91,19 +110,17 @@ function TicketPage() {
           </div>
         ) : (
           <div className="no-print flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 mb-6 text-sm">
-            <p className="text-amber-400 font-semibold">Payment status: {booking.status}</p>
+            <p className="text-amber-400 font-semibold">Status: {booking.status}</p>
           </div>
         )}
 
-        {/* ─── THE TICKET ──────────────────────────────────────────────────────── */}
+        {/* ─── THE TICKET ────────────────────────────────────────── */}
         <div id="ticket-printable" ref={ticketRef}
           className="relative rounded-3xl overflow-hidden border border-primary/30 bg-card shadow-glow"
           style={{ fontFamily: "Inter, sans-serif" }}>
 
-          {/* Top gradient bar */}
           <div className="h-2 w-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-600" />
 
-          {/* Header */}
           <div className="bg-[#0a0a0a] px-6 py-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src={rossVenturesLogo} alt="Ross Ventures" className="h-10 w-10 rounded-xl object-contain" />
@@ -120,30 +137,31 @@ function TicketPage() {
             </div>
           </div>
 
-          {/* Event info */}
           <div className="bg-gradient-to-br from-[#1a0a00] to-[#0a0a0a] px-6 py-6">
             <p className="text-[11px] uppercase tracking-[0.3em] text-orange-400">Event</p>
             <h2 className="mt-1 text-2xl font-bold text-white leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {booking.event_title}
             </h2>
             <div className="mt-3 flex flex-wrap gap-4">
-              <span className="inline-flex items-center gap-1.5 text-sm text-gray-300">
-                <Calendar className="h-4 w-4 text-orange-400" />{booking.event_date}
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-sm text-gray-300">
-                <MapPin className="h-4 w-4 text-orange-400" />{booking.event_venue}
-              </span>
+              {booking.event_date && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-gray-300">
+                  <Calendar className="h-4 w-4 text-orange-400" />{booking.event_date}
+                </span>
+              )}
+              {booking.event_venue && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-gray-300">
+                  <MapPin className="h-4 w-4 text-orange-400" />{booking.event_venue}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Tear line */}
           <div className="relative flex items-center px-4 bg-[#111]">
             <div className="absolute left-0 -ml-4 h-8 w-8 rounded-full bg-background" />
             <div className="flex-1 border-t-2 border-dashed border-white/10" />
             <div className="absolute right-0 -mr-4 h-8 w-8 rounded-full bg-background" />
           </div>
 
-          {/* Ticket details grid */}
           <div className="bg-[#111] px-6 py-6 grid grid-cols-2 gap-5 sm:grid-cols-3">
             <TicketField icon={Ticket} label="Ticket type" value={booking.ticket_type} />
             <TicketField icon={Hash} label="Quantity" value={`${booking.quantity} ticket${booking.quantity > 1 ? "s" : ""}`} />
@@ -156,9 +174,7 @@ function TicketPage() {
             </div>
           </div>
 
-          {/* QR / Reference section */}
           <div className="bg-[#0a0a0a] px-6 py-5 flex items-center gap-6">
-            {/* Visual QR-like block */}
             <QRBlock value={shortRef} />
             <div className="flex-1">
               <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400">Booking reference</p>
@@ -169,18 +185,16 @@ function TicketPage() {
                   <p className="font-mono text-sm font-semibold text-emerald-400">{booking.mpesa_receipt}</p>
                 </>
               )}
-              <p className="text-[11px] text-gray-500 mt-3">Show this QR code or reference at the gate for entry.</p>
+              <p className="text-[11px] text-gray-500 mt-3">Show this reference at the gate for entry.</p>
             </div>
           </div>
 
-          {/* Footer */}
           <div className="bg-[#111] px-6 py-4 flex items-center justify-between gap-4">
             <p className="text-[11px] text-gray-500">+254 705 333 198 · hello@rossventures.co.ke</p>
             <p className="text-[10px] text-gray-600">Issued {new Date(booking.created_at).toLocaleDateString("en-KE")}</p>
           </div>
         </div>
 
-        {/* Actions */}
         <div className="no-print mt-6 flex flex-wrap gap-3 justify-center">
           <button onClick={handleDownload}
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-ember">
@@ -191,14 +205,16 @@ function TicketPage() {
           </Link>
         </div>
         <p className="no-print mt-4 text-center text-xs text-muted-foreground">
-          A copy of this ticket has been saved. Use the reference number at the gate.
+          Screenshot or print this ticket. Show the reference number at the gate.
         </p>
       </main>
     </>
   );
 }
 
-function TicketField({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
+function TicketField({ icon: Icon, label, value }: {
+  icon: React.ComponentType<{ className?: string }>; label: string; value: string;
+}) {
   return (
     <div>
       <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 flex items-center gap-1">
@@ -209,7 +225,6 @@ function TicketField({ icon: Icon, label, value }: { icon: React.ComponentType<{
   );
 }
 
-// Simple visual QR-like grid using the booking reference
 function QRBlock({ value }: { value: string }) {
   const size = 7;
   const grid = Array.from({ length: size * size }, (_, i) => {
@@ -218,9 +233,9 @@ function QRBlock({ value }: { value: string }) {
     const charCode = value.charCodeAt(i % value.length);
     return isCorner || (charCode + i + x * 3 + y * 7) % 3 === 0;
   });
-
   return (
-    <div className="grid shrink-0 gap-[2px] p-2 bg-white rounded-lg" style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, width: 72, height: 72 }}>
+    <div className="grid shrink-0 gap-[2px] p-2 bg-white rounded-lg"
+      style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, width: 72, height: 72 }}>
       {grid.map((filled, i) => (
         <div key={i} className={`rounded-[1px] ${filled ? "bg-black" : "bg-white"}`} />
       ))}

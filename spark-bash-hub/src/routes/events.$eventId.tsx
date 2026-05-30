@@ -1,8 +1,35 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { MapPin, Calendar, ArrowLeft, ChevronRight, Loader2, CheckCircle2, Smartphone, AlertCircle } from "lucide-react";
+import { MapPin, Calendar, ArrowLeft, ChevronRight, Loader2, CheckCircle2, Smartphone } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import type { EventRow, BookingRow } from "@/lib/types";
+
+// ─── localStorage helpers for bookings ───────────────────────────────────────
+const LS_BOOKINGS_KEY = "rossventures-bookings";
+
+function saveBookingLocally(booking: BookingRow) {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(LS_BOOKINGS_KEY);
+    const all: BookingRow[] = raw ? JSON.parse(raw) : [];
+    const idx = all.findIndex(b => b.id === booking.id);
+    if (idx >= 0) all[idx] = booking; else all.unshift(booking);
+    window.localStorage.setItem(LS_BOOKINGS_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+function updateBookingLocally(id: string, patch: Partial<BookingRow>) {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(LS_BOOKINGS_KEY);
+    const all: BookingRow[] = raw ? JSON.parse(raw) : [];
+    const idx = all.findIndex(b => b.id === id);
+    if (idx >= 0) {
+      all[idx] = { ...all[idx], ...patch };
+      window.localStorage.setItem(LS_BOOKINGS_KEY, JSON.stringify(all));
+    }
+  } catch {}
+}
 
 // Static fallback data (always visible even before admin syncs)
 import comrades from "@/assets/comrades-festival.jpg";
@@ -153,22 +180,63 @@ function EventDetailPage() {
   // ─── Step 1: Details form ────────────────────────────────────────────────────
   async function submitDetails(e: React.FormEvent) {
     e.preventDefault();
-    if (!fullName.trim() || !email.trim() || !phone.trim()) { toast.error("Please fill in all required fields"); return; }
+    if (!fullName.trim() || !email.trim() || !phone.trim()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
 
     setSubmitting(true);
     try {
+      // Send all event data so the server doesn't need to look it up
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ eventId: event.id, fullName, email, phone, ticketType, quantity }),
+        body: JSON.stringify({
+          eventId: event.id,
+          eventTitle: event.title,
+          eventDate: event.event_date,
+          eventVenue: event.venue,
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          ticketType,
+          ticketPrice: selectedTier?.price ?? 0,
+          quantity,
+        }),
       });
-      const data = await res.json() as { ok: boolean; bookingId?: string; error?: string };
+      const data = await res.json() as { ok: boolean; bookingId?: string; amount?: number; error?: string };
       if (!data.ok) throw new Error(data.error ?? "Booking failed");
-      setBookingId(data.bookingId!);
+
+      const bId = data.bookingId!;
+      const amount = data.amount ?? (selectedTier?.price ?? 0) * quantity;
+
+      // Save booking locally so the ticket page works without server state
+      const localBooking: BookingRow = {
+        id: bId,
+        event_id: event.id,
+        event_title: event.title,
+        event_date: event.event_date,
+        event_venue: event.venue,
+        full_name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+        ticket_type: ticketType,
+        ticket_price: selectedTier?.price ?? 0,
+        quantity,
+        amount,
+        status: "pending",
+        mpesa_receipt: null,
+        mpesa_checkout_id: null,
+        created_at: new Date().toISOString(),
+        paid_at: null,
+      };
+      saveBookingLocally(localBooking);
+
+      setBookingId(bId);
       setMpesaPhone(phone);
       setStep("payment");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create booking");
+      toast.error(err instanceof Error ? err.message : "Failed to create booking. Check your connection.");
     } finally { setSubmitting(false); }
   }
 
@@ -184,7 +252,7 @@ function EventDetailPage() {
       const res = await fetch("/api/mpesa/initiate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ bookingId, phone: cleanPhone }),
+        body: JSON.stringify({ bookingId, phone: cleanPhone, amount: totalAmount }),
       });
       const data = await res.json() as { ok: boolean; checkoutRequestId?: string; simulation?: boolean; error?: string };
       if (!data.ok) throw new Error(data.error ?? "Payment initiation failed");
@@ -210,12 +278,14 @@ function EventDetailPage() {
         const data = await res.json() as { ok: boolean; booking: BookingRow };
         if (data.ok && data.booking.status === "paid") {
           clearInterval(pollRef.current!);
+          saveBookingLocally(data.booking);
           setBooking(data.booking);
           setStep("success");
           return;
         }
         if (data.ok && data.booking.status === "failed") {
           clearInterval(pollRef.current!);
+          updateBookingLocally(bId, { status: "failed" });
           toast.error("Payment failed or was cancelled. Please try again.");
           setStep("payment");
           return;
@@ -223,17 +293,22 @@ function EventDetailPage() {
         // Simulation: auto-confirm after 3 polls
         if (isSim && attempts >= 3) {
           clearInterval(pollRef.current!);
-          // Simulate success with mock data
-          setBooking({
+          const receipt = `SIM${Date.now().toString().slice(-8)}`;
+          const paid_at = new Date().toISOString();
+          const confirmedBooking: BookingRow = {
             id: bId, event_id: event.id, event_title: event.title,
             event_date: event.event_date, event_venue: event.venue,
             full_name: fullName, email, phone: mpesaPhone,
             ticket_type: ticketType, ticket_price: selectedTier?.price ?? 0,
             quantity, amount: totalAmount, status: "paid",
-            mpesa_receipt: `SIM${Date.now().toString().slice(-8)}`,
+            mpesa_receipt: receipt,
             mpesa_checkout_id: null, created_at: new Date().toISOString(),
-            paid_at: new Date().toISOString(),
-          });
+            paid_at,
+          };
+          // Persist in localStorage so ticket page can read it
+          saveBookingLocally(confirmedBooking);
+          updateBookingLocally(bId, { status: "paid", mpesa_receipt: receipt, paid_at });
+          setBooking(confirmedBooking);
           setStep("success");
           return;
         }
