@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { EventRow } from "@/lib/types";
 import { PurchaseTicketModal } from "@/components/PurchaseTicketModal";
 import comrades from "@/assets/comrades-festival.jpg";
@@ -8,10 +8,6 @@ import adani from "@/assets/event-adani-chill.png";
 import jkuatTakeover from "@/assets/event-jkuat-takeover.png";
 import culturJkuat from "@/assets/event-cultur-jkuat.png";
 import extravaganzaMejja from "@/assets/event-extravaganza-mejja.png";
-import jkuatFreshers from "@/assets/jkuat-freshers-night.svg";
-import mrMissJkuat from "@/assets/mr-miss-jkuat-awards.svg";
-import fyndrPoster from "@/assets/fyndr-poster.svg";
-import freshazNight from "@/assets/jkuat-freshaz-night.svg";
 import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
 import culturFmLogo from "@/assets/cultur-fm-logo.jpeg";
 import jkuatGotTalentLogo from "@/assets/jkuat-got-talent-logo.jpeg";
@@ -26,11 +22,67 @@ import {
   CalendarDays,
   Users,
   Sparkles,
-  CheckCircle2,
   MapPin,
   Phone,
   Instagram,
 } from "lucide-react";
+
+// Gallery images for the hero slideshow (from public/gallery/)
+const HERO_SLIDES = [
+  "/gallery/CPS_6969.JPG",
+  "/gallery/CPS_7066.JPG",
+  "/gallery/CPS_7140.JPG",
+  "/gallery/CPS_7152.JPG",
+  "/gallery/CPS_7157.JPG",
+  "/gallery/CPS_7176.JPG",
+  "/gallery/0d152c6a-b9be-4564-a251-c30a4373ecde.jfif",
+  "/gallery/106a6018-1b4f-4011-b1a9-662051b96d8a.jfif",
+  "/gallery/46238536-eb7f-4a00-909d-10c07f76fd30.jfif",
+  "/gallery/a3f7b033-8e48-4ee6-87fc-af1f4ee750de.jfif",
+  "/gallery/b1df3aa6-9554-4a75-8289-17b2d7e51102.jfif",
+  "/gallery/d8fb1ff1-6921-4269-9d33-7d1e2a6802f0.jfif",
+];
+
+// Phrases cycled by the typewriter in the hero heading
+const TYPEWRITER_PHRASES = [
+  "Lit upcoming events to book.",
+  "Full-service event production.",
+  "Building Kenya's best experiences.",
+  "Where culture meets entertainment.",
+  "Your vision. Our energy. Real impact.",
+];
+
+function useTypewriter(phrases: string[], typingSpeed = 55, deleteSpeed = 30, pauseMs = 2200) {
+  const [text, setText] = useState("");
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">("typing");
+  const frameRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const current = phrases[phraseIdx];
+
+    if (phase === "typing") {
+      if (text.length < current.length) {
+        frameRef.current = setTimeout(() => setText(current.slice(0, text.length + 1)), typingSpeed);
+      } else {
+        frameRef.current = setTimeout(() => setPhase("pausing"), pauseMs);
+      }
+    } else if (phase === "pausing") {
+      frameRef.current = setTimeout(() => setPhase("deleting"), 0);
+    } else if (phase === "deleting") {
+      if (text.length > 0) {
+        frameRef.current = setTimeout(() => setText(text.slice(0, -1)), deleteSpeed);
+      } else {
+        setPhraseIdx((i) => (i + 1) % phrases.length);
+        setPhase("typing");
+      }
+    }
+
+    return () => { if (frameRef.current) clearTimeout(frameRef.current); };
+  }, [text, phase, phraseIdx, phrases, typingSpeed, deleteSpeed, pauseMs]);
+
+  return { text, isTyping: phase === "typing" };
+}
 
 const partnerLogos = [
   { name: "Cultur FM", img: culturFmLogo },
@@ -93,30 +145,6 @@ const portfolio = [
   },
 ];
 
-const heroPosters = [
-  {
-    img: jkuatFreshers,
-    title: "JKUAT Freshers Night",
-    note: "26 Sept 2025 · JKUAT Main Campus headline show featuring MC Pharaoh and DJ Davir.",
-  },
-  {
-    img: mrMissJkuat,
-    title: "Mr & Miss JKUAT Awards",
-    note: "12 Dec 2025 · Pavilion JKUAT — stage awards, student hosts and live performances.",
-  },
-  {
-    img: fyndrPoster,
-    title: "Fyndr Brand Launch",
-    note: "A brand lifestyle activation, campaign creatives and app launch energy.",
-  },
-  {
-    img: freshazNight,
-    title: "JKUAT Freshaz Night",
-    note: "A student celebration with DJs, performances and campus culture moments.",
-  },
-];
-
-// Static fallback events shown when no admin events exist
 const STATIC_UPCOMING = [
   { id: "comrades-festival", img: comrades, title: "Comrades Festival 1.0", date: "16 September 2026", venue: "JKUAT, Juja", desc: "Afro-fusion artists, games and cool vibes for the campus crowd" },
   { id: "jkuat-extravaganza", img: extravaganza, title: "JKUAT Extravaganza", date: "27 March 2026", venue: "JKUAT Pavilion Grounds", desc: "Food, games, art & craft with the Office of the Sports & Entertainment Secretary" },
@@ -144,63 +172,104 @@ function getLocalStorageEvents(): EventRow[] {
 export default function Landing() {
   const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
   const [modalEvent, setModalEvent] = useState<EventRow | null>(null);
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [slideVisible, setSlideVisible] = useState(true);
+  const { text: heroText, isTyping } = useTypewriter(TYPEWRITER_PHRASES);
+
+  // Hero slideshow — cross-fade every 5s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSlideVisible(false);
+      setTimeout(() => {
+        setSlideIdx((i) => (i + 1) % HERO_SLIDES.length);
+        setSlideVisible(true);
+      }, 600);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    // 1. Immediately show admin's localStorage events (same device)
     const local = getLocalStorageEvents();
     if (local.length > 0) setDynamicEvents(local);
 
-    // 2. Server API — reads from Cloudflare CDN cache (shared across all devices)
     fetch("/admin-events", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
         if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
-          // Merge: server events take precedence, but include local-only ones too
           const serverIds = new Set(data.events.map(e => e.id));
-          const localOnly = local.filter(e => !serverIds.has(e.id));
+          const local2 = getLocalStorageEvents();
+          const localOnly = local2.filter(e => !serverIds.has(e.id));
           setDynamicEvents([...data.events, ...localOnly]);
         }
       })
-      .catch(() => {}); // silently keep localStorage events on error
+      .catch(() => {});
   }, []);
+
   return (
     <main>
       {/* HERO */}
       <section className="relative overflow-hidden min-h-screen">
+        {/* Slideshow background */}
         <div className="absolute inset-0">
-          <div className="absolute left-1/2 top-8 -translate-x-1/2 pointer-events-none">
-            <img
-              src={rossVenturesLogo}
-              alt="Ross Ventures logo background"
-              className="opacity-20 w-32 sm:w-44 md:w-56 lg:w-72 xl:w-80 object-contain"
-            />
-          </div>
-          <div className="absolute inset-0 bg-radial-glow opacity-10" />
-          {/* Event planning light and confetti accents */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute left-10 top-16 h-32 w-32 rounded-full bg-accent/15 blur-3xl animate-sparkle" />
-            <div className="absolute right-12 top-24 h-24 w-24 rounded-full bg-primary/10 blur-3xl animate-sparkle" />
-            <div className="absolute left-16 top-40 h-20 w-20 rounded-full border border-accent/10 opacity-40" />
-            <div className="absolute h-full w-1/3 bg-gradient-to-r from-transparent via-accent/10 to-transparent animate-spotlight-sweep" />
-            <span className="absolute left-12 top-12 h-2 w-2 rounded-full bg-accent animate-confetti" style={{ animationDelay: "0s" }} />
-            <span className="absolute left-32 top-28 h-2 w-2 rounded-full bg-primary animate-confetti" style={{ animationDelay: "1.3s" }} />
-            <span className="absolute right-24 top-20 h-2 w-2 rounded-full bg-foreground animate-confetti" style={{ animationDelay: "2.2s" }} />
-            <span className="absolute right-16 top-48 h-2 w-2 rounded-full bg-accent animate-confetti" style={{ animationDelay: "3.7s" }} />
-            <span className="absolute left-1/2 top-32 h-2 w-2 rounded-full bg-primary animate-confetti" style={{ animationDelay: "5.1s" }} />
+          <img
+            key={slideIdx}
+            src={HERO_SLIDES[slideIdx]}
+            alt=""
+            aria-hidden="true"
+            className={`h-full w-full object-cover object-center transition-opacity duration-700 ${slideVisible ? "opacity-100" : "opacity-0"}`}
+          />
+          {/* Dark veil so text stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/60 to-black/85" />
+          {/* Slide dots */}
+          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => { setSlideVisible(false); setTimeout(() => { setSlideIdx(i); setSlideVisible(true); }, 300); }}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === slideIdx ? "w-6 bg-accent" : "w-1.5 bg-white/40 hover:bg-white/60"}`}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-8 sm:pt-10 md:pt-12">
+        {/* Accent light overlays */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-10 top-16 h-32 w-32 rounded-full bg-accent/15 blur-3xl animate-sparkle" />
+          <div className="absolute right-12 top-24 h-24 w-24 rounded-full bg-primary/10 blur-3xl animate-sparkle" />
+          <div className="absolute h-full w-1/3 bg-gradient-to-r from-transparent via-accent/10 to-transparent animate-spotlight-sweep" />
+          <span className="absolute left-12 top-12 h-2 w-2 rounded-full bg-accent animate-confetti" style={{ animationDelay: "0s" }} />
+          <span className="absolute left-32 top-28 h-2 w-2 rounded-full bg-primary animate-confetti" style={{ animationDelay: "1.3s" }} />
+          <span className="absolute right-24 top-20 h-2 w-2 rounded-full bg-foreground animate-confetti" style={{ animationDelay: "2.2s" }} />
+          <span className="absolute right-16 top-48 h-2 w-2 rounded-full bg-accent animate-confetti" style={{ animationDelay: "3.7s" }} />
+          <span className="absolute left-1/2 top-32 h-2 w-2 rounded-full bg-primary animate-confetti" style={{ animationDelay: "5.1s" }} />
+        </div>
+
+        <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-8 sm:pt-10 md:pt-12">
+          {/* Logo watermark */}
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 pointer-events-none">
+            <img
+              src={rossVenturesLogo}
+              alt="Ross Ventures logo"
+              className="opacity-10 w-32 sm:w-44 md:w-56 lg:w-72 xl:w-80 object-contain"
+            />
+          </div>
+
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/40 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur animate-ticket-slide">
             <Sparkles className="h-3.5 w-3.5" /> Book the next event
           </span>
 
-          <h1 className="mt-4 max-w-4xl font-display text-2xl font-extrabold leading-[1.1] tracking-tight sm:text-4xl md:text-6xl">
-            Lit upcoming events to book.
+          {/* Typewriter heading */}
+          <h1 className="mt-4 max-w-4xl font-display text-2xl font-extrabold leading-[1.1] tracking-tight sm:text-4xl md:text-6xl text-white">
+            {heroText}
+            <span
+              className={`ml-0.5 inline-block h-[1em] w-[3px] bg-accent align-middle ${isTyping ? "animate-caret-blink" : "opacity-100"}`}
+              aria-hidden="true"
+            />
           </h1>
 
-          <p className="mt-4 max-w-3xl text-sm text-muted-foreground sm:text-base leading-relaxed">
-            Ross Ventures Limited is a full-service event production and marketing agency built in Kenya and made for the culture. We specialize in creating unforgettable experiences—from intimate campus activations to headline festivals—combining creative excellence with audience reach. With expertise in event planning, digital marketing, and on-ground activations, we turn visions into reality with energy, authenticity, and impact.
+          <p className="mt-4 max-w-3xl text-sm text-white/75 sm:text-base leading-relaxed">
+            Ross Ventures Limited is a full-service event production and marketing agency built in Kenya and made for the culture. We specialize in creating unforgettable experiences—from intimate campus activations to headline festivals—combining creative excellence with audience reach.
           </p>
 
           <div className="mt-7 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -213,14 +282,14 @@ export default function Landing() {
             </Link>
             <Link
               to="/events"
-              className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-4 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-secondary justify-center"
+              className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20 justify-center"
             >
               See our events
             </Link>
-          </div> 
+          </div>
 
           <div className="mt-10">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
               Brands and people we&apos;ve worked with
             </p>
             <div className="mt-4 grid grid-cols-3 gap-3 justify-items-stretch sm:grid-cols-3 lg:grid-cols-6 items-center">
@@ -254,7 +323,7 @@ export default function Landing() {
             ].map((s) => (
               <div key={s.v}>
                 <dt className="font-display text-3xl font-bold text-gradient-ember sm:text-4xl">{s.k}</dt>
-                <dd className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{s.v}</dd>
+                <dd className="mt-1 text-xs uppercase tracking-wider text-white/60">{s.v}</dd>
               </div>
             ))}
           </dl>
@@ -384,7 +453,7 @@ export default function Landing() {
               </h2>
               <p className="mt-4 max-w-md text-sm text-primary-foreground/80">
                 Tell us the vision. We'll bring the production, the audience and the energy.
-              </p> 
+              </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
               <a

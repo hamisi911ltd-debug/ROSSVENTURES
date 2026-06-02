@@ -181,4 +181,11 @@
   .animate-ticket-slide { animation: ticket-slide 3s ease-in-out infinite; }
   .animate-sparkle { animation: sparkle 5s ease-in-out infinite; opacity: 0.16; }
   .animate-confetti { animation: confetti-fall 8s linear infinite; opacity: 0.12; }
+
+  /* Typewriter cursor blink */
+  @keyframes caret-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .animate-caret-blink { animation: caret-blink 0.9s step-end infinite; }
 }
