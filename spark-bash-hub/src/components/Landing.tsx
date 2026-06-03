@@ -9,12 +9,6 @@ import jkuatTakeover from "@/assets/event-jkuat-takeover.png";
 import culturJkuat from "@/assets/event-cultur-jkuat.png";
 import extravaganzaMejja from "@/assets/event-extravaganza-mejja.png";
 import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
-import culturFmLogo from "@/assets/cultur-fm-logo.jpeg";
-import jkuatGotTalentLogo from "@/assets/jkuat-got-talent-logo.jpeg";
-import jkuatLogo from "@/assets/jkuat-logo.jpeg";
-import jkusaLogo from "@/assets/jkusa-logo.jpeg";
-import safaricomLogo from "@/assets/safaricom-logo.jpeg";
-import steamLogo from "@/assets/steam-logo.jpeg";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -27,7 +21,7 @@ import {
   Instagram,
 } from "lucide-react";
 
-// Gallery images for the hero slideshow (from public/gallery/)
+// Gallery images for the hero slideshow — only clean cropped event photos
 const HERO_SLIDES = [
   "/gallery/CPS_6969.JPG",
   "/gallery/CPS_7066.JPG",
@@ -35,12 +29,6 @@ const HERO_SLIDES = [
   "/gallery/CPS_7152.JPG",
   "/gallery/CPS_7157.JPG",
   "/gallery/CPS_7176.JPG",
-  "/gallery/0d152c6a-b9be-4564-a251-c30a4373ecde.jfif",
-  "/gallery/106a6018-1b4f-4011-b1a9-662051b96d8a.jfif",
-  "/gallery/46238536-eb7f-4a00-909d-10c07f76fd30.jfif",
-  "/gallery/a3f7b033-8e48-4ee6-87fc-af1f4ee750de.jfif",
-  "/gallery/b1df3aa6-9554-4a75-8289-17b2d7e51102.jfif",
-  "/gallery/d8fb1ff1-6921-4269-9d33-7d1e2a6802f0.jfif",
 ];
 
 // Phrases cycled by the typewriter in the hero heading
@@ -85,12 +73,15 @@ function useTypewriter(phrases: string[], typingSpeed = 55, deleteSpeed = 30, pa
 }
 
 const partnerLogos = [
-  { name: "Cultur FM", img: culturFmLogo },
-  { name: "JKUAT Got Talent", img: jkuatGotTalentLogo },
-  { name: "JKUAT", img: jkuatLogo },
-  { name: "JKUSA", img: jkusaLogo },
-  { name: "Safaricom", img: safaricomLogo },
-  { name: "Steam", img: steamLogo },
+  { name: "Cultur FM",       url: "/partners/cultur fm.jpeg" },
+  { name: "JKUAT Got Talent",url: "/partners/jkuat got talent .jpeg" },
+  { name: "JKUAT",           url: "/partners/jkuat logo.jpeg" },
+  { name: "JKUSA",           url: "/partners/jkusa logo.jpeg" },
+  { name: "Safaricom",       url: "/partners/safaricom logo.jpeg" },
+  { name: "Steam",           url: "/partners/steam logo.jpeg" },
+  { name: "Find",            url: "/partners/find logo.jpeg" },
+  { name: "Opera",           url: "/partners/opera logo.jpeg" },
+  { name: "Wrens",           url: "/partners/wrens logo.jpeg" },
 ];
 
 const portfolio = [
@@ -292,41 +283,25 @@ export default function Landing() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
               Brands and people we&apos;ve worked with
             </p>
-            <div className="mt-4 grid grid-cols-3 gap-3 justify-items-stretch sm:grid-cols-3 lg:grid-cols-6 items-center">
-              {partnerLogos.map((partner, idx) => (
-                <div key={partner.name} title={partner.name} className="flex w-full items-center justify-center">
-                  {idx < 4 ? (
-                    <div className="h-12 w-12 sm:h-16 sm:w-16 overflow-hidden rounded-full bg-background/80">
-                      <img
-                        src={partner.img}
-                        alt={partner.name}
-                        className="h-full w-full object-cover transition hover:opacity-100"
-                      />
-                    </div>
-                  ) : (
+            {/* Infinite horizontal marquee */}
+            <div className="relative mt-4 overflow-hidden">
+              {/* Fade edges */}
+              <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-black/60 to-transparent" />
+              <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-black/60 to-transparent" />
+              {/* Doubled list for seamless loop */}
+              <div className="flex animate-marquee gap-8 w-max items-center py-1">
+                {[...partnerLogos, ...partnerLogos].map((partner, idx) => (
+                  <div key={idx} title={partner.name} className="flex-shrink-0 flex items-center justify-center">
                     <img
-                      src={partner.img}
+                      src={partner.url}
                       alt={partner.name}
-                      className="max-h-10 sm:max-h-12 w-auto object-contain opacity-90 transition hover:opacity-100"
+                      className="h-10 w-auto max-w-[80px] object-contain opacity-75 hover:opacity-100 transition-opacity duration-300"
                     />
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-
-          <dl className="mt-10 hidden md:grid max-w-2xl grid-cols-3 gap-6">
-            {[
-              { k: "50+", v: "events delivered" },
-              { k: "1.7K+", v: "monthly reach" },
-              { k: "3", v: "core service lines" },
-            ].map((s) => (
-              <div key={s.v}>
-                <dt className="font-display text-3xl font-bold text-gradient-ember sm:text-4xl">{s.k}</dt>
-                <dd className="mt-1 text-xs uppercase tracking-wider text-white/60">{s.v}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
       </section>
 

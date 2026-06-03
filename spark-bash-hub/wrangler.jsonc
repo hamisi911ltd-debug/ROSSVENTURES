@@ -3,5 +3,11 @@
   "name": "rossventures",
   "compatibility_date": "2026-05-23",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry"
+  "main": "@tanstack/react-start/server-entry",
+  "kv_namespaces": [
+    {
+      "binding": "EVENTS_KV",
+      "id": "c4958a888c8b4119b6ac4315120a957d"
+    }
+  ]
 }

@@ -182,6 +182,17 @@
   .animate-sparkle { animation: sparkle 5s ease-in-out infinite; opacity: 0.16; }
   .animate-confetti { animation: confetti-fall 8s linear infinite; opacity: 0.12; }
 
+  /* Partner logos infinite horizontal scroll */
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 28s linear infinite;
+    will-change: transform;
+  }
+  .animate-marquee:hover { animation-play-state: paused; }
+
   /* Typewriter cursor blink */
   @keyframes caret-blink {
     0%, 100% { opacity: 1; }
