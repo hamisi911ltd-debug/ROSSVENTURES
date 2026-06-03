@@ -5,10 +5,8 @@ export const Route = createFileRoute("/api/events/$eventId")({
   beforeLoad: () => { throw redirect({ to: "/" }); },
   server: {
     handlers: {
-      // PATCH /api/events/:eventId — toggle publish or update fields
       PATCH: async ({ request, params }) => {
-        const db = extractDB(request);
-        const adminPassword = getAdminPassword(request);
+        const adminPassword = await getAdminPassword();
         const adminKey = request.headers.get("X-Admin-Key");
 
         if (!adminPassword || adminKey !== adminPassword) {
@@ -16,6 +14,8 @@ export const Route = createFileRoute("/api/events/$eventId")({
             status: 401, headers: { "content-type": "application/json; charset=utf-8" },
           });
         }
+
+        const db = await extractDB();
         if (!db) {
           return new Response(JSON.stringify({ ok: false, error: "DB not configured" }), {
             status: 503, headers: { "content-type": "application/json; charset=utf-8" },
@@ -27,16 +27,13 @@ export const Route = createFileRoute("/api/events/$eventId")({
           const fields: string[] = [];
           const values: any[] = [];
 
-          if ("is_published" in body) {
-            fields.push("is_published = ?");
-            values.push(body.is_published ? 1 : 0);
-          }
-          if ("title" in body)       { fields.push("title = ?");       values.push(String(body.title)); }
-          if ("description" in body) { fields.push("description = ?"); values.push(String(body.description)); }
-          if ("venue" in body)       { fields.push("venue = ?");       values.push(String(body.venue)); }
-          if ("event_date" in body)  { fields.push("event_date = ?");  values.push(String(body.event_date)); }
-          if ("tag" in body)         { fields.push("tag = ?");         values.push(String(body.tag)); }
-          if ("tiers" in body)       { fields.push("tiers_json = ?");  values.push(JSON.stringify(body.tiers)); }
+          if ("is_published" in body) { fields.push("is_published = ?"); values.push(body.is_published ? 1 : 0); }
+          if ("title" in body)        { fields.push("title = ?");        values.push(String(body.title)); }
+          if ("description" in body)  { fields.push("description = ?");  values.push(String(body.description)); }
+          if ("venue" in body)        { fields.push("venue = ?");        values.push(String(body.venue)); }
+          if ("event_date" in body)   { fields.push("event_date = ?");   values.push(String(body.event_date)); }
+          if ("tag" in body)          { fields.push("tag = ?");          values.push(String(body.tag)); }
+          if ("tiers" in body)        { fields.push("tiers_json = ?");   values.push(JSON.stringify(body.tiers)); }
 
           if (fields.length === 0) {
             return new Response(JSON.stringify({ ok: false, error: "Nothing to update" }), {
@@ -45,8 +42,7 @@ export const Route = createFileRoute("/api/events/$eventId")({
           }
 
           values.push(params.eventId);
-          await db.prepare(`UPDATE events SET ${fields.join(", ")} WHERE id = ?`)
-            .bind(...values).run();
+          await db.prepare(`UPDATE events SET ${fields.join(", ")} WHERE id = ?`).bind(...values).run();
 
           const row = await db.prepare("SELECT * FROM events WHERE id = ?").bind(params.eventId).first();
           if (!row) {
@@ -65,11 +61,8 @@ export const Route = createFileRoute("/api/events/$eventId")({
         }
       },
 
-      // DELETE /api/events/:eventId — delete event and its R2 image
       DELETE: async ({ request, params }) => {
-        const db = extractDB(request);
-        const r2 = extractR2(request);
-        const adminPassword = getAdminPassword(request);
+        const adminPassword = await getAdminPassword();
         const adminKey = request.headers.get("X-Admin-Key");
 
         if (!adminPassword || adminKey !== adminPassword) {
@@ -77,6 +70,9 @@ export const Route = createFileRoute("/api/events/$eventId")({
             status: 401, headers: { "content-type": "application/json; charset=utf-8" },
           });
         }
+
+        const db = await extractDB();
+        const r2 = await extractR2();
         if (!db) {
           return new Response(JSON.stringify({ ok: false, error: "DB not configured" }), {
             status: 503, headers: { "content-type": "application/json; charset=utf-8" },
@@ -84,7 +80,6 @@ export const Route = createFileRoute("/api/events/$eventId")({
         }
 
         try {
-          // Fetch the row first so we can delete its image from R2
           const row: any = await db.prepare("SELECT poster_key FROM events WHERE id = ?")
             .bind(params.eventId).first();
 

@@ -3,25 +3,38 @@ import type { EventRow } from "./types";
 export type D1DB = any;
 export type R2Bucket = any;
 
-// srvx (TanStack Start's Cloudflare adapter) injects the Worker env at:
-//   request.runtime.cloudflare.env
-function getCFEnv(req: Request): any {
-  return (req as any)?.runtime?.cloudflare?.env ?? {};
+// In a Cloudflare Worker, bindings are accessible via the `cloudflare:workers`
+// virtual module. The Cloudflare Vite Plugin externalises this so it is resolved
+// at runtime by the Worker rather than bundled at build time.
+let _cfEnv: any = null;
+
+async function getCFEnv(): Promise<any> {
+  if (_cfEnv) return _cfEnv;
+  try {
+    // @ts-ignore — cloudflare:workers is a Cloudflare runtime virtual module
+    const { env } = await import("cloudflare:workers");
+    _cfEnv = env;
+    return env;
+  } catch {
+    return {};
+  }
 }
 
-export function extractDB(req: Request): D1DB | null {
-  return getCFEnv(req)?.DB ?? null;
+export async function extractDB(_req?: Request): Promise<D1DB | null> {
+  const env = await getCFEnv();
+  return env?.DB ?? null;
 }
 
-export function extractR2(req: Request): R2Bucket | null {
-  return getCFEnv(req)?.IMAGES ?? null;
+export async function extractR2(_req?: Request): Promise<R2Bucket | null> {
+  const env = await getCFEnv();
+  return env?.IMAGES ?? null;
 }
 
-export function getAdminPassword(req: Request): string | undefined {
-  const env = getCFEnv(req);
+export async function getAdminPassword(_req?: Request): Promise<string | undefined> {
+  const env = await getCFEnv();
   if (env?.ADMIN_PASSWORD) return env.ADMIN_PASSWORD;
   if (env?.VITE_ADMIN_PASSWORD) return env.VITE_ADMIN_PASSWORD;
-  // Vite embeds VITE_ vars from .env at build time
+  // Fallback: Vite embeds VITE_ vars from .env at build time
   const vitePw = (import.meta as any)?.env?.VITE_ADMIN_PASSWORD;
   if (vitePw) return vitePw;
   if (typeof process !== "undefined") {

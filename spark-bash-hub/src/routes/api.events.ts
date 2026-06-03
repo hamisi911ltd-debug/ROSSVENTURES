@@ -5,21 +5,17 @@ export const Route = createFileRoute("/api/events")({
   beforeLoad: () => { throw redirect({ to: "/" }); },
   server: {
     handlers: {
-      // GET /api/events
-      // ?all=1 + X-Admin-Key header → all events (admin)
-      // public → published only
       GET: async ({ request }) => {
-        const db = extractDB(request);
+        const db = await extractDB();
         if (!db) {
           return new Response(JSON.stringify({ ok: true, events: [] }), {
             headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
           });
         }
-
         const url = new URL(request.url);
         const wantAll = url.searchParams.get("all") === "1";
         const adminKey = request.headers.get("X-Admin-Key");
-        const adminPassword = getAdminPassword(context);
+        const adminPassword = await getAdminPassword();
         const isAdmin = !!adminPassword && adminKey === adminPassword;
 
         const sql = (wantAll && isAdmin)
@@ -34,12 +30,8 @@ export const Route = createFileRoute("/api/events")({
         });
       },
 
-      // POST /api/events — create a new event (admin only)
-      // multipart/form-data: poster (File, optional) + event (JSON string of fields)
       POST: async ({ request }) => {
-        const db = extractDB(request);
-        const r2 = extractR2(request);
-        const adminPassword = getAdminPassword(request);
+        const adminPassword = await getAdminPassword();
         const adminKey = request.headers.get("X-Admin-Key");
 
         if (!adminPassword || adminKey !== adminPassword) {
@@ -47,6 +39,9 @@ export const Route = createFileRoute("/api/events")({
             status: 401, headers: { "content-type": "application/json; charset=utf-8" },
           });
         }
+
+        const db = await extractDB();
+        const r2 = await extractR2();
         if (!db) {
           return new Response(JSON.stringify({ ok: false, error: "DB not configured" }), {
             status: 503, headers: { "content-type": "application/json; charset=utf-8" },
