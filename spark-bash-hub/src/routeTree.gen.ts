@@ -25,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketBookingIdRouteImport } from './routes/ticket.$bookingId'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as ApiEventsRouteImport } from './routes/api.events'
+import { Route as ApiDebugRouteImport } from './routes/api.debug'
 import { Route as ApiBookingsRouteImport } from './routes/api.bookings'
 import { Route as ApiMpesaInitiateRouteImport } from './routes/api.mpesa.initiate'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api.mpesa.callback'
@@ -112,6 +113,11 @@ const ApiEventsRoute = ApiEventsRouteImport.update({
   path: '/api/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDebugRoute = ApiDebugRouteImport.update({
+  id: '/api/debug',
+  path: '/api/debug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBookingsRoute = ApiBookingsRouteImport.update({
   id: '/api/bookings',
   path: '/api/bookings',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
   '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/api/debug': typeof ApiDebugRoute
   '/api/events': typeof ApiEventsRouteWithChildren
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
   '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/api/debug': typeof ApiDebugRoute
   '/api/events': typeof ApiEventsRouteWithChildren
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
   '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/api/debug': typeof ApiDebugRoute
   '/api/events': typeof ApiEventsRouteWithChildren
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
@@ -233,6 +242,7 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/organizers'
     | '/api/bookings'
+    | '/api/debug'
     | '/api/events'
     | '/events/$eventId'
     | '/ticket/$bookingId'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/organizers'
     | '/api/bookings'
+    | '/api/debug'
     | '/api/events'
     | '/events/$eventId'
     | '/ticket/$bookingId'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/organizers'
     | '/api/bookings'
+    | '/api/debug'
     | '/api/events'
     | '/events/$eventId'
     | '/ticket/$bookingId'
@@ -306,6 +318,7 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   OrganizersRoute: typeof OrganizersRoute
   ApiBookingsRoute: typeof ApiBookingsRouteWithChildren
+  ApiDebugRoute: typeof ApiDebugRoute
   ApiEventsRoute: typeof ApiEventsRouteWithChildren
   TicketBookingIdRoute: typeof TicketBookingIdRoute
   ApiMediaKeyRoute: typeof ApiMediaKeyRoute
@@ -427,6 +440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/debug': {
+      id: '/api/debug'
+      path: '/api/debug'
+      fullPath: '/api/debug'
+      preLoaderRoute: typeof ApiDebugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/bookings': {
       id: '/api/bookings'
       path: '/api/bookings'
@@ -522,6 +542,7 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   OrganizersRoute: OrganizersRoute,
   ApiBookingsRoute: ApiBookingsRouteWithChildren,
+  ApiDebugRoute: ApiDebugRoute,
   ApiEventsRoute: ApiEventsRouteWithChildren,
   TicketBookingIdRoute: TicketBookingIdRoute,
   ApiMediaKeyRoute: ApiMediaKeyRoute,
