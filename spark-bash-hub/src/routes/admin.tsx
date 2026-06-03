@@ -197,16 +197,16 @@ function AdminPage() {
     if (typeof window === "undefined") return;
     const authorized = window.sessionStorage.getItem(AUTH_KEY) === "true";
     if (!authorized) { navigate({ to: "/auth" }); return; }
+
+    // Show local events immediately while server fetch is in flight
     const stored = loadStoredEvents();
     setEvents(stored);
-    const storedGallery = loadStoredGallery();
-    setGallery(storedGallery);
     setCheckedAuth(true);
     setLoading(false);
-    if (stored.length > 0) syncEventsToServer(stored);
-    if (storedGallery.length > 0) syncGalleryToServer(storedGallery);
-    fetchBookings().then(setBookings);
-    // Fetch server gallery (cross-device)
+
+    // Fetch gallery from server
+    const storedGallery = loadStoredGallery();
+    setGallery(storedGallery);
     fetch("/admin-gallery", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { ok: boolean; photos: GalleryPhoto[] }) => {
@@ -216,6 +216,32 @@ function AdminPage() {
         }
       })
       .catch(() => {});
+
+    fetchBookings().then(setBookings);
+
+    // Pull events from server (KV) — server is source of truth for cross-device sync
+    async function pullFromServer() {
+      try {
+        const res = await fetch("/admin-events", { cache: "no-store" });
+        const data: { ok: boolean; events: EventRow[] } = await res.json();
+        if (data.ok && Array.isArray(data.events)) {
+          // Merge: keep any local-only drafts not yet on server
+          const serverIds = new Set(data.events.map(e => e.id));
+          const localDrafts = loadStoredEvents().filter(e => !serverIds.has(e.id));
+          const merged = [...data.events, ...localDrafts];
+          setEvents(merged);
+          saveStoredEvents(merged);
+          // Push local drafts up to server if any
+          if (localDrafts.length > 0) syncEventsToServer(merged);
+        }
+      } catch {}
+    }
+
+    pullFromServer();
+
+    // Auto-sync every 30 seconds so changes from any device appear automatically
+    const interval = setInterval(pullFromServer, 30_000);
+    return () => clearInterval(interval);
   }, [navigate]);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);

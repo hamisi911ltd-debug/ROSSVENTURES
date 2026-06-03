@@ -180,20 +180,29 @@ export default function Landing() {
   }, []);
 
   useEffect(() => {
+    // Show local cache immediately
     const local = getLocalStorageEvents();
     if (local.length > 0) setDynamicEvents(local);
 
-    fetch("/admin-events", { cache: "no-store" })
-      .then(r => r.json())
-      .then((data: { ok: boolean; events: EventRow[] }) => {
+    async function fetchEvents() {
+      try {
+        const res = await fetch("/admin-events", { cache: "no-store" });
+        const data: { ok: boolean; events: EventRow[] } = await res.json();
         if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
-          const serverIds = new Set(data.events.map(e => e.id));
-          const local2 = getLocalStorageEvents();
-          const localOnly = local2.filter(e => !serverIds.has(e.id));
-          setDynamicEvents([...data.events, ...localOnly]);
+          // Server (KV) is always the source of truth
+          setDynamicEvents(data.events);
+          // Keep localStorage in sync so next page load is instant
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(data.events));
+          }
         }
-      })
-      .catch(() => {});
+      } catch {}
+    }
+
+    fetchEvents();
+    // Auto-refresh every 30 seconds — picks up events posted from any device
+    const interval = setInterval(fetchEvents, 30_000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
