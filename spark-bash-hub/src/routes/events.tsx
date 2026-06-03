@@ -48,52 +48,27 @@ const STATIC_UPCOMING = [
   { id: "usaniifest", img: usaniifest, title: "UsaniiFest 001", date: "6 March 2026", venue: "JKUAT Assembly Hall", tag: "2026" },
 ];
 
-const ADMIN_STORAGE_KEY = "rossventures-admin-events";
-
-function getLocalStorageEvents(): EventRow[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(ADMIN_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed)
-      ? parsed.filter((e: any) => e.is_published && e.title)
-          .map((e: any) => ({ ...e, tiers: Array.isArray(e.tiers) ? e.tiers : [] }))
-      : [];
-  } catch { return []; }
-}
-
 function EventsPage() {
   const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
 
   useEffect(() => {
-    // Show local cache immediately
-    const local = getLocalStorageEvents();
-    if (local.length > 0) setDynamicEvents(local);
-
     async function fetchEvents() {
       try {
-        const res = await fetch("/admin-events", { cache: "no-store" });
+        const res = await fetch("/api/events", { cache: "no-store" });
         const data: { ok: boolean; events: EventRow[] } = await res.json();
-        if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
-          setDynamicEvents(data.events);
-          if (typeof window !== "undefined") {
-            window.localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(data.events));
-          }
-        }
+        if (data.ok && Array.isArray(data.events)) setDynamicEvents(data.events);
       } catch {}
     }
-
     fetchEvents();
-    // Auto-refresh every 30 seconds
     const interval = setInterval(fetchEvents, 30_000);
     return () => clearInterval(interval);
   }, []);
 
   const featured = dynamicEvents.length > 0 ? dynamicEvents[0] : null;
-  const upcomingList = dynamicEvents.length > 0
-    ? dynamicEvents.map(e => ({ id: e.id, img: e.poster_url ?? comrades, title: e.title, date: e.event_date, venue: e.venue, tag: e.tag, tiers: e.tiers ?? [] }))
-    : STATIC_UPCOMING;
+  const upcomingList = dynamicEvents.map(e => ({
+    id: e.id, img: e.poster_url ?? comrades, title: e.title,
+    date: e.event_date, venue: e.venue, tag: e.tag, tiers: e.tiers ?? [],
+  }));
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">

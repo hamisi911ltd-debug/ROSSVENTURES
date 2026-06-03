@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import {
   Loader2, Upload, Trash2, LogOut, Eye, EyeOff, ImageIcon,
-  Search, RefreshCw, Ticket, TrendingUp, CalendarDays, DollarSign,
-  Camera, Link as LinkIcon, X,
+  Search, CalendarDays, DollarSign, Ticket,
+  Camera, Link as LinkIcon, X, RefreshCw,
 } from "lucide-react";
 import type { GalleryPhoto } from "@/lib/types";
 import type { EventRow, BookingRow, TicketTier } from "@/lib/types";
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 const AUTH_KEY = "rossventures-admin-auth";
-const STORAGE_KEY = "rossventures-admin-events";
+const ADMIN_KEY_SS = "rossventures-admin-key";
 const GALLERY_STORAGE_KEY = "rossventures-gallery";
 
 function loadStoredGallery(): GalleryPhoto[] {
@@ -60,51 +60,6 @@ const eventSchema = z.object({
   description: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
-function migrateEvent(raw: any): EventRow {
-  // Support old format that had ticket_price string instead of tiers array
-  const tiers: EventRow["tiers"] = Array.isArray(raw.tiers) && raw.tiers.length > 0
-    ? raw.tiers.map((t: any) => ({
-        name: String(t.name ?? "General"),
-        price: Number(t.price ?? 0),
-        description: String(t.description ?? ""),
-      }))
-    : raw.ticket_price
-      ? [{ name: "General", price: parseInt(String(raw.ticket_price).replace(/\D/g, "")) || 0, description: "Standard entry" }]
-      : [{ name: "General", price: 0, description: "Standard entry" }];
-
-  return {
-    id: String(raw.id ?? crypto.randomUUID()),
-    title: String(raw.title ?? "Untitled"),
-    description: String(raw.description ?? ""),
-    venue: String(raw.venue ?? ""),
-    event_date: String(raw.event_date ?? ""),
-    tag: String(raw.tag ?? ""),
-    is_published: Boolean(raw.is_published),
-    created_at: String(raw.created_at ?? new Date().toISOString()),
-    poster_url: raw.poster_url ?? null,
-    tiers,
-  };
-}
-
-function loadStoredEvents(): EventRow[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    const migrated = parsed.map(migrateEvent);
-    // Re-save in new format so future loads are clean
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-    return migrated;
-  } catch { return []; }
-}
-
-function saveStoredEvents(events: EventRow[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-}
-
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -117,22 +72,18 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-async function syncEventsToServer(events: EventRow[]): Promise<boolean> {
-  try {
-    const res = await fetch("/admin-events", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ events }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+function getAdminKey(): string {
+  if (typeof window === "undefined") return "";
+  return window.sessionStorage.getItem(ADMIN_KEY_SS) ?? "";
 }
 
 async function fetchBookings(): Promise<BookingRow[]> {
-  // Bookings are stored in localStorage on each user's device.
-  // The admin can see bookings that were made on this same device.
+  try {
+    const res = await fetch("/api/bookings");
+    const data = await res.json() as { ok: boolean; bookings: BookingRow[] };
+    if (data.ok && Array.isArray(data.bookings)) return data.bookings;
+  } catch {}
+  // fallback to localStorage
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem("rossventures-bookings");
@@ -147,8 +98,6 @@ function AdminPage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [syncOk, setSyncOk] = useState<boolean | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -197,16 +146,10 @@ function AdminPage() {
     if (typeof window === "undefined") return;
     const authorized = window.sessionStorage.getItem(AUTH_KEY) === "true";
     if (!authorized) { navigate({ to: "/auth" }); return; }
-
-    // Show local events immediately while server fetch is in flight
-    const stored = loadStoredEvents();
-    setEvents(stored);
     setCheckedAuth(true);
-    setLoading(false);
 
-    // Fetch gallery from server
-    const storedGallery = loadStoredGallery();
-    setGallery(storedGallery);
+    // Load gallery
+    setGallery(loadStoredGallery());
     fetch("/admin-gallery", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { ok: boolean; photos: GalleryPhoto[] }) => {
@@ -219,28 +162,22 @@ function AdminPage() {
 
     fetchBookings().then(setBookings);
 
-    // Pull events from server (KV) — server is source of truth for cross-device sync
-    async function pullFromServer() {
+    // Fetch all events from D1 — single source of truth, no localStorage
+    async function loadEvents() {
       try {
-        const res = await fetch("/admin-events", { cache: "no-store" });
+        const res = await fetch("/api/events?all=1", {
+          cache: "no-store",
+          headers: { "X-Admin-Key": getAdminKey() },
+        });
         const data: { ok: boolean; events: EventRow[] } = await res.json();
-        if (data.ok && Array.isArray(data.events)) {
-          // Merge: keep any local-only drafts not yet on server
-          const serverIds = new Set(data.events.map(e => e.id));
-          const localDrafts = loadStoredEvents().filter(e => !serverIds.has(e.id));
-          const merged = [...data.events, ...localDrafts];
-          setEvents(merged);
-          saveStoredEvents(merged);
-          // Push local drafts up to server if any
-          if (localDrafts.length > 0) syncEventsToServer(merged);
-        }
+        if (data.ok && Array.isArray(data.events)) setEvents(data.events);
       } catch {}
+      setLoading(false);
     }
 
-    pullFromServer();
-
-    // Auto-sync every 30 seconds so changes from any device appear automatically
-    const interval = setInterval(pullFromServer, 30_000);
+    loadEvents();
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(loadEvents, 15_000);
     return () => clearInterval(interval);
   }, [navigate]);
 
@@ -319,16 +256,6 @@ function AdminPage() {
     toast.success("Photo deleted");
   }
 
-  async function handleSync() {
-    setSyncing(true);
-    const ok = await syncEventsToServer(events);
-    setSyncOk(ok);
-    const fresh = await fetchBookings();
-    setBookings(fresh);
-    toast[ok ? "success" : "error"](ok ? "Events synced to all devices ✓" : "Sync failed — check connection");
-    setSyncing(false);
-  }
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = eventSchema.safeParse({ title, venue, event_date: eventDate, tag, description });
@@ -336,33 +263,31 @@ function AdminPage() {
 
     setSubmitting(true);
     try {
-      let posterUrl: string | null = null;
+      const form = new FormData();
       if (file) {
         if (file.size > 5 * 1024 * 1024) throw new Error("Image must be under 5 MB");
-        posterUrl = await readFileAsDataUrl(file);
+        form.append("poster", file);
       }
-
-      const newEvent: EventRow = {
-        id: crypto.randomUUID(),
+      form.append("event", JSON.stringify({
         title: parsed.data.title,
         venue: parsed.data.venue || "",
         event_date: parsed.data.event_date || "",
         tag: parsed.data.tag || "",
         description: parsed.data.description || "",
         tiers: tiers.map(t => ({ ...t, price: Number(t.price) })),
-        poster_url: posterUrl,
-        is_published: true,
-        created_at: new Date().toISOString(),
-      };
+      }));
 
-      const next = [newEvent, ...events];
-      saveStoredEvents(next);
-      setEvents(next);
-      const ok = await syncEventsToServer(next);
-      setSyncOk(ok);
-      toast.success(ok ? "Event published & synced to all devices ✓" : "Event saved locally (sync failed — tap Sync)");
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "X-Admin-Key": getAdminKey() },
+        body: form,
+      });
+      const data = await res.json() as { ok: boolean; event?: EventRow; error?: string };
+      if (!data.ok) throw new Error(data.error ?? "Failed to publish");
 
-      // Reset
+      if (data.event) setEvents(prev => [data.event!, ...prev]);
+      toast.success("Event published to all devices ✓");
+
       setTitle(""); setVenue(""); setEventDate(""); setTag(""); setDescription("");
       setTiers([
         { name: "Early Bird", price: 450, description: "Limited slots" },
@@ -377,22 +302,36 @@ function AdminPage() {
   }
 
   const togglePublish = useCallback(async (ev: EventRow) => {
-    const next = events.map(e => e.id === ev.id ? { ...e, is_published: !e.is_published } : e);
-    setEvents(next);
-    saveStoredEvents(next);
-    const ok = await syncEventsToServer(next);
-    setSyncOk(ok);
-  }, [events]);
+    // Optimistic update
+    setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, is_published: !e.is_published } : e));
+    const res = await fetch(`/api/events/${ev.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", "X-Admin-Key": getAdminKey() },
+      body: JSON.stringify({ is_published: !ev.is_published }),
+    });
+    if (!res.ok) {
+      // Revert on failure
+      setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, is_published: ev.is_published } : e));
+      toast.error("Failed to update");
+    }
+  }, []);
 
   const deleteEvent = useCallback(async (ev: EventRow) => {
     if (!confirm(`Delete "${ev.title}"?`)) return;
-    const next = events.filter(e => e.id !== ev.id);
-    setEvents(next);
-    saveStoredEvents(next);
-    const ok = await syncEventsToServer(next);
-    setSyncOk(ok);
-    toast.success("Deleted");
-  }, [events]);
+    setEvents(prev => prev.filter(e => e.id !== ev.id));
+    const res = await fetch(`/api/events/${ev.id}`, {
+      method: "DELETE",
+      headers: { "X-Admin-Key": getAdminKey() },
+    });
+    if (!res.ok) {
+      toast.error("Delete failed — refreshing");
+      const fresh = await fetch("/api/events?all=1", { headers: { "X-Admin-Key": getAdminKey() } });
+      const data = await fresh.json() as { ok: boolean; events: EventRow[] };
+      if (data.ok) setEvents(data.events);
+    } else {
+      toast.success("Deleted");
+    }
+  }, []);
 
   const signOut = useCallback(() => {
     if (typeof window !== "undefined") window.sessionStorage.removeItem(AUTH_KEY);
@@ -413,19 +352,9 @@ function AdminPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {syncOk === true && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Synced to all devices
-            </span>
-          )}
-          {syncOk === false && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Local only — tap Sync
-            </span>
-          )}
-          <button onClick={handleSync} disabled={syncing} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary disabled:opacity-50">
-            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} /> Sync to all devices
-          </button>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live — D1 database
+          </span>
           <button onClick={signOut} className="inline-flex items-center gap-2 rounded-xl border border-border/80 px-4 py-2 text-sm font-semibold hover:bg-secondary">
             <LogOut className="h-4 w-4" /> Sign out
           </button>

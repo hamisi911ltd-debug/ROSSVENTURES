@@ -136,29 +136,6 @@ const portfolio = [
   },
 ];
 
-const STATIC_UPCOMING = [
-  { id: "comrades-festival", img: comrades, title: "Comrades Festival 1.0", date: "16 September 2026", venue: "JKUAT, Juja", desc: "Afro-fusion artists, games and cool vibes for the campus crowd" },
-  { id: "jkuat-extravaganza", img: extravaganza, title: "JKUAT Extravaganza", date: "27 March 2026", venue: "JKUAT Pavilion Grounds", desc: "Food, games, art & craft with the Office of the Sports & Entertainment Secretary" },
-  { id: "usaniifest", img: usaniifest, title: "UsaniiFest 001", date: "6 March 2026", venue: "JKUAT Assembly Hall", desc: "Music, food, art & vibes celebrating campus creativity" },
-];
-
-const ADMIN_STORAGE_KEY = "rossventures-admin-events";
-
-function getLocalStorageEvents(): EventRow[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(ADMIN_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed)
-      ? parsed.filter((e: any) => e.is_published && e.title)
-          .map((e: any) => ({
-            ...e,
-            tiers: Array.isArray(e.tiers) ? e.tiers : [],
-          }))
-      : [];
-  } catch { return []; }
-}
 
 export default function Landing() {
   const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
@@ -180,27 +157,14 @@ export default function Landing() {
   }, []);
 
   useEffect(() => {
-    // Show local cache immediately
-    const local = getLocalStorageEvents();
-    if (local.length > 0) setDynamicEvents(local);
-
     async function fetchEvents() {
       try {
-        const res = await fetch("/admin-events", { cache: "no-store" });
+        const res = await fetch("/api/events", { cache: "no-store" });
         const data: { ok: boolean; events: EventRow[] } = await res.json();
-        if (data.ok && Array.isArray(data.events) && data.events.length > 0) {
-          // Server (KV) is always the source of truth
-          setDynamicEvents(data.events);
-          // Keep localStorage in sync so next page load is instant
-          if (typeof window !== "undefined") {
-            window.localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(data.events));
-          }
-        }
+        if (data.ok && Array.isArray(data.events)) setDynamicEvents(data.events);
       } catch {}
     }
-
     fetchEvents();
-    // Auto-refresh every 30 seconds — picks up events posted from any device
     const interval = setInterval(fetchEvents, 30_000);
     return () => clearInterval(interval);
   }, []);
@@ -325,31 +289,22 @@ export default function Landing() {
           </div>
         </div>
 
+        {dynamicEvents.length === 0 && (
+          <p className="mt-10 rounded-2xl border border-dashed border-border/60 p-10 text-center text-sm text-muted-foreground">
+            No upcoming events right now — check back soon.
+          </p>
+        )}
+
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {(dynamicEvents.length > 0
-            ? dynamicEvents.slice(0, 6).map(e => ({
-                eventObj: e,
-                id: e.id,
-                img: e.poster_url ?? comrades,
-                title: e.title,
-                date: e.event_date,
-                venue: e.venue,
-                desc: (e.description ?? "").slice(0, 100),
-              }))
-            : STATIC_UPCOMING.map(s => ({
-                eventObj: {
-                  id: s.id, title: s.title, venue: s.venue, event_date: s.date,
-                  description: s.desc, tag: "", poster_url: s.img,
-                  is_published: true, created_at: "",
-                  tiers: [
-                    { name: "Early Bird", price: 450, description: "Limited slots" },
-                    { name: "Advance",    price: 600, description: "Standard entry" },
-                    { name: "Gate",       price: 800, description: "Day-of pricing" },
-                  ],
-                } as EventRow,
-                ...s,
-              }))
-          ).map((ev) => (
+          {dynamicEvents.slice(0, 6).map(e => ({
+            eventObj: e,
+            id: e.id,
+            img: e.poster_url ?? comrades,
+            title: e.title,
+            date: e.event_date,
+            venue: e.venue,
+            desc: (e.description ?? "").slice(0, 100),
+          })).map((ev) => (
             <div key={ev.id}
               className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-2 hover:border-primary/40 hover:shadow-glow cursor-pointer"
               onClick={() => setModalEvent(ev.eventObj)}

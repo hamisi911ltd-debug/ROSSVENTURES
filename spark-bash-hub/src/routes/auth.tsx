@@ -54,6 +54,7 @@ function AuthPage() {
 
       if (typeof window !== "undefined") {
         window.sessionStorage.setItem("rossventures-admin-auth", "true");
+        window.sessionStorage.setItem("rossventures-admin-key", password);
       }
       navigate({ to: "/admin" });
     } catch (err) {

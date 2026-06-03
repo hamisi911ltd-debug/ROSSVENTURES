@@ -9,5 +9,18 @@
       "binding": "EVENTS_KV",
       "id": "c4958a888c8b4119b6ac4315120a957d"
     }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "rossventures-db",
+      "database_id": "b237cc89-e862-49d6-abd9-3389d1e4e240"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "rossventures-images"
+    }
   ]
 }
