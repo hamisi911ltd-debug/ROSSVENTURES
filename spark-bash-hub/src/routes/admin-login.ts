@@ -1,5 +1,19 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+function resolveAdminPassword(req: Request): string | undefined {
+  // srvx injects Cloudflare Worker env at request.runtime.cloudflare.env
+  const cfEnv = (req as any)?.runtime?.cloudflare?.env ?? {};
+  if (cfEnv?.ADMIN_PASSWORD) return cfEnv.ADMIN_PASSWORD;
+  if (cfEnv?.VITE_ADMIN_PASSWORD) return cfEnv.VITE_ADMIN_PASSWORD;
+  // Vite embeds VITE_ vars from .env at build time
+  const vitePw = (import.meta as any)?.env?.VITE_ADMIN_PASSWORD;
+  if (vitePw) return vitePw;
+  if (typeof process !== "undefined") {
+    return process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD;
+  }
+  return undefined;
+}
+
 export const Route = createFileRoute("/admin-login")({
   beforeLoad: () => {
     throw redirect({ to: "/auth" });
@@ -22,11 +36,7 @@ export const Route = createFileRoute("/admin-login")({
             ? (body as Record<string, unknown>).password as string
             : "";
 
-        const adminPassword =
-          (import.meta as { env?: Record<string, string> }).env?.VITE_ADMIN_PASSWORD ||
-          (typeof process !== "undefined"
-            ? (process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD)
-            : undefined);
+        const adminPassword = resolveAdminPassword(request);
 
         if (!adminPassword) {
           return new Response(

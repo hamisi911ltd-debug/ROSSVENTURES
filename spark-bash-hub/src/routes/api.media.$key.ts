@@ -5,8 +5,8 @@ export const Route = createFileRoute("/api/media/$key")({
   beforeLoad: () => { throw redirect({ to: "/" }); },
   server: {
     handlers: {
-      GET: async ({ context, params }) => {
-        const r2 = extractR2(context);
+      GET: async ({ request, params }) => {
+        const r2 = extractR2(request);
         if (!r2) {
           return new Response("R2 not configured", { status: 503 });
         }

@@ -6,9 +6,9 @@ export const Route = createFileRoute("/api/events/$eventId")({
   server: {
     handlers: {
       // PATCH /api/events/:eventId — toggle publish or update fields
-      PATCH: async ({ request, context, params }) => {
-        const db = extractDB(context);
-        const adminPassword = getAdminPassword(context);
+      PATCH: async ({ request, params }) => {
+        const db = extractDB(request);
+        const adminPassword = getAdminPassword(request);
         const adminKey = request.headers.get("X-Admin-Key");
 
         if (!adminPassword || adminKey !== adminPassword) {
@@ -66,10 +66,10 @@ export const Route = createFileRoute("/api/events/$eventId")({
       },
 
       // DELETE /api/events/:eventId — delete event and its R2 image
-      DELETE: async ({ request, context, params }) => {
-        const db = extractDB(context);
-        const r2 = extractR2(context);
-        const adminPassword = getAdminPassword(context);
+      DELETE: async ({ request, params }) => {
+        const db = extractDB(request);
+        const r2 = extractR2(request);
+        const adminPassword = getAdminPassword(request);
         const adminKey = request.headers.get("X-Admin-Key");
 
         if (!adminPassword || adminKey !== adminPassword) {

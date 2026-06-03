@@ -3,27 +3,27 @@ import type { EventRow } from "./types";
 export type D1DB = any;
 export type R2Bucket = any;
 
-export function extractDB(ctx: unknown): D1DB | null {
-  const env = (ctx as any)?.cloudflare?.env ?? (ctx as any)?.env ?? {};
-  return env?.DB ?? null;
+// srvx (TanStack Start's Cloudflare adapter) injects the Worker env at:
+//   request.runtime.cloudflare.env
+function getCFEnv(req: Request): any {
+  return (req as any)?.runtime?.cloudflare?.env ?? {};
 }
 
-export function extractR2(ctx: unknown): R2Bucket | null {
-  const env = (ctx as any)?.cloudflare?.env ?? (ctx as any)?.env ?? {};
-  return env?.IMAGES ?? null;
+export function extractDB(req: Request): D1DB | null {
+  return getCFEnv(req)?.DB ?? null;
 }
 
-export function getAdminPassword(ctx: unknown): string | undefined {
-  // 1. Runtime Worker secrets / vars (set via wrangler secret put)
-  const env = (ctx as any)?.cloudflare?.env ?? (ctx as any)?.env ?? {};
+export function extractR2(req: Request): R2Bucket | null {
+  return getCFEnv(req)?.IMAGES ?? null;
+}
+
+export function getAdminPassword(req: Request): string | undefined {
+  const env = getCFEnv(req);
   if (env?.ADMIN_PASSWORD) return env.ADMIN_PASSWORD;
   if (env?.VITE_ADMIN_PASSWORD) return env.VITE_ADMIN_PASSWORD;
-  // 2. Vite build-time env vars (embedded in bundle from .dev.vars / .env)
+  // Vite embeds VITE_ vars from .env at build time
   const vitePw = (import.meta as any)?.env?.VITE_ADMIN_PASSWORD;
   if (vitePw) return vitePw;
-  const viteAp = (import.meta as any)?.env?.ADMIN_PASSWORD;
-  if (viteAp) return viteAp;
-  // 3. Node process env (local dev fallback)
   if (typeof process !== "undefined") {
     return process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD;
   }

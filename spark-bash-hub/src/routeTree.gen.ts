@@ -28,6 +28,8 @@ import { Route as ApiEventsRouteImport } from './routes/api.events'
 import { Route as ApiBookingsRouteImport } from './routes/api.bookings'
 import { Route as ApiMpesaInitiateRouteImport } from './routes/api.mpesa.initiate'
 import { Route as ApiMpesaCallbackRouteImport } from './routes/api.mpesa.callback'
+import { Route as ApiMediaKeyRouteImport } from './routes/api.media.$key'
+import { Route as ApiEventsEventIdRouteImport } from './routes/api.events.$eventId'
 import { Route as ApiBookingsBookingIdRouteImport } from './routes/api.bookings.$bookingId'
 
 const OrganizersRoute = OrganizersRouteImport.update({
@@ -125,6 +127,16 @@ const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
   path: '/api/mpesa/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMediaKeyRoute = ApiMediaKeyRouteImport.update({
+  id: '/api/media/$key',
+  path: '/api/media/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEventsEventIdRoute = ApiEventsEventIdRouteImport.update({
+  id: '/$eventId',
+  path: '/$eventId',
+  getParentRoute: () => ApiEventsRoute,
+} as any)
 const ApiBookingsBookingIdRoute = ApiBookingsBookingIdRouteImport.update({
   id: '/$bookingId',
   path: '/$bookingId',
@@ -146,10 +158,12 @@ export interface FileRoutesByFullPath {
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
   '/api/bookings': typeof ApiBookingsRouteWithChildren
-  '/api/events': typeof ApiEventsRoute
+  '/api/events': typeof ApiEventsRouteWithChildren
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
   '/api/bookings/$bookingId': typeof ApiBookingsBookingIdRoute
+  '/api/events/$eventId': typeof ApiEventsEventIdRoute
+  '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
   '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
 }
@@ -168,10 +182,12 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
   '/api/bookings': typeof ApiBookingsRouteWithChildren
-  '/api/events': typeof ApiEventsRoute
+  '/api/events': typeof ApiEventsRouteWithChildren
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
   '/api/bookings/$bookingId': typeof ApiBookingsBookingIdRoute
+  '/api/events/$eventId': typeof ApiEventsEventIdRoute
+  '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
   '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
 }
@@ -191,10 +207,12 @@ export interface FileRoutesById {
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
   '/api/bookings': typeof ApiBookingsRouteWithChildren
-  '/api/events': typeof ApiEventsRoute
+  '/api/events': typeof ApiEventsRouteWithChildren
   '/events/$eventId': typeof EventsEventIdRoute
   '/ticket/$bookingId': typeof TicketBookingIdRoute
   '/api/bookings/$bookingId': typeof ApiBookingsBookingIdRoute
+  '/api/events/$eventId': typeof ApiEventsEventIdRoute
+  '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
   '/api/mpesa/initiate': typeof ApiMpesaInitiateRoute
 }
@@ -219,6 +237,8 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/ticket/$bookingId'
     | '/api/bookings/$bookingId'
+    | '/api/events/$eventId'
+    | '/api/media/$key'
     | '/api/mpesa/callback'
     | '/api/mpesa/initiate'
   fileRoutesByTo: FileRoutesByTo
@@ -241,6 +261,8 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/ticket/$bookingId'
     | '/api/bookings/$bookingId'
+    | '/api/events/$eventId'
+    | '/api/media/$key'
     | '/api/mpesa/callback'
     | '/api/mpesa/initiate'
   id:
@@ -263,6 +285,8 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/ticket/$bookingId'
     | '/api/bookings/$bookingId'
+    | '/api/events/$eventId'
+    | '/api/media/$key'
     | '/api/mpesa/callback'
     | '/api/mpesa/initiate'
   fileRoutesById: FileRoutesById
@@ -282,8 +306,9 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   OrganizersRoute: typeof OrganizersRoute
   ApiBookingsRoute: typeof ApiBookingsRouteWithChildren
-  ApiEventsRoute: typeof ApiEventsRoute
+  ApiEventsRoute: typeof ApiEventsRouteWithChildren
   TicketBookingIdRoute: typeof TicketBookingIdRoute
+  ApiMediaKeyRoute: typeof ApiMediaKeyRoute
   ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
   ApiMpesaInitiateRoute: typeof ApiMpesaInitiateRoute
 }
@@ -423,6 +448,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMpesaCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/media/$key': {
+      id: '/api/media/$key'
+      path: '/api/media/$key'
+      fullPath: '/api/media/$key'
+      preLoaderRoute: typeof ApiMediaKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/events/$eventId': {
+      id: '/api/events/$eventId'
+      path: '/$eventId'
+      fullPath: '/api/events/$eventId'
+      preLoaderRoute: typeof ApiEventsEventIdRouteImport
+      parentRoute: typeof ApiEventsRoute
+    }
     '/api/bookings/$bookingId': {
       id: '/api/bookings/$bookingId'
       path: '/$bookingId'
@@ -456,6 +495,18 @@ const ApiBookingsRouteWithChildren = ApiBookingsRoute._addFileChildren(
   ApiBookingsRouteChildren,
 )
 
+interface ApiEventsRouteChildren {
+  ApiEventsEventIdRoute: typeof ApiEventsEventIdRoute
+}
+
+const ApiEventsRouteChildren: ApiEventsRouteChildren = {
+  ApiEventsEventIdRoute: ApiEventsEventIdRoute,
+}
+
+const ApiEventsRouteWithChildren = ApiEventsRoute._addFileChildren(
+  ApiEventsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -471,8 +522,9 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   OrganizersRoute: OrganizersRoute,
   ApiBookingsRoute: ApiBookingsRouteWithChildren,
-  ApiEventsRoute: ApiEventsRoute,
+  ApiEventsRoute: ApiEventsRouteWithChildren,
   TicketBookingIdRoute: TicketBookingIdRoute,
+  ApiMediaKeyRoute: ApiMediaKeyRoute,
   ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,
   ApiMpesaInitiateRoute: ApiMpesaInitiateRoute,
 }

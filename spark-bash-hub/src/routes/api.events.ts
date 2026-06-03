@@ -8,8 +8,8 @@ export const Route = createFileRoute("/api/events")({
       // GET /api/events
       // ?all=1 + X-Admin-Key header → all events (admin)
       // public → published only
-      GET: async ({ request, context }) => {
-        const db = extractDB(context);
+      GET: async ({ request }) => {
+        const db = extractDB(request);
         if (!db) {
           return new Response(JSON.stringify({ ok: true, events: [] }), {
             headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
@@ -36,10 +36,10 @@ export const Route = createFileRoute("/api/events")({
 
       // POST /api/events — create a new event (admin only)
       // multipart/form-data: poster (File, optional) + event (JSON string of fields)
-      POST: async ({ request, context }) => {
-        const db = extractDB(context);
-        const r2 = extractR2(context);
-        const adminPassword = getAdminPassword(context);
+      POST: async ({ request }) => {
+        const db = extractDB(request);
+        const r2 = extractR2(request);
+        const adminPassword = getAdminPassword(request);
         const adminKey = request.headers.get("X-Admin-Key");
 
         if (!adminPassword || adminKey !== adminPassword) {
