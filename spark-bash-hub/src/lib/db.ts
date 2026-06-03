@@ -14,14 +14,20 @@ export function extractR2(ctx: unknown): R2Bucket | null {
 }
 
 export function getAdminPassword(ctx: unknown): string | undefined {
+  // 1. Runtime Worker secrets / vars (set via wrangler secret put)
   const env = (ctx as any)?.cloudflare?.env ?? (ctx as any)?.env ?? {};
-  return (
-    env?.ADMIN_PASSWORD ||
-    env?.VITE_ADMIN_PASSWORD ||
-    (typeof process !== "undefined"
-      ? process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD
-      : undefined)
-  );
+  if (env?.ADMIN_PASSWORD) return env.ADMIN_PASSWORD;
+  if (env?.VITE_ADMIN_PASSWORD) return env.VITE_ADMIN_PASSWORD;
+  // 2. Vite build-time env vars (embedded in bundle from .dev.vars / .env)
+  const vitePw = (import.meta as any)?.env?.VITE_ADMIN_PASSWORD;
+  if (vitePw) return vitePw;
+  const viteAp = (import.meta as any)?.env?.ADMIN_PASSWORD;
+  if (viteAp) return viteAp;
+  // 3. Node process env (local dev fallback)
+  if (typeof process !== "undefined") {
+    return process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD;
+  }
+  return undefined;
 }
 
 export function rowToEvent(row: any): EventRow {

@@ -146,6 +146,12 @@ function AdminPage() {
     if (typeof window === "undefined") return;
     const authorized = window.sessionStorage.getItem(AUTH_KEY) === "true";
     if (!authorized) { navigate({ to: "/auth" }); return; }
+    // If the admin key is missing (old session before this update), force re-login
+    if (!window.sessionStorage.getItem(ADMIN_KEY_SS)) {
+      window.sessionStorage.removeItem(AUTH_KEY);
+      navigate({ to: "/auth" });
+      return;
+    }
     setCheckedAuth(true);
 
     // Load gallery
