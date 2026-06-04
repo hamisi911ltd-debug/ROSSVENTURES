@@ -172,7 +172,7 @@ export default function Landing() {
   return (
     <main>
       {/* HERO */}
-      <section className="relative overflow-hidden min-h-screen">
+      <section className="relative overflow-hidden">
         {/* Slideshow background */}
         <div className="absolute inset-0">
           <img
@@ -209,7 +209,7 @@ export default function Landing() {
           <span className="absolute left-1/2 top-32 h-2 w-2 rounded-full bg-primary animate-confetti" style={{ animationDelay: "5.1s" }} />
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-8 sm:pt-10 md:pt-12">
+        <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-8 sm:pt-10 md:pt-12">
           {/* Logo watermark */}
           <div className="absolute left-1/2 top-0 -translate-x-1/2 pointer-events-none">
             <img
@@ -295,7 +295,7 @@ export default function Landing() {
           </p>
         )}
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-4 grid-cols-2">
           {dynamicEvents.slice(0, 6).map(e => ({
             eventObj: e,
             id: e.id,
@@ -303,29 +303,28 @@ export default function Landing() {
             title: e.title,
             date: e.event_date,
             venue: e.venue,
-            desc: (e.description ?? "").slice(0, 100),
+            desc: (e.description ?? "").slice(0, 80),
           })).map((ev) => (
             <div key={ev.id}
-              className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-2 hover:border-primary/40 hover:shadow-glow cursor-pointer"
+              className="group overflow-hidden rounded-xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow cursor-pointer"
               onClick={() => setModalEvent(ev.eventObj)}
             >
               <div className="relative aspect-video overflow-hidden">
                 <img src={ev.img} alt={ev.title} loading="lazy"
                   className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
               </div>
-              <div className="p-5">
-                <h3 className="font-display text-lg font-bold leading-tight">{ev.title}</h3>
-                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4 text-accent" /> {ev.date}
+              <div className="p-3">
+                <h3 className="font-display text-sm font-bold leading-tight line-clamp-1">{ev.title}</h3>
+                <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3 text-accent" /> {ev.date}
                 </p>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-accent" /> {ev.venue}
+                <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3 text-accent" /> {ev.venue}
                 </p>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-2">{ev.desc}</p>
                 <button type="button"
                   onClick={e => { e.stopPropagation(); setModalEvent(ev.eventObj); }}
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-4 py-2 text-sm font-bold text-primary-foreground shadow-ember transition hover:shadow-glow">
-                  Purchase Ticket <ArrowRight className="h-4 w-4" />
+                  className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-ember px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-ember transition hover:shadow-glow">
+                  Purchase Ticket <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
             </div>
