@@ -2,14 +2,45 @@ import type { EventRow, TicketTier } from "./types";
 import talantaStadium from "@/assets/talanta-stadium.jpg";
 
 // ─── Ticket prices ───────────────────────────────────────────────────────────
-// Matches with NO tiers cannot be bought (the server refuses the booking and the site shows
-// "tickets on sale soon"). Set the real prices here to open sales for every league match.
-export const LEAGUE_TICKET_TIERS: TicketTier[] = [];
+// A match with NO tiers cannot be bought (the server refuses the booking and the site shows
+// "tickets on sale soon").
+export const LEAGUE_TICKET_TIERS: TicketTier[] = [{ name: "Regular", price: 500, description: "General admission" }];
+export const OPENING_TICKET_TIERS: TicketTier[] = [{ name: "General admission", price: 1500, description: "Opening match entry" }];
 
-// ─── Talanta Stadium opening match ───────────────────────────────────────────
-// Set to the `id` of the opening match (a league match id below, or your own fixture) and it is
-// highlighted at the top of the site. Leave null to show the "announced soon" teaser.
-export const OPENING_MATCH_ID: string | null = null;
+// ─── Talanta Stadium opening match: Bayern Munich vs Ajax, 5 January 2027 ────
+// (announced by President Ruto and both clubs; kick-off time not yet published)
+export const OPENING_MATCH_ID = "talanta-opening-bayern-v-ajax";
+export const OPENING_MATCH: EventRow = {
+  id: OPENING_MATCH_ID,
+  title: "Bayern Munich vs Ajax — Talanta Stadium Opening Match",
+  description:
+    "The opening match of Kenya's new 60,000-seat stadium at Talanta Sports City, officially named the Raila Odinga International Stadium: FC Bayern Munich take on AFC Ajax in a historic friendly ahead of AFCON 2027.",
+  venue: "Raila Odinga International Stadium (Talanta Stadium), Nairobi",
+  event_date: "Tue 5 Jan 2027 · TBA",
+  tag: "Opening match",
+  is_published: true,
+  created_at: "2027-01-05T00:00:00+03:00",
+  poster_url: talantaStadium,
+  tiers: OPENING_TICKET_TIERS,
+  home_team: "Bayern Munich",
+  away_team: "Ajax",
+  matchday: 0,
+  kickoff: "2027-01-05T00:00:00+03:00",
+};
+
+// ─── Home grounds ────────────────────────────────────────────────────────────
+// Only grounds FKF has announced are listed (Round 1 venue announcements, Oct 2026). A club that is
+// not listed has NO confirmed ground yet: its matches show "venue to be confirmed" and stay closed
+// for sale until a ground is added here.
+export const HOME_GROUNDS: Record<string, string> = {
+  "Nairobi United": "Police Sacco Stadium, Nairobi",
+  "Mathare United": "Police Sacco Stadium, Nairobi",
+  "Posta Rangers": "Wang'uru Stadium, Kirinyaga",
+  "Ulinzi Stars": "Ulinzi Sports Complex, Lang'ata, Nairobi",
+  "3K": "Moi Stadium, Embu",
+  "Migori Youth": "Green Stadium, Awendo",
+};
+export const VENUE_TBC = "Venue to be confirmed by FKF";
 
 // ─── Clubs ───────────────────────────────────────────────────────────────────
 export function slugify(name: string): string {
@@ -128,13 +159,13 @@ export const LEAGUE_MATCHES: EventRow[] = RAW.trim()
       id: `kpl-md${md}-${slugify(home)}-v-${slugify(away)}`,
       title: `${home} vs ${away}`,
       description: `FKF Premier League, Matchday ${md} of 34. ${home} host ${away}.`,
-      venue: "Venue to be confirmed",
+      venue: HOME_GROUNDS[home] ?? VENUE_TBC,
       event_date: formatKickoff(date, time),
       tag: `Matchday ${md}`,
       is_published: true,
       created_at: `${date}T${time}:00+03:00`,
       poster_url: talantaStadium,
-      tiers: LEAGUE_TICKET_TIERS,
+      tiers: HOME_GROUNDS[home] ? LEAGUE_TICKET_TIERS : [],
       home_team: home,
       away_team: away,
       matchday: Number(md),

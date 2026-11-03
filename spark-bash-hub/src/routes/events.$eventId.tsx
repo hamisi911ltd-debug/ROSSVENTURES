@@ -10,6 +10,8 @@ import type { EventRow, BookingRow } from "@/lib/types";
 
 import { FIXTURES_BY_ID, FALLBACK_POSTER } from "@/lib/fixtures";
 import { TeamCrest } from "@/components/TeamCrest";
+import { Squads } from "@/components/Squads";
+import { OPENING_MATCH_ID, VENUE_TBC } from "@/lib/league";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/events/$eventId")({
@@ -232,7 +234,14 @@ function EventDetailPage() {
             {event.description && (
               <p className="mt-4 text-muted-foreground leading-relaxed">{event.description}</p>
             )}
+            {event.matchday !== undefined && (
+              <p className="mt-3 text-xs text-muted-foreground/80">
+                Venue and kick-off are as announced by FKF / the organisers and can change — check before you travel.
+              </p>
+            )}
           </div>
+
+          {event.id === OPENING_MATCH_ID && <Squads />}
 
           {tiers.length > 0 && (
             <div>
@@ -263,7 +272,9 @@ function EventDetailPage() {
                 <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-secondary"><Ticket className="h-7 w-7 text-accent" /></div>
                 <h2 className="font-display text-xl font-bold">Tickets on sale soon</h2>
                 <p className="text-sm text-muted-foreground">
-                  Ticket sales for this match have not opened yet. Message us and we will tell you the moment they do.
+                  {event.venue === VENUE_TBC
+                    ? "FKF has not confirmed the venue for this match yet. Tickets open as soon as it does — message us and we will tell you."
+                    : "Ticket sales for this match have not opened yet. Message us and we will tell you the moment they do."}
                 </p>
                 <a
                   href={`https://wa.me/254705333198?text=${encodeURIComponent(`Hi Football Arena254, tell me when tickets for ${event.title} go on sale.`)}`}

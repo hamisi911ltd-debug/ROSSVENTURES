@@ -14,6 +14,8 @@ import { MATCHDAYS, CLUBS } from "@/lib/league";
 import { MatchCard } from "@/components/MatchCard";
 import { OpeningMatch } from "@/components/OpeningMatch";
 import { TeamCrest } from "@/components/TeamCrest";
+import { Squads } from "@/components/Squads";
+import { TalantaVideos } from "@/components/TalantaVideos";
 import talantaStadium from "@/assets/talanta-stadium.jpg";
 import talantaShield from "@/assets/talanta-shield.jpg";
 import talantaRoof from "@/assets/talanta-roof.jpg";
@@ -112,7 +114,7 @@ export default function Landing() {
             className={`h-full w-full object-cover object-center transition-opacity duration-700 ${slideVisible ? "opacity-100" : "opacity-0"}`}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/90" />
-          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+          <div className="absolute bottom-36 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:bottom-32">
             {HERO_SLIDES.map((_, i) => (
               <button
                 key={i}
@@ -136,7 +138,7 @@ export default function Landing() {
               <Trophy className="h-3.5 w-3.5" /> footballarena254.co.ke
             </span>
 
-            <h1 className="mt-4 max-w-3xl min-h-[2.4em] font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:min-h-[2.2em] sm:text-5xl md:text-6xl">
+            <h1 className="mt-4 max-w-3xl min-h-[2.25em] font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:min-h-[2.2em] sm:text-5xl md:text-6xl">
               {heroText}
               <span
                 className={`ml-0.5 inline-block h-[1em] w-[3px] bg-accent align-middle ${isTyping ? "animate-caret-blink" : "opacity-100"}`}
@@ -197,6 +199,14 @@ export default function Landing() {
       {/* TALANTA OPENING MATCH — top priority */}
       <section className="mx-auto max-w-6xl px-4 pt-12">
         <OpeningMatch />
+      </section>
+
+      {/* THE TEAMS + THE STADIUM ON VIDEO */}
+      <section className="mx-auto max-w-6xl px-4 pt-14">
+        <Squads />
+      </section>
+      <section className="mx-auto max-w-6xl px-4 pt-14">
+        <TalantaVideos />
       </section>
 
       {/* NEXT MATCHDAY */}

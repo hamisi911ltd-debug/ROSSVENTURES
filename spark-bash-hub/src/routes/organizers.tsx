@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, MapPin } from "lucide-react";
+import { TalantaVideos } from "@/components/TalantaVideos";
 import talantaStadium from "@/assets/talanta-stadium.jpg";
 import talantaShield from "@/assets/talanta-shield.jpg";
 import talantaRoof from "@/assets/talanta-roof.jpg";
@@ -89,6 +90,10 @@ function StadiumsPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <TalantaVideos />
       </section>
 
       {/* Other venues */}

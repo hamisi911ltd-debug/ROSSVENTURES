@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Calendar, MapPin, Clock } from "lucide-react";
 import type { EventRow } from "@/lib/types";
 import { FALLBACK_POSTER } from "@/lib/fixtures";
+import { VENUE_TBC } from "@/lib/league";
 import { TeamCrest } from "@/components/TeamCrest";
 
 export function isOnSale(e: EventRow): boolean {
@@ -32,7 +33,7 @@ export function MatchCard({ event }: { event: EventRow }) {
           : "border border-white/15 bg-white/5 text-muted-foreground"
       }`}
     >
-      {onSale ? <>Book tickets{from ? ` · from KES ${from.toLocaleString()}` : ""} <ArrowRight className="h-3.5 w-3.5" /></> : "Tickets on sale soon"}
+      {onSale ? <>Book tickets{from ? ` · from KES ${from.toLocaleString()}` : ""} <ArrowRight className="h-3.5 w-3.5" /></> : event.venue === VENUE_TBC ? "Awaiting FKF venue" : "Tickets on sale soon"}
     </span>
   );
 

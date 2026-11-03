@@ -1,9 +1,9 @@
 import type { EventRow } from "./types";
 import talantaStadium from "@/assets/talanta-stadium.jpg";
-import { LEAGUE_MATCHES } from "./league";
+import { LEAGUE_MATCHES, OPENING_MATCH } from "./league";
 
 // Built-in fixtures: the real FKF Premier League fixtures (see ./league.ts for prices and the opening match).
-export const FIXTURES: EventRow[] = LEAGUE_MATCHES;
+export const FIXTURES: EventRow[] = [OPENING_MATCH, ...LEAGUE_MATCHES];
 
 // Hidden live-payment check: not listed anywhere, reachable only at /events/payment-test.
 // Lets the owner confirm that money reaches the payments wallet before real matches go on sale.

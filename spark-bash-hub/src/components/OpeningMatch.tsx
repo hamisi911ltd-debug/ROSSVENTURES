@@ -26,8 +26,10 @@ export function OpeningMatch({ events = [] }: { events?: EventRow[] }) {
   );
 
   const badge = (
-    <span className="inline-flex items-center gap-2 rounded-full bg-gradient-gold px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-black shadow-gold animate-shimmer">
-      <Sparkles className="h-3.5 w-3.5" /> The opening match · Talanta Stadium
+    <span className="inline-flex items-center gap-2 rounded-full bg-gradient-gold px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] sm:text-[11px] sm:tracking-[0.2em] text-black shadow-gold animate-shimmer">
+      <Sparkles className="h-3.5 w-3.5 shrink-0" />
+      <span className="sm:hidden">Talanta opening match</span>
+      <span className="hidden sm:inline">The opening match · Talanta Stadium</span>
     </span>
   );
 

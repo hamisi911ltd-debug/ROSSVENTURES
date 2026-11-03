@@ -8,14 +8,14 @@ const INITIALS: Record<string, string> = {
   "AFC Leopards": "AFC", "APS Bomet": "APS", "Gor Mahia": "GOR", "Kakamega Homeboyz": "KHB",
   "Kenya Police": "KPF", "Mara Sugar": "MSC", "Mathare United": "MAT", "Migori Youth": "MIG",
   "Mombasa United": "MOM", "Murang'a SEAL": "SEAL", "Nairobi United": "NBU", "Posta Rangers": "PST",
-  "Ulinzi Stars": "ULI", "3K": "3K",
+  "Ulinzi Stars": "ULI", "3K": "3K", "Bayern Munich": "FCB", "Ajax": "AJX",
 };
 
 const HUES: Record<string, number> = {
   "AFC Leopards": 215, "APS Bomet": 275, "Bandari": 195, "Gor Mahia": 145, "KCB": 160,
   "Kakamega Homeboyz": 100, "Kenya Police": 235, "Mara Sugar": 45, "Mathare United": 255,
   "Migori Youth": 20, "Mombasa United": 330, "Murang'a SEAL": 5, "Nairobi United": 285,
-  "Posta Rangers": 52, "Shabana": 175, "Tusker": 35, "Ulinzi Stars": 120, "3K": 310,
+  "Posta Rangers": 52, "Shabana": 175, "Tusker": 35, "Ulinzi Stars": 120, "3K": 310, "Bayern Munich": 352, "Ajax": 12,
 };
 
 function initialsOf(name: string): string {
