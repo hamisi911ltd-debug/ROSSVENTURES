@@ -1,43 +1,31 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { MapPin, Calendar, ArrowRight } from "lucide-react";
-import type { EventRow } from "@/lib/types";
-import { FIXTURES, FALLBACK_POSTER } from "@/lib/fixtures";
+import { createFileRoute } from "@tanstack/react-router";
+import { Calendar } from "lucide-react";
+import { MATCHDAYS } from "@/lib/league";
+import { MatchCard } from "@/components/MatchCard";
+import { OpeningMatch } from "@/components/OpeningMatch";
 import talantaAerial from "@/assets/talanta-aerial.jpg";
 
 export const Route = createFileRoute("/events/")({
   head: () => ({
     meta: [
       { title: "Fixtures & Tickets — Football Arena254" },
-      { name: "description", content: "Book tickets for Kenyan football: Talanta Stadium derbies, FKF Premier League matchdays, cup finals and Harambee Stars internationals. Pay by M-PESA." },
+      { name: "description", content: "Book tickets for the FKF Premier League and the Talanta Stadium opening match. Every matchday, every club. Pay by M-PESA." },
       { property: "og:title", content: "Fixtures & Tickets — Football Arena254" },
-      { property: "og:description", content: "Book your seat at Talanta Stadium, Kasarani and Nyayo." },
+      { property: "og:description", content: "Book your seat at Talanta Stadium and FKF Premier League matches." },
     ],
   }),
   component: EventsPage,
 });
 
+function dayRange(matches: { kickoff?: string }[]): string {
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString("en-KE", { day: "numeric", month: "short", timeZone: "Africa/Nairobi" });
+  const times = matches.map((m) => m.kickoff!).sort();
+  const a = fmt(times[0]), b = fmt(times[times.length - 1]);
+  return a === b ? a : `${a} – ${b}`;
+}
+
 function EventsPage() {
-  const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
-
-  useEffect(() => {
-    async function fetchEvents() {
-      try {
-        const res = await fetch("/api/events", { cache: "no-store" });
-        const data: { ok: boolean; events: EventRow[] } = await res.json();
-        if (data.ok && Array.isArray(data.events)) setDynamicEvents(data.events);
-      } catch {}
-    }
-    fetchEvents();
-    const interval = setInterval(fetchEvents, 30_000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Admin-published matches win; otherwise fall back to the built-in fixtures
-  const matches = dynamicEvents.length > 0 ? dynamicEvents : FIXTURES;
-  const featured = matches[0];
-  const rest = matches.slice(1);
-
   return (
     <main>
       {/* Page banner — Talanta Stadium */}
@@ -52,79 +40,46 @@ function EventsPage() {
             Book your seat at the <span className="text-gradient-ember">next Kenyan match.</span>
           </h1>
           <p className="mt-3 max-w-xl text-white/75">
-            League nights, derbies, cup finals and Harambee Stars internationals — starting at the new Talanta Stadium.
+            The Talanta Stadium opening match first, then every FKF Premier League matchday.
           </p>
         </div>
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
-        {/* FEATURED */}
-        <section className="grid gap-10 rounded-3xl border border-primary/30 bg-card/60 p-6 shadow-glow lg:grid-cols-2 lg:p-10">
-          <div className="relative overflow-hidden rounded-2xl">
-            <img src={featured.poster_url ?? FALLBACK_POSTER} alt={featured.title} className="h-full w-full object-cover" />
-            {featured.tag && (
-              <span className="absolute left-3 top-3 rounded-full bg-gradient-ember px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-ember">
-                {featured.tag}
-              </span>
-            )}
-          </div>
-          <div>
-            <h2 className="font-display text-3xl font-bold sm:text-4xl">{featured.title}</h2>
-            <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 text-accent" /> {featured.venue} · <Calendar className="h-4 w-4 text-accent" /> {featured.event_date}
-            </p>
-            <p className="mt-4 text-muted-foreground">{featured.description}</p>
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {(featured.tiers ?? []).map((t) => (
-                <div key={t.name} className="rounded-xl border border-border/60 bg-background/60 p-3 text-center">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t.name}</p>
-                  <p className="mt-1 font-display font-bold text-gradient-ember">KES {t.price.toLocaleString()}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/events/$eventId" params={{ eventId: featured.id }} className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-ember">
-                Book Tickets <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a href="tel:+254705333198" className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background/40 px-5 py-3 text-sm font-semibold hover:bg-secondary">
-                Group bookings
-              </a>
-            </div>
-          </div>
-        </section>
+        <OpeningMatch />
 
-        {/* ALL FIXTURES */}
-        {rest.length > 0 && (
-          <section className="mt-12">
-            <h2 className="font-display text-2xl font-bold sm:text-3xl">All upcoming fixtures</h2>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {rest.map((ev) => (
-                <Link
-                  key={ev.id}
-                  to="/events/$eventId"
-                  params={{ eventId: ev.id }}
-                  className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <img src={ev.poster_url ?? FALLBACK_POSTER} alt={ev.title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                    {ev.tag && (
-                      <span className="absolute left-3 top-3 rounded-full bg-gradient-ember px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-ember">
-                        {ev.tag}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-display text-base font-bold leading-tight">{ev.title}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">{ev.venue} · {ev.event_date}</p>
-                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-accent">
-                      Book Tickets <ArrowRight className="h-3 w-3" />
-                    </span>
-                  </div>
-                </Link>
+        {/* Matchday jump links */}
+        <nav className="mt-12 flex flex-wrap gap-2" aria-label="Matchdays">
+          {MATCHDAYS.map((d) => (
+            <a
+              key={d.matchday}
+              href={`#md-${d.matchday}`}
+              className="rounded-full border border-border/70 bg-card/60 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground transition hover:border-primary/60 hover:text-accent"
+            >
+              MD {d.matchday}
+            </a>
+          ))}
+        </nav>
+
+        {MATCHDAYS.map((d) => (
+          <section key={d.matchday} id={`md-${d.matchday}`} className="mt-10 scroll-mt-28">
+            <div className="flex items-baseline justify-between gap-4 border-b border-border/60 pb-3">
+              <h2 className="font-display text-2xl font-bold sm:text-3xl">
+                Matchday {d.matchday} <span className="text-base font-medium text-muted-foreground">of 34</span>
+              </h2>
+              <span className="text-sm text-muted-foreground">{dayRange(d.matches)}</span>
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {d.matches.map((m) => (
+                <MatchCard key={m.id} event={m} />
               ))}
             </div>
           </section>
-        )}
+        ))}
+
+        <p className="mt-12 text-center text-sm text-muted-foreground">
+          More fixtures are added as kick-off dates are confirmed.
+        </p>
       </div>
     </main>
   );

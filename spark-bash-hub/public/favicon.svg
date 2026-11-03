@@ -1,17 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
   <defs>
-    <clipPath id="s"><path d="M64 6 114 22v42c0 30-20 48-50 58C34 112 14 94 14 64V22Z"/></clipPath>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#d9ffe6"/>
+      <stop offset="1" stop-color="#46d17a"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1a12"/>
+      <stop offset="1" stop-color="#050806"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff2b4a"/>
+      <stop offset="1" stop-color="#b3001f"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17c964"/>
+      <stop offset="1" stop-color="#007a38"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2dff8a" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#2dff8a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe58a"/>
+      <stop offset="1" stop-color="#e0a516"/>
+    </linearGradient>
+    <clipPath id="shield">
+      <path d="M128 12 L224 40 V118 C224 178 184 220 128 244 C72 220 32 178 32 118 V40 Z"/>
+    </clipPath>
   </defs>
-  <g clip-path="url(#s)">
-    <rect width="128" height="128" fill="#0b0b0b"/>
-    <rect y="30" width="128" height="22" fill="#bb0000"/>
-    <rect y="52" width="128" height="4" fill="#fff"/>
-    <rect y="56" width="128" height="30" fill="#006600"/>
-    <rect y="86" width="128" height="4" fill="#fff"/>
-    <rect y="90" width="128" height="40" fill="#0b0b0b"/>
+
+  <!-- shield body -->
+  <path d="M128 12 L224 40 V118 C224 178 184 220 128 244 C72 220 32 178 32 118 V40 Z" fill="url(#bg)"/>
+  <g clip-path="url(#shield)">
+    <!-- floodlight glow behind the ball -->
+    <circle cx="128" cy="92" r="84" fill="url(#glow)"/>
+
+    <!-- stadium roof: three nested arcs -->
+    <path d="M40 126 Q128 22 216 126" fill="none" stroke="url(#green)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M58 126 Q128 44 198 126" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M74 126 Q128 62 182 126" fill="none" stroke="url(#red)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Kenyan flag bands (black / red / green, white fimbriation) -->
+    <rect x="0" y="134" width="256" height="15" fill="#000"/>
+    <rect x="0" y="149" width="256" height="4" fill="#fff"/>
+    <rect x="0" y="153" width="256" height="22" fill="url(#red)"/>
+    <rect x="0" y="175" width="256" height="4" fill="#fff"/>
+    <rect x="0" y="179" width="256" height="22" fill="url(#green)"/>
+    <!-- sheen -->
+    <path d="M32 134 H224 V150 H32 Z" fill="#fff" fill-opacity="0.07"/>
   </g>
-  <path d="M64 6 114 22v42c0 30-20 48-50 58C34 112 14 94 14 64V22Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
-  <circle cx="64" cy="58" r="25" fill="#fff" stroke="#0b0b0b" stroke-width="3"/>
-  <path d="m64 46 11 8-4 13H57l-4-13Z" fill="#0b0b0b"/>
-  <path d="M64 46V34M75 54l11-4M71 67l7 10M57 67l-7 10M53 54l-11-4" stroke="#0b0b0b" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- football -->
+  <circle cx="128" cy="92" r="31" fill="#fff" stroke="#0a0a0a" stroke-width="3"/>
+  <path d="M128 76 L141 85 L136 100 H120 L115 85 Z" fill="#0a0a0a"/>
+  <path d="M128 76 V63 M141 85 L153 81 M136 100 L144 111 M120 100 L112 111 M115 85 L103 81" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M153 81 L160 92 M103 81 L96 92 M144 111 L134 120 M112 111 L122 120" stroke="#0a0a0a" stroke-opacity="0.55" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- 254 plate -->
+  <text x="128" y="229" text-anchor="middle" font-family="Arial Black, Impact, Arial, sans-serif" font-weight="900" font-size="31" letter-spacing="1" fill="#fff" stroke="#fff" stroke-width="3.2" stroke-linejoin="round" paint-order="stroke">254</text>
+
+  <!-- rim + gold top edge -->
+  <path d="M128 12 L224 40 V118 C224 178 184 220 128 244 C72 220 32 178 32 118 V40 Z" fill="none" stroke="url(#rim)" stroke-width="7" stroke-linejoin="round"/>
 </svg>

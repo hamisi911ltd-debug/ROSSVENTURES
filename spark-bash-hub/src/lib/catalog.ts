@@ -1,21 +1,16 @@
 import type { EventRow } from "./types";
-import { extractDB, rowToEvent } from "./db";
 import { FIXTURES_BY_ID, TEST_FIXTURE_ID } from "./fixtures";
 
 /**
- * Server-side source of truth for what can be bought and at what price.
- * Published events live in D1 (written only by the authenticated admin);
- * the built-in sample fixtures are a fallback for demos.
+ * Server-side source of truth for what can be bought and at what price: the fixtures defined in
+ * code (src/lib/league.ts). Nothing the browser sends can change a price, and no database
+ * records are consulted, so leftover data can never be sold.
+ *
+ * `sample: true` means "not on sale yet" (no real prices set).
  */
 export async function resolveEvent(eventId: string): Promise<{ event: EventRow; sample: boolean } | null> {
-  const db = await extractDB();
-  if (db) {
-    try {
-      const row = await db.prepare("SELECT * FROM events WHERE id = ? AND is_published = 1").bind(eventId).first();
-      if (row) return { event: rowToEvent(row), sample: false };
-    } catch {}
-  }
   const fixture = FIXTURES_BY_ID[eventId];
-  // The hidden KES 10 test ticket is always payable; other built-in fixtures are placeholders
-  return fixture ? { event: fixture, sample: fixture.id !== TEST_FIXTURE_ID } : null;
+  if (!fixture) return null;
+  const priced = fixture.tiers.some((t) => Number(t.price) > 0);
+  return { event: fixture, sample: !(priced || fixture.id === TEST_FIXTURE_ID) };
 }

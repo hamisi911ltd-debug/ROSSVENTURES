@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import type { EventRow, BookingRow } from "@/lib/types";
 
 import { FIXTURES_BY_ID, FALLBACK_POSTER } from "@/lib/fixtures";
+import { TeamCrest } from "@/components/TeamCrest";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/events/$eventId")({
@@ -58,26 +59,14 @@ function EventDetailPage() {
   const [timedOut,   setTimedOut]   = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Load the match: built-in fixture first, then the published list from the server ──
+  // ── Load the match from the built-in fixtures ──
   useEffect(() => {
     const fixture = FIXTURES_BY_ID[eventId];
     if (fixture) {
       setEvent(fixture);
       setTierName(fixture.tiers[0]?.name ?? "");
-      setLoadingEvent(false);
     }
-    fetch("/api/events", { cache: "no-store" })
-      .then(r => r.json())
-      .then((data: { ok: boolean; events: EventRow[] }) => {
-        const found = data.ok && Array.isArray(data.events) ? data.events.find(e => e.id === eventId) : undefined;
-        if (found) {
-          const tiers = Array.isArray(found.tiers) ? found.tiers : [];
-          setEvent({ ...found, tiers });
-          setTierName(prev => (tiers.some(t => t.name === prev) ? prev : tiers[0]?.name ?? ""));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoadingEvent(false));
+    setLoadingEvent(false);
   }, [eventId]);
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
@@ -109,6 +98,7 @@ function EventDetailPage() {
   }
 
   const tiers      = event.tiers ?? [];
+  const noSale     = tiers.length === 0;
   const selTier    = tiers.find(t => t.name === tierName) ?? tiers[0];
   // Display estimate while filling the form; the authoritative total comes back from the server
   const amount     = serverAmount ?? (selTier?.price ?? 0) * qty;
@@ -195,10 +185,30 @@ function EventDetailPage() {
       <div className="grid gap-10 lg:grid-cols-3">
         {/* ── Event info ── */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="rounded-2xl overflow-hidden border border-border/60">
-            <img src={event.poster_url ?? FALLBACK_POSTER} alt={event.title}
-              className="h-72 w-full object-cover sm:h-96" />
-          </div>
+          {event.home_team && event.away_team ? (
+            <div className="relative overflow-hidden rounded-2xl border border-primary/30 shadow-glow">
+              <img src={event.poster_url ?? FALLBACK_POSTER} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/70 to-black/90" />
+              <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-10 sm:px-10 sm:py-14">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <TeamCrest name={event.home_team} size={104} />
+                  <span className="font-display text-lg font-extrabold text-white sm:text-2xl">{event.home_team}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Home</span>
+                </div>
+                <span className="font-display text-4xl font-extrabold text-gradient-ember sm:text-6xl">VS</span>
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <TeamCrest name={event.away_team} size={104} />
+                  <span className="font-display text-lg font-extrabold text-white sm:text-2xl">{event.away_team}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Away</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl overflow-hidden border border-border/60">
+              <img src={event.poster_url ?? FALLBACK_POSTER} alt={event.title}
+                className="h-72 w-full object-cover sm:h-96" />
+            </div>
+          )}
 
           <div>
             {event.tag && (
@@ -248,6 +258,24 @@ function EventDetailPage() {
         {/* ── Booking panel ── */}
         <div className="lg:col-span-1">
           <div className="sticky top-8 rounded-2xl border border-border/60 bg-card/60 p-6 backdrop-blur">
+            {noSale ? (
+              <div className="space-y-4 py-4 text-center">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-secondary"><Ticket className="h-7 w-7 text-accent" /></div>
+                <h2 className="font-display text-xl font-bold">Tickets on sale soon</h2>
+                <p className="text-sm text-muted-foreground">
+                  Ticket sales for this match have not opened yet. Message us and we will tell you the moment they do.
+                </p>
+                <a
+                  href={`https://wa.me/254705333198?text=${encodeURIComponent(`Hi Football Arena254, tell me when tickets for ${event.title} go on sale.`)}`}
+                  target="_blank" rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-bold text-primary-foreground shadow-ember"
+                >
+                  Notify me on WhatsApp
+                </a>
+                <Link to="/events" className="block text-xs text-muted-foreground hover:text-foreground">← All fixtures</Link>
+              </div>
+            ) : (
+            <>
 
             {/* Progress steps */}
             <div className="flex items-center gap-1.5 mb-6">
@@ -450,6 +478,8 @@ function EventDetailPage() {
                   </Link>
                 )}
               </div>
+            )}
+            </>
             )}
           </div>
         </div>

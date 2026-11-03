@@ -32,6 +32,7 @@
   --color-ember: var(--ember);
   --color-blood: var(--blood);
   --color-crimson: var(--crimson);
+  --color-gold: var(--gold);
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
 }
@@ -47,13 +48,13 @@
   --popover: oklch(0.16 0.015 165);
   --popover-foreground: oklch(0.98 0.005 165);
 
-  --primary: oklch(0.52 0.17 150);              /* pitch green */
+  --primary: oklch(0.55 0.19 150);              /* pitch green */
   --primary-foreground: oklch(0.99 0.005 150);
   --secondary: oklch(0.20 0.02 165);
   --secondary-foreground: oklch(0.98 0.005 165);
   --muted: oklch(0.20 0.02 165);
   --muted-foreground: oklch(0.65 0.015 165);
-  --accent: oklch(0.74 0.20 148);              /* bright pitch green */
+  --accent: oklch(0.78 0.21 148);              /* bright pitch green */
   --accent-foreground: oklch(0.14 0.02 165);
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.99 0.005 20);
@@ -62,13 +63,13 @@
   --ring: oklch(0.60 0.18 150);
 
   --blood: oklch(0.35 0.15 27);
-  --crimson: oklch(0.52 0.22 27);          /* Kenyan flag red */
+  --crimson: oklch(0.62 0.23 27);          /* Kenyan flag red */
   --ember: oklch(0.68 0.20 148);
-  --gold: oklch(0.75 0.15 70);
+  --gold: oklch(0.84 0.16 88);                /* trophy gold */
 
   --gradient-deep-red: linear-gradient(135deg, oklch(0.12 0.01 165) 0%, oklch(0.20 0.08 152) 55%, oklch(0.30 0.13 148) 100%);
   --gradient-hero-soft: linear-gradient(135deg, oklch(0.15 0.03 165 / 0.95), oklch(0.19 0.07 150 / 0.92), oklch(0.14 0.04 165 / 0.96));
-  --gradient-ember: linear-gradient(135deg, oklch(0.44 0.15 152), oklch(0.62 0.19 146));
+  --gradient-ember: linear-gradient(135deg, oklch(0.42 0.15 153), oklch(0.60 0.20 146));
   --gradient-radial-glow: radial-gradient(60% 60% at 50% 0%, oklch(0.50 0.18 150 / 20%) 0%, transparent 70%);
   --gradient-hero-veil: linear-gradient(180deg, oklch(0.12 0.01 165 / 0.2) 0%, oklch(0.12 0.01 165 / 0.65) 70%, oklch(0.12 0.01 165) 100%);
 
@@ -124,6 +125,22 @@
     height: 4px;
     background: linear-gradient(90deg, #0b0b0b 0 25%, #bb0000 25% 50%, #ffffff 50% 62%, #006600 62% 100%);
   }
+  /* Gold: the Talanta opening-match highlight */
+  .bg-gradient-gold { background-image: linear-gradient(135deg, oklch(0.92 0.14 95), oklch(0.78 0.16 80)); }
+  .text-gradient-gold {
+    background-image: linear-gradient(135deg, oklch(0.95 0.12 95), oklch(0.80 0.17 82));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-gold-glow { background: oklch(0.85 0.16 88 / 0.35); }
+  .border-gold { border-color: oklch(0.84 0.16 88 / 0.65); }
+  .shadow-gold { box-shadow: 0 0 0 1px oklch(0.84 0.16 88 / 0.35), 0 24px 80px -24px oklch(0.84 0.16 88 / 0.55); }
+  @keyframes shimmer {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.84 0.16 88 / 0.0), 0 0 18px oklch(0.84 0.16 88 / 0.35); }
+    50% { box-shadow: 0 0 0 4px oklch(0.84 0.16 88 / 0.12), 0 0 34px oklch(0.84 0.16 88 / 0.6); }
+  }
+  .animate-shimmer { animation: shimmer 3.2s ease-in-out infinite; }
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .shadow-ember { box-shadow: var(--shadow-ember); }
   .shadow-card-soft { box-shadow: var(--shadow-card); }

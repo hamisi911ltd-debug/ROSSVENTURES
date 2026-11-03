@@ -22,10 +22,11 @@ export function SiteHeader() {
       <div className="mx-auto mt-3 max-w-6xl px-4">
         <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
           <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-            <img src={logo} alt="Football Arena254" className="h-9 w-9 object-contain" />
+            <img src={logo} alt="Football Arena254" className="h-12 w-12 object-contain drop-shadow-[0_4px_14px_rgba(40,220,120,0.35)]" />
             <span className="font-display text-base font-bold tracking-tight leading-tight sm:text-lg">
               <span className="text-gradient-ember">FOOTBALL</span>
-              <span className="ml-1 text-foreground/90">ARENA254</span>
+              <span className="ml-1 text-foreground">ARENA</span>
+              <span className="text-crimson">254</span>
               <span className="ml-2 hidden text-xs font-medium uppercase tracking-wider text-muted-foreground sm:inline">
                 · Kenyan Football Match Booking
               </span>

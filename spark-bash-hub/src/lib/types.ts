@@ -15,6 +15,12 @@ export type EventRow = {
   created_at: string;
   poster_url: string | null;
   tiers: TicketTier[];
+  /** Set for league fixtures so pages can show club crests */
+  home_team?: string;
+  away_team?: string;
+  matchday?: number;
+  /** ISO kick-off time with +03:00 offset */
+  kickoff?: string;
 };
 
 export type GalleryPhoto = {

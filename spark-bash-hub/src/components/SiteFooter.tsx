@@ -10,9 +10,9 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5">
-              <img src={logo} alt="Football Arena254" className="h-10 w-10 object-contain" />
+              <img src={logo} alt="Football Arena254" className="h-14 w-14 object-contain drop-shadow-[0_4px_14px_rgba(40,220,120,0.3)]" />
               <span className="font-display text-lg font-bold">
-                <span className="text-gradient-ember">FOOTBALL</span> ARENA254
+                <span className="text-gradient-ember">FOOTBALL</span> ARENA<span className="text-crimson">254</span>
               </span>
             </div>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
