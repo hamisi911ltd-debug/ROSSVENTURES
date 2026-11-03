@@ -1,16 +1,17 @@
-// PayHero (payhero.co.ke) M-Pesa STK Push integration.
+// FinoQ / PayHero (docs.finoq.africa) M-Pesa collection integration.
 //
 // Worker secrets (wrangler secret put <NAME>):
 //   PAYHERO_API_USERNAME + PAYHERO_API_PASSWORD   (or PAYHERO_AUTH_TOKEN = the full "Basic xxxx" header value)
-//   PAYHERO_CHANNEL_ID                            (numeric payment channel id from the PayHero dashboard)
-//   PAYHERO_CALLBACK_SECRET                       (optional; random string that signs callback URLs)
+//   PAYHERO_ACCOUNT_ID                            (your FinoQ/PayHero account id — payments settle to its payments wallet)
+//   PAYHERO_CHANNEL_ID                            (optional: pin a specific payment channel; leave unset to use the wallet)
+//   PAYHERO_CALLBACK_SECRET                       (random string that signs callback URLs)
 //
-// Written against PayHero's v2 API (POST /payments, GET /transaction-status, JSON callback).
-// All PayHero-specific field names live in this file only.
+// Written against the v2 API (POST /payments, JSON callback). All provider-specific field
+// names live in this file only.
 
 import { getEnvVar } from "./runtime-env";
 
-const DEFAULT_BASE_URL = "https://backend.payhero.co.ke/api/v2";
+const DEFAULT_BASE_URL = "https://api.finoq.africa/api/v2";
 
 // PAYHERO_BASE_URL exists so the flow can be tested against a mock server
 async function baseUrl(): Promise<string> {
@@ -45,7 +46,8 @@ async function authHeader(): Promise<string | null> {
 }
 
 export async function payheroConfigured(): Promise<boolean> {
-  return !!(await authHeader()) && !!(await getEnvVar("PAYHERO_CHANNEL_ID"));
+  const hasTarget = !!(await getEnvVar("PAYHERO_ACCOUNT_ID")) || !!(await getEnvVar("PAYHERO_CHANNEL_ID"));
+  return !!(await authHeader()) && hasTarget;
 }
 
 /** Kenyan mobile → local 07XXXXXXXX / 01XXXXXXXX. Returns null when not a valid number. */
@@ -95,13 +97,16 @@ export async function initiateStkPush(args: {
 }): Promise<StkResult> {
   const auth = await authHeader();
   const channelId = await getEnvVar("PAYHERO_CHANNEL_ID");
+  const accountId = await getEnvVar("PAYHERO_ACCOUNT_ID");
   const token = await callbackToken(args.bookingId);
-  if (!auth || !channelId || !token) return { ok: false, error: "Payments are not configured" };
+  if (!auth || (!channelId && !accountId) || !token) return { ok: false, error: "Payments are not configured" };
 
   const body = {
     amount: Math.round(args.amount),
     phone_number: args.phone,
-    channel_id: Number(channelId),
+    // No channel_id unless explicitly configured → money settles to the account's payments wallet
+    ...(channelId ? { channel_id: Number(channelId) } : {}),
+    ...(accountId ? { account_id: Number(accountId) } : {}),
     provider: "m-pesa",
     external_reference: args.bookingId,
     customer_name: args.customerName,
@@ -167,12 +172,14 @@ export function parseCallback(body: unknown): ParsedCallback {
   const status = String(r.Status ?? r.status ?? "").toLowerCase();
   const state: PaymentState =
     resultCode === 0 || status === "success" ? "paid" : status === "queued" || status === "pending" ? "pending" : "failed";
-  const amount = r.Amount !== undefined ? Number(r.Amount) : null;
+  const rawAmount = r.Amount ?? r.amount;
+  const amount = rawAmount !== undefined && rawAmount !== null ? Number(rawAmount) : null;
+  const receipt = r.MpesaReceiptNumber ?? r.provider_reference ?? r.transaction_id ?? null;
   return {
     state,
     bookingId: String(r.ExternalReference ?? r.external_reference ?? ""),
-    checkoutRequestId: r.CheckoutRequestID ? String(r.CheckoutRequestID) : null,
-    receipt: r.MpesaReceiptNumber ? String(r.MpesaReceiptNumber) : null,
+    checkoutRequestId: r.CheckoutRequestID ?? r.checkout_request_id ? String(r.CheckoutRequestID ?? r.checkout_request_id) : null,
+    receipt: receipt ? String(receipt) : null,
     amount: amount !== null && Number.isFinite(amount) ? amount : null,
   };
 }
