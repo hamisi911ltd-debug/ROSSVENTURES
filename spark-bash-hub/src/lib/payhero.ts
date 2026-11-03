@@ -29,7 +29,7 @@ export type PaymentState = "paid" | "failed" | "pending";
 
 export type StkResult =
   | { ok: true; reference: string; checkoutRequestId: string | null }
-  | { ok: false; error: string };
+  | { ok: false; error: string; detail?: string };
 
 export type StatusResult =
   | { ok: true; state: PaymentState; receipt: string | null; amount: number | null }
@@ -133,34 +133,56 @@ export async function initiateStkPush(args: {
     ? { provider: "m-pesa", channel_id: Number(channelId) }
     : { provider: "sasapay", network_code: (await getEnvVar("PAYHERO_NETWORK_CODE")) ?? "63902" };
 
-  const body = {
+  const base = {
     amount: Math.round(args.amount),
     phone_number: args.phone,
     ...route,
     account_id: Number(accountId),
-    customer: { first_name: first, last_name: last, email: args.customerEmail, phone: args.phone },
     external_reference: args.bookingId,
     callback_url: `${args.origin}/api/payhero/callback?b=${encodeURIComponent(args.bookingId)}&t=${token}`,
   };
 
-  try {
-    const res = await fetch(`${await baseUrl()}/payments`, {
-      method: "POST",
-      headers: { Authorization: auth, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = (await res.json().catch(() => ({}))) as any;
-    if (res.ok && data?.success !== false && data?.reference) {
-      return {
-        ok: true,
-        reference: String(data.reference),
-        checkoutRequestId: data.CheckoutRequestID ? String(data.CheckoutRequestID) : null,
-      };
+  // The provider validates a "customer" on some account types but documents the field shape poorly.
+  // Try the plain request first, then richer customer shapes - but only ever after an explicit
+  // validation rejection, so a prompt can never be sent twice.
+  const full = args.customerName.trim();
+  const email = args.customerEmail;
+  const shapes: Record<string, unknown>[] = [
+    { customer: { first_name: first, last_name: last, email, phone: args.phone } },
+    { first_name: first, last_name: last, email },
+    { customer_name: full, customer_email: email, customer_phone: args.phone },
+    { customer: { name: full, first_name: first, last_name: last, email, phone: args.phone, country: "KE" } },
+  ];
+
+  const notes: string[] = [];
+  for (const extra of shapes) {
+    try {
+      const res = await fetch(`${await baseUrl()}/payments`, {
+        method: "POST",
+        headers: { Authorization: auth, "Content-Type": "application/json" },
+        body: JSON.stringify({ ...base, ...extra }),
+      });
+      const data = (await res.json().catch(() => ({}))) as any;
+      if (res.ok && data?.success !== false && data?.reference) {
+        return {
+          ok: true,
+          reference: String(data.reference),
+          checkoutRequestId: data.CheckoutRequestID ? String(data.CheckoutRequestID) : null,
+        };
+      }
+      const raw = String(data?.error_message ?? data?.message ?? data?.error ?? `HTTP ${res.status}`);
+      notes.push(raw.slice(0, 160));
+      // Only a customer-field validation rejection is worth retrying with another shape
+      if (!/customer|first.?name|last.?name|validation failed/i.test(raw)) return { ok: false, error: friendlyError(data), detail: raw.slice(0, 200) };
+    } catch {
+      return { ok: false, error: "Could not reach the payment provider" };
     }
-    return { ok: false, error: friendlyError(data) };
-  } catch {
-    return { ok: false, error: "Could not reach the payment provider" };
   }
+  return {
+    ok: false,
+    error: "We could not start the M-Pesa prompt for your booking. Please call +254 705 333 198 and we will complete it with you.",
+    detail: notes.join(" | ").slice(0, 300),
+  };
 }
 
 // ─── Transaction status (server-side verification) ────────────────────────────

@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/payments/initiate")({
             customerEmail: booking.email,
             origin,
           });
-          if (!result.ok) return json({ ok: false, error: result.error }, 502);
+          if (!result.ok) return json({ ok: false, error: result.error, detail: result.detail }, 502);
 
           await updateBooking(booking.id, {
             status: "pending",

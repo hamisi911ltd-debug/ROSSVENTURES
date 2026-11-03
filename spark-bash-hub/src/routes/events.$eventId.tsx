@@ -136,14 +136,14 @@ function EventDetailPage() {
   async function handlePay() {
     if (!mpesaPhone.trim()) { toast.error("Enter your M-Pesa phone number"); return; }
     setPaying(true);
-    const data = await api<{ alreadySent?: boolean }>("/api/payments/initiate", {
+    const data = await api<{ alreadySent?: boolean; detail?: string }>("/api/payments/initiate", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ bookingId, phone: mpesaPhone.trim() }),
     });
     setPaying(false);
 
-    if (!data.ok) { toast.error(data.error ?? "Could not send the M-Pesa prompt"); return; }
+    if (!data.ok) { toast.error(data.error ?? "Could not send the M-Pesa prompt", { description: data.detail ? `Details: ${data.detail}` : undefined, duration: 12000 }); return; }
     setTimedOut(false);
     setStep("waiting");
     pollForConfirmation(bookingId);
