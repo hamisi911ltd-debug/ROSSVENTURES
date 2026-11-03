@@ -108,7 +108,7 @@ function EventDetailPage() {
 
   // ── Step 1: create the booking on the server (it prices the order) ─────────
   async function handleContinue() {
-    if (!fullName.trim()) { toast.error("Enter your full name"); return; }
+    if (fullName.trim().split(/\s+/).filter(Boolean).length < 2) { toast.error("Enter your first and last name"); return; }
     if (!email.trim())    { toast.error("Enter your email address"); return; }
     if (!phone.trim())    { toast.error("Enter your phone number"); return; }
     if (!tiers.length || !selTier) { toast.error("No ticket types available"); return; }
@@ -311,7 +311,7 @@ function EventDetailPage() {
                   <p className="mt-1 text-xs text-muted-foreground">Your ticket is issued instantly after M-Pesa payment</p>
                 </div>
 
-                <Field icon={User} label="Full Name" value={fullName} onChange={setFullName} placeholder="Your full name" />
+                <Field icon={User} label="Full Name (first and last)" value={fullName} onChange={setFullName} placeholder="First and last name" />
                 <Field icon={Mail} label="Email Address" value={email} onChange={setEmail} type="email" placeholder="your@email.com" />
                 <Field icon={PhoneIcon} label="Phone Number" value={phone} onChange={setPhone} type="tel" placeholder="+254 7XX XXX XXX" />
 

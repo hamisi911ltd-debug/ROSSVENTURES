@@ -43,7 +43,8 @@ export const Route = createFileRoute("/api/bookings")({
           const phone = normalizeKenyanPhone(String(body.phone ?? ""));
           const quantity = Math.floor(Number(body.quantity));
 
-          if (fullName.length < 2 || fullName.length > 80) return json({ ok: false, error: "Enter your full name" }, 400);
+          if (fullName.length < 3 || fullName.length > 80) return json({ ok: false, error: "Enter your full name" }, 400);
+          if (fullName.split(/\s+/).filter(Boolean).length < 2) return json({ ok: false, error: "Enter your first and last name" }, 400);
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 120) return json({ ok: false, error: "Enter a valid email address" }, 400);
           if (!phone) return json({ ok: false, error: "Enter a valid Kenyan phone number (07XX XXX XXX)" }, 400);
           if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) return json({ ok: false, error: "Choose between 1 and 10 tickets" }, 400);

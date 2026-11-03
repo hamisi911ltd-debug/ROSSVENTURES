@@ -56,6 +56,24 @@ export async function payheroConfigured(): Promise<boolean> {
   return !!(await authHeader()) && !!(await getEnvVar("PAYHERO_ACCOUNT_ID"));
 }
 
+export function splitName(full: string): { first: string; last: string } {
+  const parts = String(full ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return { first: parts[0] ?? "", last: "" };
+  return { first: parts.slice(0, -1).join(" "), last: parts[parts.length - 1] };
+}
+
+/** Customer-safe wording for provider errors (the raw provider text is not shown to buyers). */
+function friendlyError(data: any): string {
+  const code = String(data?.error_code ?? "");
+  const msg = String(data?.error_message ?? data?.message ?? data?.error ?? "");
+  if (code === "kyc_third_party_collection")
+    return "M-Pesa prompts to this number are not switched on yet. Please call +254 705 333 198 and we will help you complete your booking.";
+  if (/insufficient/i.test(msg)) return "Payments are temporarily unavailable. Please try again shortly or call +254 705 333 198.";
+  if (/last name|first name|customer\./i.test(msg)) return "Please check that you entered your first and last name, then try again.";
+  if (/phone|number/i.test(msg)) return "That phone number was not accepted. Use your M-Pesa number, like 0712 345 678.";
+  return "Could not start the M-Pesa prompt. Please try again, or call +254 705 333 198.";
+}
+
 /** Kenyan mobile → local 07XXXXXXXX / 01XXXXXXXX. Returns null when not a valid number. */
 export function normalizeKenyanPhone(input: string): string | null {
   const d = String(input ?? "").replace(/[\s\-()]/g, "").replace(/^\+/, "");
@@ -99,8 +117,10 @@ export async function initiateStkPush(args: {
   phone: string; // already normalised
   amount: number;
   customerName: string;
+  customerEmail?: string;
   origin: string;
 }): Promise<StkResult> {
+  const { first, last } = splitName(args.customerName);
   const auth = await authHeader();
   const channelId = await getEnvVar("PAYHERO_CHANNEL_ID");
   const accountId = await getEnvVar("PAYHERO_ACCOUNT_ID");
@@ -118,6 +138,7 @@ export async function initiateStkPush(args: {
     phone_number: args.phone,
     ...route,
     account_id: Number(accountId),
+    customer: { first_name: first, last_name: last, email: args.customerEmail, phone: args.phone },
     external_reference: args.bookingId,
     callback_url: `${args.origin}/api/payhero/callback?b=${encodeURIComponent(args.bookingId)}&t=${token}`,
   };
@@ -136,7 +157,7 @@ export async function initiateStkPush(args: {
         checkoutRequestId: data.CheckoutRequestID ? String(data.CheckoutRequestID) : null,
       };
     }
-    return { ok: false, error: String(data?.error_message ?? data?.message ?? data?.error ?? "Could not start the M-Pesa prompt") };
+    return { ok: false, error: friendlyError(data) };
   } catch {
     return { ok: false, error: "Could not reach the payment provider" };
   }

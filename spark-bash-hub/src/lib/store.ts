@@ -134,17 +134,23 @@ export async function createBooking(booking: BookingRow, kv: KVStore | null): Pr
 }
 
 export async function getBookingById(id: string, kv: KVStore | null): Promise<BookingRow | null> {
+  const cached = _bookings.get(id) ?? null;
   if (kv) {
-    try {
-      const raw = await kv.get(keyBooking(id));
-      if (raw) {
-        const b = JSON.parse(raw) as BookingRow;
-        _bookings.set(id, b);
-        return b;
-      }
-    } catch {}
+    // KV can lag for a moment after a write made from another location: retry briefly before giving up
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const raw = await kv.get(keyBooking(id));
+        if (raw) {
+          const b = JSON.parse(raw) as BookingRow;
+          _bookings.set(id, b);
+          return b;
+        }
+      } catch {}
+      if (cached) break;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 400));
+    }
   }
-  return _bookings.get(id) ?? null;
+  return cached;
 }
 
 export async function updateBooking(

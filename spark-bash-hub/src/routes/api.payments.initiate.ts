@@ -37,6 +37,7 @@ export const Route = createFileRoute("/api/payments/initiate")({
             phone,
             amount: booking.amount,
             customerName: booking.full_name,
+            customerEmail: booking.email,
             origin,
           });
           if (!result.ok) return json({ ok: false, error: result.error }, 502);

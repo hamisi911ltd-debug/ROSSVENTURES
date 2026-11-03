@@ -1,10 +1,18 @@
 {
   "name": "rossventures",
   "compatibility_date": "2026-05-23",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "main": "spark-bash-hub/dist/server/index.js",
   "assets": {
     "directory": "spark-bash-hub/dist/client",
     "binding": "ASSETS"
-  }
+  },
+  "kv_namespaces": [
+    {
+      "binding": "EVENTS_KV",
+      "id": "c4958a888c8b4119b6ac4315120a957d"
+    }
+  ]
 }
