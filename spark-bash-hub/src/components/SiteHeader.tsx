@@ -19,14 +19,14 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50">
       <div className="flag-stripe" />
-      <div className="mx-auto mt-3 max-w-6xl px-4">
-        <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
+      <div className="w-full border-b border-white/10 bg-black/50 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-            <img src={logo} alt="Arena 254" className="h-12 w-12 object-contain drop-shadow-[0_4px_14px_rgba(40,220,120,0.35)]" />
-            <span className="font-display text-base font-bold tracking-tight leading-tight sm:text-lg">
+            <img src={logo} alt="Arena 254" className="h-11 w-11 object-contain drop-shadow-[0_4px_14px_rgba(40,220,120,0.35)]" />
+            <span className="font-display text-base font-bold leading-tight tracking-tight sm:text-lg">
               <span className="text-gradient-ember">ARENA</span>
               <span className="ml-1.5 text-crimson">254</span>
-              <span className="ml-2 hidden text-xs font-medium uppercase tracking-wider text-muted-foreground sm:inline">
+              <span className="ml-2 hidden text-xs font-medium uppercase tracking-wider text-white/60 sm:inline">
                 · Kenyan Football Match Booking
               </span>
             </span>
@@ -36,7 +36,7 @@ export function SiteHeader() {
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="grid h-10 w-10 place-items-center rounded-lg border border-border/60 bg-background/60 transition hover:bg-secondary"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-white/20 bg-black/40 transition hover:bg-white/10"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -44,8 +44,8 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <div className="mx-auto mt-2 max-w-6xl px-4">
-          <div className="glass rounded-2xl p-5">
+        <div className="absolute inset-x-0 top-full border-b border-white/10 bg-black/90 backdrop-blur-md">
+          <div className="mx-auto max-w-6xl px-4 py-5">
             <nav className="grid gap-1">
               {navLinks.map((l) => (
                 <Link

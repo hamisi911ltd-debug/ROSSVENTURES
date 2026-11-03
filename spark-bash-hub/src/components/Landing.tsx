@@ -105,18 +105,20 @@ export default function Landing() {
   return (
     <main>
       {/* HERO */}
-      <section className="relative overflow-hidden bg-black">
+      <section className="relative -mt-[68px] overflow-hidden bg-black">
         <div className="relative">
-          {/* Stadium image: full-bleed on desktop, a clear banner on top for phones */}
-          <div className="absolute inset-x-0 top-0 h-[56vw] bg-black md:inset-0 md:h-auto">
+          {/* Stadium image: runs from the very top of the screen (under the header) */}
+          <div className="absolute inset-x-0 top-0 h-[calc(52vw+68px)] md:inset-0 md:h-auto">
             <img
               key={slideIdx}
               src={HERO_SLIDES[slideIdx]}
               alt="Talanta Stadium, Nairobi"
-              className={`h-full w-full object-contain object-center transition-opacity duration-700 md:object-cover md:object-[50%_45%] ${slideVisible ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 md:object-[50%_45%] ${slideVisible ? "opacity-100" : "opacity-0"}`}
             />
+            {/* soft shade under the header so the logo and menu stay readable */}
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
             {/* phones: fade the photo into the page below it */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-black/30 md:hidden" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent md:hidden" />
             {/* desktop: dark only on the text side so the stadium stays bright on the right */}
             <div className="absolute inset-0 hidden bg-gradient-to-r from-black/90 via-black/55 to-transparent md:block" />
             <div className="absolute inset-x-0 bottom-0 hidden h-1/3 bg-gradient-to-t from-black/85 to-transparent md:block" />
@@ -132,7 +134,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-[calc(56vw+1.5rem)] md:pb-16 md:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-[calc(52vw+68px+1.5rem)] md:pb-16 md:pt-[calc(68px+4.5rem)] lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-black/50 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur">
                 <Trophy className="h-3.5 w-3.5" /> footballarena254.co.ke
