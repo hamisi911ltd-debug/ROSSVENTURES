@@ -1,0 +1,403 @@
+{
+ "players": {
+  "Manuel Neuer": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Manuel_Neuer_Ecuador_v_Germany_25_June_2026-148.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/manuel-neuer.jpg"
+  },
+  "Sven Ulreich": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Steffen Prößdorf",
+   "page": "https://commons.wikimedia.org/wiki/File:2022_Sven_Ulreich_(cropped).jpg",
+   "w": 1312,
+   "h": 2006,
+   "face": true,
+   "file": "/players/sven-ulreich.jpg"
+  },
+  "Jonas Urbig": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Werner100359",
+   "page": "https://commons.wikimedia.org/wiki/File:FC_RB_Salzburg_gegen_FC_Bayern_M%C3%BCnchen_(2026-01-06_Testspiel)_14.jpg",
+   "w": 1953,
+   "h": 2380,
+   "face": true,
+   "file": "/players/jonas-urbig.jpg"
+  },
+  "Dayot Upamecano": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Dayot_Upamecano_France_v_Senegal_16_June_2026-402_(cropped).jpg",
+   "w": 2352,
+   "h": 3528,
+   "face": false,
+   "file": "/players/dayot-upamecano.jpg"
+  },
+  "Kim Min-jae": {
+   "none": "no suitable photo"
+  },
+  "Jonathan Tah": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Jonathan_Tah_Ecuador_v_Germany_25_June_2026-116.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/jonathan-tah.jpg"
+  },
+  "Nathaniel Brown": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Nathaniel_Brown_Ecuador_v_Germany_25_June_2026-160.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/nathaniel-brown.jpg"
+  },
+  "Alphonso Davies": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Alphonso_Davies_Canada_v_Qatar_18_June_2026-007_(cropped).jpg",
+   "w": 2096,
+   "h": 3143,
+   "face": true,
+   "file": "/players/alphonso-davies.jpg"
+  },
+  "Hiroki Itō": {
+   "license": "CC BY 3.0",
+   "artist": "Jeollo von VfB-exklusiv.de",
+   "page": "https://commons.wikimedia.org/wiki/File:Hiroki_Ito_VfB_Stuttgart.jpg",
+   "w": 642,
+   "h": 800,
+   "face": true,
+   "file": "/players/hiroki-it.jpg"
+  },
+  "Sacha Boey": {
+   "none": "no suitable photo"
+  },
+  "Josip Stanišić": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Josip_Stanisic_Croatia_v_Portugal_2_July_2026-022.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/josip-stani-i.jpg"
+  },
+  "Joshua Kimmich": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Joshua_Kimmich_Ecuador_v_Germany_25_June_2026-149.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/joshua-kimmich.jpg"
+  },
+  "Tom Bischof": {
+   "none": "no free lead image"
+  },
+  "Jamal Musiala": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Jamal_Musiala_Ecuador_v_Germany_25_June_2026-174_(cropped).jpg",
+   "w": 1271,
+   "h": 1957,
+   "face": true,
+   "file": "/players/jamal-musiala.jpg"
+  },
+  "Konrad Laimer": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Steffen Prößdorf",
+   "page": "https://commons.wikimedia.org/wiki/File:2022-07-21_Fu%C3%9Fball,_M%C3%A4nner,Freundschaftsspiel,_RB_Leipzig_-_FC_Liverpool_1DX_2137_by_Stepro_(cropped).jpg",
+   "w": 1980,
+   "h": 2581,
+   "face": true,
+   "file": "/players/konrad-laimer.jpg"
+  },
+  "Ismael Saibari": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Ismael_Saibari_Brazil_V_Morocco_13_June_2026-152.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/ismael-saibari.jpg"
+  },
+  "Lennart Karl": {
+   "none": "no free lead image"
+  },
+  "Aleksandar Pavlović": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Aleksandar_Pavlovic_Ecuador_v_Germany_25_June_2026-036.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/aleksandar-pavlovi.jpg"
+  },
+  "Serge Gnabry": {
+   "license": "CC BY-SA 4.0",
+   "artist": "حسین ظهروند",
+   "page": "https://commons.wikimedia.org/wiki/File:Serge_Gnabry_WC2022.jpg",
+   "w": 533,
+   "h": 799,
+   "face": true,
+   "file": "/players/serge-gnabry.jpg"
+  },
+  "Harry Kane": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Harry_Kane_England_v_Ghana_23_June_2026-024_(cropped).jpg",
+   "w": 2103,
+   "h": 2916,
+   "face": true,
+   "file": "/players/harry-kane.jpg"
+  },
+  "Luis Díaz": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Werner100359",
+   "page": "https://commons.wikimedia.org/wiki/File:FC_RB_Salzburg_gegen_FC_Bayern_M%C3%BCnchen_(2026-01-06_Testspiel)_40_(Luiz_D%C3%ADaz).jpg",
+   "w": 769,
+   "h": 1127,
+   "face": true,
+   "file": "/players/luis-d-az.jpg"
+  },
+  "Michael Olise": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Michael_Olise_France_v_Senegal_16_June_2026-307_(cropped).jpg",
+   "w": 2877,
+   "h": 4315,
+   "face": true,
+   "file": "/players/michael-olise.jpg"
+  },
+  "Marc-André ter Stegen": {
+   "license": "CC0",
+   "artist": "Government of Catalonia",
+   "page": "https://commons.wikimedia.org/wiki/File:Marc-Andre_Ter_Stegen_ACCI_FCBARCELONA_Turisme_Catalunya_gira_pretemporada_CATPRESS.jpg",
+   "w": 2400,
+   "h": 3000,
+   "face": true,
+   "file": "/players/marc-andr-ter-stegen.jpg"
+  },
+  "Joeri Heerkens": {
+   "none": "no free lead image"
+  },
+  "Maarten Paes": {
+   "license": "Public domain",
+   "artist": "BPMI Sekretariat Presiden/Vico",
+   "page": "https://commons.wikimedia.org/wiki/File:Maarten_Paes_(Indonesia-Australia_10_September_2024).jpg",
+   "w": 1024,
+   "h": 1536,
+   "face": true,
+   "file": "/players/maarten-paes.jpg"
+  },
+  "Lucas Rosa": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Hans Reefman",
+   "page": "https://commons.wikimedia.org/wiki/File:Lucas_Rosa.jpg",
+   "w": 2353,
+   "h": 2459,
+   "face": true,
+   "file": "/players/lucas-rosa.jpg"
+  },
+  "Anton Gaaei": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Mtjonenfa",
+   "page": "https://commons.wikimedia.org/wiki/File:Anton_Gaaei_(cropped).jpg",
+   "w": 807,
+   "h": 1075,
+   "face": true,
+   "file": "/players/anton-gaaei.jpg"
+  },
+  "Owen Wijndal": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Olga Shcherbytska",
+   "page": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%B0%D1%82%D1%87_%C2%AB%D0%94%D0%B8%D0%BD%D0%B0%D0%BC%D0%BE%C2%BB_-_%D0%90%D0%97_2-0._15_%D1%81%D0%B5%D0%BD%D1%82%D1%8F%D0%B1%D1%80%D1%8F_2020_%D0%B3%D0%BE%D0%B4%D0%B0_%E2%80%94_1137461_(Owen_Wijndal).jpg",
+   "w": 283,
+   "h": 422,
+   "face": true,
+   "file": "/players/owen-wijndal.jpg"
+  },
+  "Thilo Kehrer": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Steffen Prößdorf",
+   "page": "https://commons.wikimedia.org/wiki/File:2019-06-11_Fu%C3%9Fball,_M%C3%A4nner,_L%C3%A4nderspiel,_Deutschland-Estland_StP_2073_LR10_by_Stepro.jpg",
+   "w": 3162,
+   "h": 3162,
+   "face": true,
+   "file": "/players/thilo-kehrer.jpg"
+  },
+  "Caio Henrique": {
+   "license": "CC0",
+   "artist": "Paté kroute",
+   "page": "https://commons.wikimedia.org/wiki/File:Caio_asse_asm_2425.png",
+   "w": 565,
+   "h": 809,
+   "face": true,
+   "file": "/players/caio-henrique.jpg"
+  },
+  "Youri Baas": {
+   "license": "CC BY 2.0",
+   "artist": "Carlo Bruil Fotografie",
+   "page": "https://commons.wikimedia.org/wiki/File:GAE_-_Ajax_-_52787519512_(Youri_Baas).jpg",
+   "w": 1708,
+   "h": 2667,
+   "face": true,
+   "file": "/players/youri-baas.jpg"
+  },
+  "Daley Blind": {
+   "license": "CC BY-SA 3.0",
+   "artist": "Станислав Ведмидь",
+   "page": "https://commons.wikimedia.org/wiki/File:Zarya-MU_(6)_%E2%80%94_%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F.jpg",
+   "w": 257,
+   "h": 342,
+   "face": true,
+   "file": "/players/daley-blind.jpg"
+  },
+  "Jofre Torrents": {
+   "none": "no free lead image"
+  },
+  "Aaron Bouwman": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Hans Reefman",
+   "page": "https://commons.wikimedia.org/wiki/File:Aaron_Bouwman.JPG",
+   "w": 3986,
+   "h": 3875,
+   "face": true,
+   "file": "/players/aaron-bouwman.jpg"
+  },
+  "Dies Janse": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Hans Reefman",
+   "page": "https://commons.wikimedia.org/wiki/File:Dies_Janse.jpg",
+   "w": 1774,
+   "h": 3013,
+   "face": true,
+   "file": "/players/dies-janse.jpg"
+  },
+  "Sofyan Amrabat": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Sofyan_Amrabat_Brazil_V_Morocco_13_June_2026-63.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/sofyan-amrabat.jpg"
+  },
+  "Julian Brandt": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Steffen Prößdorf",
+   "page": "https://commons.wikimedia.org/wiki/File:2019-06-11_Fu%C3%9Fball,_M%C3%A4nner,_L%C3%A4nderspiel,_Deutschland-Estland_StP_2066_LR10_by_Stepro.jpg",
+   "w": 3162,
+   "h": 3162,
+   "face": true,
+   "file": "/players/julian-brandt.jpg"
+  },
+  "Oscar Gloukh": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Mtjonenfa",
+   "page": "https://commons.wikimedia.org/wiki/File:Oscar_Gloukh_(cropped).jpg",
+   "w": 1848,
+   "h": 2742,
+   "face": true,
+   "file": "/players/oscar-gloukh.jpg"
+  },
+  "Davy Klaassen": {
+   "license": "CC BY 2.0",
+   "artist": "Carlo Bruil Fotografie",
+   "page": "https://commons.wikimedia.org/wiki/File:GAE_-_Ajax_-_52788472780_(Davy_Klaassen).jpg",
+   "w": 809,
+   "h": 841,
+   "face": true,
+   "file": "/players/davy-klaassen.jpg"
+  },
+  "Jorthy Mokio": {
+   "none": "no suitable photo"
+  },
+  "Yves Bissouma": {
+   "none": "no suitable photo"
+  },
+  "Simon Adingra": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Bryan Berlin",
+   "page": "https://commons.wikimedia.org/wiki/File:Simon_Adingra_Cote_D%27Ivoire_v_Ecuador_14_June_2026-60.jpg",
+   "w": 3333,
+   "h": 5000,
+   "face": true,
+   "file": "/players/simon-adingra.jpg"
+  },
+  "Kasper Dolberg": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Hans Reefman",
+   "page": "https://commons.wikimedia.org/wiki/File:Kasper_Dolberg.jpg",
+   "w": 5829,
+   "h": 5464,
+   "face": true,
+   "file": "/players/kasper-dolberg.jpg"
+  },
+  "Viktor Tsyhankov": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Dynamomania.com",
+   "page": "https://commons.wikimedia.org/wiki/File:%D0%92%D0%B8%D0%BA%D1%82%D0%BE%D1%80_%D0%A6%D1%8B%D0%B3%D0%B0%D0%BD%D0%BA%D0%BE%D0%B2._6_%D1%81%D0%B5%D0%BD%D1%82%D1%8F%D0%B1%D1%80%D1%8F_2016_%D0%B3%D0%BE%D0%B4%D0%B0_%E2%80%94_708155_(cropped).jpg",
+   "w": 339,
+   "h": 451,
+   "face": true,
+   "file": "/players/viktor-tsyhankov.jpg"
+  },
+  "Oliver Edvardsen": {
+   "license": "CC BY-SA 4.0",
+   "artist": "Mtjonenfa",
+   "page": "https://commons.wikimedia.org/wiki/File:Olivier_Edvardsen_(cropped).jpg",
+   "w": 1387,
+   "h": 1958,
+   "face": true,
+   "file": "/players/oliver-edvardsen.jpg"
+  },
+  "Steven Berghuis": {
+   "license": "CC BY 2.0",
+   "artist": "Carlo Bruil Fotografie",
+   "page": "https://commons.wikimedia.org/wiki/File:GAE_-_Ajax_-_52788476320_(Steven_Berghuis).jpg",
+   "w": 1625,
+   "h": 2150,
+   "face": true,
+   "file": "/players/steven-berghuis.jpg"
+  },
+  "Marcos Leonardo": {
+   "license": "CC0",
+   "artist": "SOCCER DIGITAL",
+   "page": "https://commons.wikimedia.org/wiki/File:Marcos-Leonardo-Santos-jul-2022.jpg",
+   "w": 411,
+   "h": 567,
+   "face": true,
+   "file": "/players/marcos-leonardo.jpg"
+  },
+  "Rayane Bounida": {
+   "license": "CC BY 4.0",
+   "artist": "Abdelali Bentarki",
+   "page": "https://commons.wikimedia.org/wiki/File:Rayane_Bounida_warming_up_with_Morocco_(cropped).jpg",
+   "w": 1533,
+   "h": 2122,
+   "face": true,
+   "file": "/players/rayane-bounida.jpg"
+  },
+  "Abdellah Ouazane": {
+   "none": "no free lead image"
+  },
+  "Tolu Arokodare": {
+   "none": "no suitable photo"
+  }
+ },
+ "clubs": {
+  "Bayern Munich": {
+   "file": "/clubs/bayern-munich.png",
+   "license": "Public domain",
+   "artist": "FC Bayern Munich",
+   "page": "https://commons.wikimedia.org/wiki/File:FC_Bayern_M%C3%BCnchen_logo_(2017).svg",
+   "title": "FC Bayern München logo (2017).svg"
+  }
+ }
+}

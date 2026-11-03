@@ -4,13 +4,14 @@ import {
   ArrowRight,
   CalendarDays,
   Trophy,
+  Sparkles,
   Ticket,
   Smartphone,
   ShieldCheck,
   Phone,
   Instagram,
 } from "lucide-react";
-import { MATCHDAYS, CLUBS } from "@/lib/league";
+import { MATCHDAYS, CLUBS, OPENING_MATCH } from "@/lib/league";
 import { MatchCard } from "@/components/MatchCard";
 import { OpeningMatch } from "@/components/OpeningMatch";
 import { TeamCrest } from "@/components/TeamCrest";
@@ -104,84 +105,104 @@ export default function Landing() {
   return (
     <main>
       {/* HERO */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            key={slideIdx}
-            src={HERO_SLIDES[slideIdx]}
-            alt=""
-            aria-hidden="true"
-            className={`h-full w-full object-cover object-center transition-opacity duration-700 ${slideVisible ? "opacity-100" : "opacity-0"}`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/90" />
-          <div className="absolute bottom-36 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:bottom-32">
-            {HERO_SLIDES.map((_, i) => (
-              <button
-                key={i}
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={() => { setSlideVisible(false); setTimeout(() => { setSlideIdx(i); setSlideVisible(true); }, 300); }}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === slideIdx ? "w-6 bg-accent" : "w-1.5 bg-white/40 hover:bg-white/60"}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-10 top-16 h-32 w-32 rounded-full bg-accent/15 blur-3xl animate-sparkle" />
-          <div className="absolute right-12 top-24 h-24 w-24 rounded-full bg-crimson/20 blur-3xl animate-sparkle" />
-          <div className="absolute h-full w-1/3 bg-gradient-to-r from-transparent via-accent/10 to-transparent animate-spotlight-sweep" />
-        </div>
-
-        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 pb-14 pt-8 sm:pt-10 md:pt-12 lg:grid-cols-[1fr_auto]">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/40 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur animate-ticket-slide">
-              <Trophy className="h-3.5 w-3.5" /> footballarena254.co.ke
-            </span>
-
-            <h1 className="mt-4 max-w-3xl min-h-[2.25em] font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:min-h-[2.2em] sm:text-5xl md:text-6xl">
-              {heroText}
-              <span
-                className={`ml-0.5 inline-block h-[1em] w-[3px] bg-accent align-middle ${isTyping ? "animate-caret-blink" : "opacity-100"}`}
-                aria-hidden="true"
-              />
-            </h1>
-
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
-              Football Arena254 is Kenya&apos;s home for booking football match tickets. Get your seat at the brand-new,
-              60,000-seat Talanta Stadium and at FKF Premier League matches across the country — paid securely by M-PESA.
-            </p>
-
-            <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <Link
-                to="/events"
-                className="group inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card-soft transition hover:shadow-ember animate-float sm:px-6 sm:py-3.5"
-              >
-                <Ticket className="h-4 w-4" /> Book a match
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                to="/organizers"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto sm:px-6 sm:py-3.5"
-              >
-                Explore Talanta Stadium
-              </Link>
+      <section className="relative overflow-hidden bg-black">
+        <div className="relative">
+          {/* Stadium image: full-bleed on desktop, a clear banner on top for phones */}
+          <div className="absolute inset-x-0 top-0 h-[15.5rem] sm:h-[22rem] md:inset-0 md:h-auto">
+            <img
+              key={slideIdx}
+              src={HERO_SLIDES[slideIdx]}
+              alt="Talanta Stadium, Nairobi"
+              className={`h-full w-full object-cover object-[50%_45%] transition-opacity duration-700 ${slideVisible ? "opacity-100" : "opacity-0"}`}
+            />
+            {/* phones: fade the photo into the page below it */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-black/30 md:hidden" />
+            {/* desktop: dark only on the text side so the stadium stays bright on the right */}
+            <div className="absolute inset-0 hidden bg-gradient-to-r from-black/90 via-black/55 to-transparent md:block" />
+            <div className="absolute inset-x-0 bottom-0 hidden h-1/3 bg-gradient-to-t from-black/85 to-transparent md:block" />
+            <div className="absolute bottom-3 right-4 z-10 flex gap-1.5 md:bottom-5">
+              {HERO_SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  aria-label={`Show photo ${i + 1}`}
+                  onClick={() => { setSlideVisible(false); setTimeout(() => { setSlideIdx(i); setSlideVisible(true); }, 300); }}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${i === slideIdx ? "w-6 bg-accent" : "w-1.5 bg-white/50 hover:bg-white/80"}`}
+                />
+              ))}
             </div>
           </div>
 
-          <img
-            src={arenaLogo}
-            alt="Football Arena254 crest"
-            className="mx-auto hidden h-56 w-56 drop-shadow-[0_10px_50px_rgba(40,220,120,0.45)] lg:block xl:h-64 xl:w-64"
-          />
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-[13.5rem] sm:pt-[19rem] md:pb-16 md:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-black/50 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur">
+                <Trophy className="h-3.5 w-3.5" /> footballarena254.co.ke
+              </span>
+
+              <h1 className="mt-4 max-w-3xl min-h-[2.25em] font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:min-h-[2.2em] sm:text-5xl md:text-6xl">
+                {heroText}
+                <span
+                  className={`ml-0.5 inline-block h-[1em] w-[3px] bg-accent align-middle ${isTyping ? "animate-caret-blink" : "opacity-100"}`}
+                  aria-hidden="true"
+                />
+              </h1>
+
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">
+                Kenya&apos;s home for booking football match tickets — the brand-new 60,000-seat Talanta Stadium and FKF Premier League
+                matches across the country, paid securely by M-PESA.
+              </p>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link
+                  to="/events"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-ember transition hover:shadow-glow"
+                >
+                  <Ticket className="h-4 w-4" /> Book a match
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                </Link>
+                <Link
+                  to="/organizers"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-black/40 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
+                >
+                  Explore Talanta Stadium
+                </Link>
+              </div>
+            </div>
+
+            {/* Opening-match card */}
+            <Link
+              to="/events/$eventId"
+              params={{ eventId: OPENING_MATCH.id }}
+              className="group block rounded-2xl border border-gold bg-black/65 p-4 shadow-gold backdrop-blur-md transition hover:bg-black/75 sm:p-5 lg:ml-auto lg:max-w-md"
+            >
+              <p className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.2em] text-gold">
+                <Sparkles className="h-3.5 w-3.5" /> Talanta opening match
+              </p>
+              <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <div className="flex flex-col items-center gap-1.5 text-center">
+                  <TeamCrest name="Bayern Munich" size={52} />
+                  <span className="text-xs font-bold">Bayern Munich</span>
+                </div>
+                <span className="font-display text-lg font-extrabold text-gradient-gold">VS</span>
+                <div className="flex flex-col items-center gap-1.5 text-center">
+                  <TeamCrest name="Ajax" size={52} />
+                  <span className="text-xs font-bold">Ajax</span>
+                </div>
+              </div>
+              <p className="mt-3 text-center text-xs text-white/75">Tue 5 Jan 2027 · Talanta Stadium, Nairobi</p>
+              <span className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-2.5 text-sm font-extrabold text-black">
+                Book from KES 1,500 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </div>
         </div>
 
         {/* Clubs strip — crests clearly visible */}
-        <div className="relative border-t border-white/10 bg-black/55 backdrop-blur">
+        <div className="relative border-t border-white/10 bg-black">
           <div className="mx-auto max-w-6xl px-4 py-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">FKF Premier League clubs</p>
             <div className="relative mt-4 overflow-hidden">
-              <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-black/80 to-transparent" />
-              <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-black/80 to-transparent" />
+              <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-black to-transparent" />
+              <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-black to-transparent" />
               <div className="flex w-max animate-marquee items-center gap-8 py-1">
                 {[...CLUBS, ...CLUBS].map((club, idx) => (
                   <div key={idx} className="flex flex-shrink-0 items-center gap-3">

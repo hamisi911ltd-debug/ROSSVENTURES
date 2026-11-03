@@ -3,10 +3,11 @@ import { Play, Video } from "lucide-react";
 
 // Public YouTube videos about the stadium, embedded with YouTube's own player (credit stays with the channel).
 const VIDEOS = [
-  { id: "19ldDrzYHac", title: "Talanta Stadium (Raila Odinga) — aerial view", channel: "AMALI MEDIA" },
+  { id: "E6yam3MQP8M", title: "Talanta Stadium: The Front Row View", channel: "Citizen TV Kenya" },
+  { id: "T8r15GEGGFI", title: "Raila Odinga Stadium nears completion ahead of AFCON 2027", channel: "Citizen TV Kenya" },
+  { id: "8eJDOrspjWM", title: "Inside Kenya's new Talanta Stadium — full tour", channel: "SportsRender" },
+  { id: "qbU3euAaPuo", title: "Inside Kenya's world-class Talanta Stadium — documentary", channel: "The Kenyan Historian" },
   { id: "9kR_tgXpp4A", title: "Raila Odinga International Stadium (Talanta Sports City)", channel: "TV47 Kenya" },
-  { id: "DHie_rBu1AE", title: "Talanta Stadium looks amazing at night", channel: "Dennis THE NATIONAL" },
-  { id: "ERpLQ2-XM4E", title: "Inside Talanta Stadium City", channel: "MASH EMPIRE" },
   { id: "6XZMqvT1wgA", title: "Talanta Stadium renamed Raila Odinga International Stadium", channel: "KBC Channel 1" },
 ];
 
@@ -16,7 +17,7 @@ export function TalantaVideos({ heading = "See Talanta Stadium" }: { heading?: s
   const current = VIDEOS[active];
 
   return (
-    <section aria-labelledby="videos-title">
+    <section id="videos" aria-labelledby="videos-title" className="scroll-mt-28">
       <div className="flex items-center gap-2">
         <Video className="h-5 w-5 text-accent" />
         <h2 id="videos-title" className="font-display text-2xl font-bold sm:text-3xl">{heading}</h2>

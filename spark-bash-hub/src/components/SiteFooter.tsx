@@ -52,7 +52,7 @@ export function SiteFooter() {
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} footballarena254.co.ke · Made in Kenya.</p>
           <p>
-            Photos: Wikimedia Commons — Talanta Stadium by Raymond Omollo (CC0); match photos by Sila Kiplagat, Endesia94 and Eriksson1904 (CC BY-SA 4.0).
+            Photos &amp; logos via Wikimedia Commons — <Link to="/credits" className="underline hover:text-foreground">photo credits</Link>
           </p>
         </div>
       </div>

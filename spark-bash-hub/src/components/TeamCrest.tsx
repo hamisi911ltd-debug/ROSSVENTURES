@@ -57,7 +57,7 @@ export function TeamCrest({ name, size = 64, className = "" }: { name: string; s
 
   return (
     <span
-      className={`relative inline-grid shrink-0 place-items-center rounded-full bg-white/[0.07] ring-1 ring-white/20 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.8)] backdrop-blur-sm ${className}`}
+      className={`relative inline-grid shrink-0 place-items-center rounded-full ring-1 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.8)] ${official ? "bg-white ring-white/60" : "bg-white/[0.07] ring-white/20 backdrop-blur-sm"} ${className}`}
       style={{ width: plate, height: plate }}
       title={name}
     >
@@ -72,7 +72,7 @@ export function TeamCrest({ name, size = 64, className = "" }: { name: string; s
         onLoad={() => setOfficial(true)}
         onError={() => setOfficial(false)}
         className={official ? "object-contain" : "pointer-events-none absolute h-0 w-0 opacity-0"}
-        style={official ? { width: size, height: size } : undefined}
+        style={official ? { width: Math.round(size * 0.86), height: Math.round(size * 0.86) } : undefined}
       />
     </span>
   );

@@ -2,6 +2,10 @@ import { useState } from "react";
 import { Users } from "lucide-react";
 import { AJAX, BAYERN, POSITION_LABEL, type Position, type Squad } from "@/lib/squads";
 import { TeamCrest } from "@/components/TeamCrest";
+import credits from "@/lib/media-credits.json";
+
+type PlayerMedia = { file?: string; artist?: string };
+const PLAYER_MEDIA = credits.players as Record<string, PlayerMedia>;
 
 const ORDER: Position[] = ["GK", "DF", "MF", "FW"];
 
@@ -22,8 +26,22 @@ function SquadList({ squad }: { squad: Squad }) {
             <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {players.map((p) => (
                 <li key={p.no} className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-card/70 px-2.5 py-2">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-ember font-display text-sm font-extrabold text-primary-foreground">
-                    {p.no}
+                  <span className="relative h-12 w-12 shrink-0">
+                    {PLAYER_MEDIA[p.name]?.file ? (
+                      <img
+                        src={PLAYER_MEDIA[p.name].file}
+                        alt={p.name}
+                        loading="lazy"
+                        className="h-12 w-12 rounded-full border border-white/20 object-cover object-top"
+                      />
+                    ) : (
+                      <span className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-secondary font-display text-xs font-extrabold text-muted-foreground">
+                        {p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                      </span>
+                    )}
+                    <span className="absolute -bottom-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-gradient-ember px-1 text-[10px] font-extrabold text-primary-foreground ring-2 ring-background">
+                      {p.no}
+                    </span>
                   </span>
                   <span className="min-w-0">
                     <span className="block break-words text-[12.5px] font-semibold leading-tight sm:text-[13px]">{p.name}</span>
@@ -45,7 +63,7 @@ export function Squads() {
   const squad = tab === "bayern" ? BAYERN : AJAX;
 
   return (
-    <section aria-labelledby="squads-title">
+    <section aria-labelledby="squads-title" className="scroll-mt-28">
       <div className="flex items-center gap-2">
         <Users className="h-5 w-5 text-accent" />
         <h2 id="squads-title" className="font-display text-2xl font-bold sm:text-3xl">Meet the teams</h2>
@@ -78,7 +96,7 @@ export function Squads() {
 
       <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
         Squads are each club&apos;s registered first team and may change. The travelling squads are announced by the clubs closer to
-        the match. Source: Wikipedia contributors (CC BY-SA).
+        the match. Player photos are freely licensed images from Wikimedia Commons — see <a href="/credits" className="underline hover:text-foreground">photo credits</a>.
       </p>
     </section>
   );
