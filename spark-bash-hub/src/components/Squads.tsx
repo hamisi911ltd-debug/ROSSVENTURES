@@ -96,7 +96,7 @@ export function Squads() {
 
       <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
         Squads are each club&apos;s registered first team and may change. The travelling squads are announced by the clubs closer to
-        the match. Player photos are freely licensed images from Wikimedia Commons — see <a href="/credits" className="underline hover:text-foreground">photo credits</a>.
+        the match. Player photos are freely licensed images from Wikimedia Commons - see <a href="/credits" className="underline hover:text-foreground">photo credits</a>.
       </p>
     </section>
   );

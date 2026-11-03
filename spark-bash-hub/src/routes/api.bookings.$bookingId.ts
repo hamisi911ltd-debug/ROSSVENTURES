@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/bookings/$bookingId")({
         if (!booking) return json({ ok: false, error: "Ticket not found" }, 404);
         if (booking.status === "pending") booking = await reconcileBooking(booking, kv);
 
-        if (booking.status !== "paid") return json({ ok: false, error: `Not valid — payment status: ${booking.status}`, booking: publicView(booking) }, 409);
+        if (booking.status !== "paid") return json({ ok: false, error: `Not valid - payment status: ${booking.status}`, booking: publicView(booking) }, 409);
         if (body.action === "checkin") {
           if (booking.checked_in_at) return json({ ok: false, error: `Already used at ${booking.checked_in_at}`, booking: publicView(booking) }, 409);
           booking = (await updateBooking(booking.id, { checked_in_at: new Date().toISOString() }, kv)) ?? booking;

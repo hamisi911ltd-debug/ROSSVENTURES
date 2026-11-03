@@ -10,9 +10,9 @@ export const FIXTURES: EventRow[] = [OPENING_MATCH, ...LEAGUE_MATCHES];
 export const TEST_FIXTURE_ID = "payment-test";
 const TEST_FIXTURE: EventRow = {
   id: TEST_FIXTURE_ID,
-  title: "Payment test — Football Arena254",
+  title: "Payment test - Arena 254",
   venue: "Talanta Stadium, Nairobi",
-  event_date: "Test purchase — no match attached",
+  event_date: "Test purchase - no match attached",
   tag: "Test",
   description: "A KES 10 test ticket used to confirm that payments reach our wallet. It is not a valid match ticket.",
   poster_url: talantaStadium,

@@ -5,20 +5,20 @@ import { X, ZoomIn, ChevronLeft, ChevronRight, Camera } from "lucide-react";
 export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
-      { title: "Gallery — Football Arena254" },
+      { title: "Gallery - Arena 254" },
       { name: "description", content: "Photos of Talanta Stadium and Kenyan football matchdays." },
-      { property: "og:title", content: "Gallery — Football Arena254" },
+      { property: "og:title", content: "Gallery - Arena 254" },
     ],
   }),
   component: GalleryPage,
 });
 
-// Static photos from public/gallery — Talanta Stadium first
+// Static photos from public/gallery - Talanta Stadium first
 const STATIC_PHOTOS: Array<{ id: string; url: string; caption?: string }> = [
   { id: "s01", url: "/gallery/talanta-stadium.jpg",          caption: "Talanta Stadium, Nairobi" },
-  { id: "s02", url: "/gallery/talanta-shield.jpg",           caption: "Talanta Stadium — the shield façade" },
+  { id: "s02", url: "/gallery/talanta-shield.jpg",           caption: "Talanta Stadium - the shield façade" },
   { id: "s03", url: "/gallery/talanta-aerial.jpg",           caption: "Talanta Stadium from above" },
-  { id: "s04", url: "/gallery/talanta-roof.jpg",             caption: "Talanta Stadium — roof and bowl" },
+  { id: "s04", url: "/gallery/talanta-roof.jpg",             caption: "Talanta Stadium - roof and bowl" },
   { id: "s05", url: "/gallery/match-kasarani-inside.jpg",    caption: "League matchday at Kasarani" },
   { id: "s06", url: "/gallery/match-action-green-yellow.jpg", caption: "League action" },
   { id: "s07", url: "/gallery/match-action-league.jpg",      caption: "Premier League clash" },
@@ -67,7 +67,7 @@ function GalleryPage() {
           Talanta &amp; <span className="text-gradient-ember">matchday</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
-          The new Talanta Stadium and the atmosphere of Kenyan football — photos via Wikimedia Commons.
+          The new Talanta Stadium and the atmosphere of Kenyan football - photos via Wikimedia Commons.
         </p>
       </header>
 
@@ -75,11 +75,11 @@ function GalleryPage() {
         Credits: Talanta Stadium photo by Raymond Omollo (CC0). Match photos by Sila Kiplagat, Endesia94 and Eriksson1904 (CC BY-SA 4.0), Wikimedia Commons.
       </p>
 
-      {/* Gallery grid — uniform square tiles, object-cover so images fill with no borders */}
+      {/* Gallery grid - uniform square tiles, object-cover so images fill with no borders */}
       {allPhotos.length === 0 ? (
         <div className="grid place-items-center gap-4 rounded-2xl border border-dashed border-border py-24 text-center">
           <Camera className="h-10 w-10 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">No photos yet — check back soon!</p>
+          <p className="text-sm text-muted-foreground">No photos yet - check back soon!</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -87,7 +87,7 @@ function GalleryPage() {
             <button
               key={photo.id}
               type="button"
-              className="group relative aspect-square overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="group relative aspect-[4/3] overflow-hidden rounded-xl sm:aspect-square focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => setLightboxIdx(idx)}
               aria-label={photo.caption ?? "View photo"}
             >

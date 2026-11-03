@@ -45,7 +45,7 @@ export function OpeningMatch({ events = [] }: { events?: EventRow[] }) {
             </h2>
             <p className="mt-4 max-w-xl text-sm text-white/80 sm:text-base">
               Kenya&apos;s new 60,000-seat home of football hosts its first match soon. Tickets for the opening match will be released
-              here first — message us to be told the moment they go on sale.
+              here first - message us to be told the moment they go on sale.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a

@@ -12,7 +12,7 @@ export const OPENING_TICKET_TIERS: TicketTier[] = [{ name: "General admission", 
 export const OPENING_MATCH_ID = "talanta-opening-bayern-v-ajax";
 export const OPENING_MATCH: EventRow = {
   id: OPENING_MATCH_ID,
-  title: "Bayern Munich vs Ajax — Talanta Stadium Opening Match",
+  title: "Bayern Munich vs Ajax - Talanta Stadium Opening Match",
   description:
     "The opening match of Kenya's new 60,000-seat stadium at Talanta Sports City, officially named the Raila Odinga International Stadium: FC Bayern Munich take on AFC Ajax in a historic friendly ahead of AFCON 2027.",
   venue: "Raila Odinga International Stadium (Talanta Stadium), Nairobi",

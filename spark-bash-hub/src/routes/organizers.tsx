@@ -11,10 +11,10 @@ import actionLeague from "@/assets/match-action-league.jpg";
 export const Route = createFileRoute("/organizers")({
   head: () => ({
     meta: [
-      { title: "Stadiums — Football Arena254" },
+      { title: "Stadiums - Arena 254" },
       { name: "description", content: "Where you can watch Kenyan football: the new Talanta Stadium, Kasarani and Nyayo National Stadium. See the venues and book your seat." },
-      { property: "og:title", content: "Stadiums — Football Arena254" },
-      { property: "og:description", content: "Talanta Stadium, Kasarani and Nyayo — book your seat." },
+      { property: "og:title", content: "Stadiums - Arena 254" },
+      { property: "og:description", content: "Talanta Stadium, Kasarani and Nyayo - book your seat." },
     ],
   }),
   component: StadiumsPage,
@@ -37,7 +37,7 @@ const OTHER_VENUES = [
     img: fansKasarani,
     name: "Matchday experience",
     place: "Across Kenya",
-    points: ["Drums, songs and flags — Kenyan football atmosphere", "Arrive early for the best seats", "Tickets delivered instantly after M-PESA payment"],
+    points: ["Drums, songs and flags - Kenyan football atmosphere", "Arrive early for the best seats", "Tickets delivered instantly after M-PESA payment"],
   },
 ];
 
@@ -81,7 +81,7 @@ function StadiumsPage() {
                 {[
                   "Brand-new, fully roofed 60,000-seat bowl",
                   "Iconic shield design inspired by Kenyan heritage",
-                  "Stands for every budget — Regular, Covered, VIP and VVIP",
+                  "Stands for every budget - Regular, Covered, VIP and VVIP",
                   "Book on your phone and pay with M-PESA",
                 ].map((p) => (
                   <li key={p} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" /> {p}</li>

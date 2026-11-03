@@ -40,7 +40,7 @@ export async function applyCallback(booking: BookingRow, cb: ParsedCallback, kv:
   const verified = await reconcileBooking(booking, kv);
   if (verified.status === "paid" || verified.status === "failed") return verified;
 
-  // Status API gave no verdict (unreachable or still queued) — consider the callback itself
+  // Status API gave no verdict (unreachable or still queued) - consider the callback itself
   const statusReachable = booking.payment_reference ? (await fetchPaymentStatus(booking.payment_reference)).ok : false;
   if (statusReachable) return verified;
 

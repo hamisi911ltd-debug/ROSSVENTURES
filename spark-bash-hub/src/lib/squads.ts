@@ -1,6 +1,6 @@
 // First-team squads for the Talanta Stadium opening match (Bayern Munich vs Ajax, 5 Jan 2027).
 // Source: Wikipedia season pages (CC BY-SA). Bayern squad as of 13 Oct 2026, Ajax as of 16 Sep 2026.
-// These are the clubs' registered first teams — the travelling squads will be announced closer to the match.
+// These are the clubs' registered first teams - the travelling squads will be announced closer to the match.
 
 export type Position = "GK" | "DF" | "MF" | "FW";
 export type Player = { no: number; name: string; pos: Position; note?: string };

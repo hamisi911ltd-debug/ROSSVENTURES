@@ -20,14 +20,14 @@ export const Route = createFileRoute("/api/bookings")({
   beforeLoad: () => { throw redirect({ to: "/" }); },
   server: {
     handlers: {
-      // Admin only — contains customers' names, emails and phone numbers
+      // Admin only - contains customers' names, emails and phone numbers
       GET: async ({ request, context }) => {
         if (!(await isAdminRequest(request))) return json({ ok: false, error: "Unauthorized" }, 401);
         const kv = await getKV(context);
         return json({ ok: true, bookings: await listBookings(kv) });
       },
 
-      // Create a PENDING booking. Price and amount are computed here — never taken from the client.
+      // Create a PENDING booking. Price and amount are computed here - never taken from the client.
       POST: async ({ request, context }) => {
         try {
           const ip = request.headers.get("cf-connecting-ip") ?? "unknown";

@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/payhero/callback")({
             await applyCallback(booking, cb, kv);
           }
         } catch {
-          // Fall through — customer polling reconciles with PayHero directly
+          // Fall through - customer polling reconciles with PayHero directly
         }
         return json({ ok: true });
       },

@@ -1,12 +1,25 @@
 import { useState } from "react";
+
+/** 16:9 thumbnail; falls back to the 4:3 one shown whole (never cropped/zoomed) if no widescreen image exists. */
+function Thumb({ id, className = "" }: { id: string; className?: string }) {
+  const [fallback, setFallback] = useState(false);
+  return (
+    <img
+      src={`https://i.ytimg.com/vi/${id}/${fallback ? "hqdefault" : "maxresdefault"}.jpg`}
+      alt=""
+      onError={() => setFallback(true)}
+      className={`bg-black ${fallback ? "object-contain" : "object-cover"} ${className}`}
+    />
+  );
+}
 import { Play, Video } from "lucide-react";
 
 // Public YouTube videos about the stadium, embedded with YouTube's own player (credit stays with the channel).
 const VIDEOS = [
   { id: "E6yam3MQP8M", title: "Talanta Stadium: The Front Row View", channel: "Citizen TV Kenya" },
   { id: "T8r15GEGGFI", title: "Raila Odinga Stadium nears completion ahead of AFCON 2027", channel: "Citizen TV Kenya" },
-  { id: "8eJDOrspjWM", title: "Inside Kenya's new Talanta Stadium — full tour", channel: "SportsRender" },
-  { id: "qbU3euAaPuo", title: "Inside Kenya's world-class Talanta Stadium — documentary", channel: "The Kenyan Historian" },
+  { id: "8eJDOrspjWM", title: "Inside Kenya's new Talanta Stadium - full tour", channel: "SportsRender" },
+  { id: "qbU3euAaPuo", title: "Inside Kenya's world-class Talanta Stadium - documentary", channel: "The Kenyan Historian" },
   { id: "9kR_tgXpp4A", title: "Raila Odinga International Stadium (Talanta Sports City)", channel: "TV47 Kenya" },
   { id: "6XZMqvT1wgA", title: "Talanta Stadium renamed Raila Odinga International Stadium", channel: "KBC Channel 1" },
 ];
@@ -36,7 +49,7 @@ export function TalantaVideos({ heading = "See Talanta Stadium" }: { heading?: s
             />
           ) : (
             <button type="button" onClick={() => setPlaying(true)} className="group absolute inset-0 h-full w-full" aria-label={`Play: ${current.title}`}>
-              <img src={`https://i.ytimg.com/vi/${current.id}/hqdefault.jpg`} alt="" className="h-full w-full object-cover" />
+              <Thumb id={current.id} className="h-full w-full" />
               <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
               <span className="absolute left-1/2 top-1/2 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-gradient-ember shadow-ember transition group-hover:scale-110 sm:h-20 sm:w-20">
                 <Play className="ml-1 h-7 w-7 fill-current text-primary-foreground sm:h-9 sm:w-9" />
@@ -59,7 +72,7 @@ export function TalantaVideos({ heading = "See Talanta Stadium" }: { heading?: s
               className={`block w-full overflow-hidden rounded-xl border text-left transition ${i === active ? "border-gold shadow-gold" : "border-border/60 hover:border-primary/50"}`}
               aria-label={`Select: ${v.title}`}
             >
-              <img src={`https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`} alt="" className="aspect-video w-full bg-secondary object-cover" />
+              <Thumb id={v.id} className="aspect-video w-full" />
               <span className="block line-clamp-2 px-2 py-1.5 text-[11px] font-semibold leading-tight">{v.title}</span>
             </button>
           </li>

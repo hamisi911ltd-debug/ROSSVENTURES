@@ -8,9 +8,9 @@ import talantaAerial from "@/assets/talanta-aerial.jpg";
 export const Route = createFileRoute("/events/")({
   head: () => ({
     meta: [
-      { title: "Fixtures & Tickets — Football Arena254" },
+      { title: "Fixtures & Tickets - Arena 254" },
       { name: "description", content: "Book tickets for the FKF Premier League and the Talanta Stadium opening match. Every matchday, every club. Pay by M-PESA." },
-      { property: "og:title", content: "Fixtures & Tickets — Football Arena254" },
+      { property: "og:title", content: "Fixtures & Tickets - Arena 254" },
       { property: "og:description", content: "Book your seat at Talanta Stadium and FKF Premier League matches." },
     ],
   }),
@@ -22,13 +22,13 @@ function dayRange(matches: { kickoff?: string }[]): string {
     new Date(iso).toLocaleDateString("en-KE", { day: "numeric", month: "short", timeZone: "Africa/Nairobi" });
   const times = matches.map((m) => m.kickoff!).sort();
   const a = fmt(times[0]), b = fmt(times[times.length - 1]);
-  return a === b ? a : `${a} – ${b}`;
+  return a === b ? a : `${a} - ${b}`;
 }
 
 function EventsPage() {
   return (
     <main>
-      {/* Page banner — Talanta Stadium */}
+      {/* Page banner - Talanta Stadium */}
       <section className="relative overflow-hidden border-b border-border/60">
         <img src={talantaAerial} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/65 to-background" />

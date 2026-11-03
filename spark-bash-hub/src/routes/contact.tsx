@@ -4,10 +4,10 @@ import { Mail, Phone, MapPin, Instagram } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Football Arena254" },
-      { name: "description", content: "Contact Football Arena254 for match tickets, group bookings, fan-club partnerships and sponsorship across Kenyan football." },
-      { property: "og:title", content: "Contact Football Arena254" },
-      { property: "og:description", content: "Group bookings and partnerships — call +254 705 333 198." },
+      { title: "Contact - Arena 254" },
+      { name: "description", content: "Contact Arena 254 for match tickets, group bookings, fan-club partnerships and sponsorship across Kenyan football." },
+      { property: "og:title", content: "Contact Arena 254" },
+      { property: "og:description", content: "Group bookings and partnerships - call +254 705 333 198." },
     ],
   }),
   component: ContactPage,
@@ -20,7 +20,7 @@ function ContactPage() {
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">Get in touch</span>
           <h1 className="mt-5 font-display text-5xl font-extrabold leading-tight">Let's get you <span className="text-gradient-ember">to the match.</span></h1>
-          <p className="mt-4 text-muted-foreground">Ticket help, group bookings, fan-club partnerships or sponsorship ideas — we usually respond within one working day.</p>
+          <p className="mt-4 text-muted-foreground">Ticket help, group bookings, fan-club partnerships or sponsorship ideas - we usually respond within one working day.</p>
           <ul className="mt-8 space-y-4 text-sm">
             <li className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary"><Phone className="h-4 w-4 text-accent" /></span> <a href="tel:+254705333198" className="hover:text-foreground">+254 705 333 198</a></li>
             <li className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary"><Mail className="h-4 w-4 text-accent" /></span> <a href="mailto:hello@footballarena254.co.ke" className="hover:text-foreground">hello@footballarena254.co.ke</a></li>

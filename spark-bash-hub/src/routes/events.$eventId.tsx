@@ -15,7 +15,7 @@ import { OPENING_MATCH_ID, VENUE_TBC } from "@/lib/league";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/events/$eventId")({
-  head: () => ({ meta: [{ title: "Book Match Tickets — Football Arena254" }] }),
+  head: () => ({ meta: [{ title: "Book Match Tickets - Arena 254" }] }),
   component: EventDetailPage,
 });
 
@@ -166,7 +166,7 @@ function EventDetailPage() {
       }
       if (data.ok && data.booking?.status === "failed") {
         clearInterval(pollRef.current!);
-        toast.error("The M-Pesa payment was not completed. You have not been charged — please try again.");
+        toast.error("The M-Pesa payment was not completed. You have not been charged - please try again.");
         setStep("mpesa");
         return;
       }
@@ -236,7 +236,7 @@ function EventDetailPage() {
             )}
             {event.matchday !== undefined && (
               <p className="mt-3 text-xs text-muted-foreground/80">
-                Venue and kick-off are as announced by FKF / the organisers and can change — check before you travel.
+                Venue and kick-off are as announced by FKF / the organisers and can change - check before you travel.
               </p>
             )}
           </div>
@@ -273,11 +273,11 @@ function EventDetailPage() {
                 <h2 className="font-display text-xl font-bold">Tickets on sale soon</h2>
                 <p className="text-sm text-muted-foreground">
                   {event.venue === VENUE_TBC
-                    ? "FKF has not confirmed the venue for this match yet. Tickets open as soon as it does — message us and we will tell you."
+                    ? "FKF has not confirmed the venue for this match yet. Tickets open as soon as it does - message us and we will tell you."
                     : "Ticket sales for this match have not opened yet. Message us and we will tell you the moment they do."}
                 </p>
                 <a
-                  href={`https://wa.me/254705333198?text=${encodeURIComponent(`Hi Football Arena254, tell me when tickets for ${event.title} go on sale.`)}`}
+                  href={`https://wa.me/254705333198?text=${encodeURIComponent(`Hi Arena 254, tell me when tickets for ${event.title} go on sale.`)}`}
                   target="_blank" rel="noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-bold text-primary-foreground shadow-ember"
                 >
@@ -324,7 +324,7 @@ function EventDetailPage() {
                       className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-accent">
                       {tiers.map(t => (
                         <option key={t.name} value={t.name}>
-                          {t.name} — KES {t.price.toLocaleString()}
+                          {t.name} - KES {t.price.toLocaleString()}
                         </option>
                       ))}
                     </select>
@@ -359,7 +359,7 @@ function EventDetailPage() {
                   className="w-full rounded-xl bg-gradient-ember px-6 py-3.5 font-bold text-primary-foreground shadow-ember transition hover:shadow-glow text-sm flex items-center justify-center gap-2 disabled:opacity-60">
                   {creating
                     ? <><Loader2 className="h-4 w-4 animate-spin" /> Reserving…</>
-                    : <><CreditCard className="h-4 w-4" /> Continue to payment — KES {amount.toLocaleString()}</>}
+                    : <><CreditCard className="h-4 w-4" /> Continue to payment - KES {amount.toLocaleString()}</>}
                 </button>
               </div>
             )}
@@ -408,14 +408,14 @@ function EventDetailPage() {
 
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-muted-foreground flex items-start gap-2">
                   <Smartphone className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Do NOT share your M-Pesa PIN with anyone. Football Arena254 will never ask for it.</span>
+                  <span>Do NOT share your M-Pesa PIN with anyone. Arena 254 will never ask for it.</span>
                 </div>
 
                 <button type="button" onClick={handlePay} disabled={paying}
                   className="w-full rounded-xl bg-gradient-ember px-6 py-3.5 font-bold text-primary-foreground shadow-ember disabled:opacity-60 flex items-center justify-center gap-2 text-sm">
                   {paying
                     ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending STK Push…</>
-                    : <><Smartphone className="h-4 w-4" /> Send M-Pesa Prompt — KES {amount.toLocaleString()}</>
+                    : <><Smartphone className="h-4 w-4" /> Send M-Pesa Prompt - KES {amount.toLocaleString()}</>
                   }
                 </button>
 
@@ -452,7 +452,7 @@ function EventDetailPage() {
                   <div className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-left text-xs text-muted-foreground">
                     <p>
                       We haven&apos;t received confirmation yet. <strong className="text-foreground">If M-Pesa already charged you, your ticket will be
-                      ready automatically</strong> — open the link below to check. If you cancelled the prompt, you haven&apos;t been charged.
+                      ready automatically</strong> - open the link below to check. If you cancelled the prompt, you haven&apos;t been charged.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <button type="button" onClick={() => { setTimedOut(false); pollForConfirmation(bookingId); }}

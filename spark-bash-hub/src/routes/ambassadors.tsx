@@ -5,9 +5,9 @@ import fansKasarani from "@/assets/fans-kasarani.jpg";
 export const Route = createFileRoute("/ambassadors")({
   head: () => ({
     meta: [
-      { title: "Fan Club Ambassadors — Football Arena254" },
-      { name: "description", content: "Rally your fan club. Promote Kenyan football matches on Football Arena254 and earn commission on every ticket, paid by M-PESA." },
-      { property: "og:title", content: "Become a Fan Club Ambassador — Football Arena254" },
+      { title: "Fan Club Ambassadors - Arena 254" },
+      { name: "description", content: "Rally your fan club. Promote Kenyan football matches on Arena 254 and earn commission on every ticket, paid by M-PESA." },
+      { property: "og:title", content: "Become a Fan Club Ambassador - Arena 254" },
       { property: "og:description", content: "Share the match. Earn commission. Get paid weekly via M-PESA." },
     ],
   }),
@@ -37,7 +37,7 @@ function AmbassadorsPage() {
           {[
             { icon: Link2, t: "Get your link", d: "Pick the matches you love. We mint a unique trackable link for you." },
             { icon: TrendingUp, t: "Share it", d: "Drop it in your fan-club WhatsApp group, IG story or supporters' page." },
-            { icon: Coins, t: "Earn 8–15%", d: "Commission on every ticket bought through your link." },
+            { icon: Coins, t: "Earn 8-15%", d: "Commission on every ticket bought through your link." },
             { icon: Trophy, t: "Get paid", d: "M-PESA payout every Friday. No minimums under KES 200." },
           ].map((s, i) => (
             <li key={s.t} className="rounded-2xl border border-border/60 bg-card/60 p-6">

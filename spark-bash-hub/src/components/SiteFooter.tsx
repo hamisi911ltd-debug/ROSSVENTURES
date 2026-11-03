@@ -10,13 +10,13 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5">
-              <img src={logo} alt="Football Arena254" className="h-14 w-14 object-contain drop-shadow-[0_4px_14px_rgba(40,220,120,0.3)]" />
+              <img src={logo} alt="Arena 254" className="h-14 w-14 object-contain drop-shadow-[0_4px_14px_rgba(40,220,120,0.3)]" />
               <span className="font-display text-lg font-bold">
-                <span className="text-gradient-ember">FOOTBALL</span> ARENA<span className="text-crimson">254</span>
+                <span className="text-gradient-ember">ARENA</span> <span className="text-crimson">254</span>
               </span>
             </div>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-              Book your seat at Kenyan football matches — from the new Talanta Stadium to Kasarani and Nyayo. League nights, derbies and Harambee Stars internationals, paid by M-PESA.
+              Book your seat at Kenyan football matches - from the new Talanta Stadium to Kasarani and Nyayo. League nights, derbies and Harambee Stars internationals, paid by M-PESA.
             </p>
             <div className="mt-5 flex flex-col gap-2 text-sm text-muted-foreground">
               <a href="tel:+254705333198" className="inline-flex items-center gap-2 hover:text-foreground">
@@ -41,7 +41,7 @@ export function SiteFooter() {
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold">Football Arena254</h4>
+            <h4 className="text-sm font-semibold">Arena 254</h4>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link to="/about" className="hover:text-foreground">About</Link></li>
               <li><Link to="/events" className="hover:text-foreground">Fixtures</Link></li>
@@ -52,7 +52,7 @@ export function SiteFooter() {
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} footballarena254.co.ke · Made in Kenya.</p>
           <p>
-            Photos &amp; logos via Wikimedia Commons — <Link to="/credits" className="underline hover:text-foreground">photo credits</Link>
+            Photos &amp; logos via Wikimedia Commons - <Link to="/credits" className="underline hover:text-foreground">photo credits</Link>
           </p>
         </div>
       </div>

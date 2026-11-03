@@ -8,7 +8,7 @@ import type { BookingRow } from "@/lib/types";
 import arenaLogo from "@/assets/football-arena254-logo.svg";
 
 export const Route = createFileRoute("/ticket/$bookingId")({
-  head: () => ({ meta: [{ title: "Your Match Ticket — Football Arena254" }] }),
+  head: () => ({ meta: [{ title: "Your Match Ticket - Arena 254" }] }),
   component: TicketPage,
 });
 
@@ -81,7 +81,7 @@ function TicketPage() {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {pending
-              ? "This is not a valid ticket yet. As soon as your M-Pesa payment is confirmed it will appear here automatically — you can keep this page open."
+              ? "This is not a valid ticket yet. As soon as your M-Pesa payment is confirmed it will appear here automatically - you can keep this page open."
               : "No ticket has been issued for this booking. If you were charged, contact us with your M-Pesa message and we will sort it out."}
           </p>
           <p className="mt-4 text-xs text-muted-foreground">{booking.event_title} · {booking.ticket_type} × {booking.quantity} · KES {booking.amount.toLocaleString()}</p>
@@ -142,10 +142,10 @@ function TicketPage() {
 
           <div className="bg-[#0a0a0a] px-6 py-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={arenaLogo} alt="Football Arena254" className="h-10 w-10 object-contain" />
+              <img src={arenaLogo} alt="Arena 254" className="h-10 w-10 object-contain" />
               <div>
                 <p className="font-bold text-white leading-none" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-                  <span style={{ color: "#22c55e" }}>FOOTBALL</span> ARENA254
+                  <span style={{ color: "#22c55e" }}>ARENA</span> 254
                 </p>
                 <p className="text-[11px] text-gray-400 mt-0.5">Kenyan Football Match Tickets</p>
               </div>

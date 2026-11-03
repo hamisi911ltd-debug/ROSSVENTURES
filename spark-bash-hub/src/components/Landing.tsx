@@ -26,8 +26,8 @@ import actionGreenYellow from "@/assets/match-action-green-yellow.jpg";
 import fansKasarani from "@/assets/fans-kasarani.jpg";
 import arenaLogo from "@/assets/football-arena254-logo.svg";
 
-// Hero slideshow — Talanta Stadium first, then matchday shots
-const HERO_SLIDES = [talantaStadium, talantaAerial, talantaShield, talantaRoof, kasaraniInside];
+// Hero slideshow - Talanta Stadium first, then matchday shots
+const HERO_SLIDES = [talantaStadium, talantaAerial, kasaraniInside];
 
 // Phrases cycled by the typewriter in the hero heading
 const TYPEWRITER_PHRASES = [
@@ -82,7 +82,7 @@ export default function Landing() {
   const [slideVisible, setSlideVisible] = useState(true);
   const { text: heroText, isTyping } = useTypewriter(TYPEWRITER_PHRASES);
 
-  // Hero slideshow — cross-fade every 5s
+  // Hero slideshow - cross-fade every 5s
   useEffect(() => {
     const interval = setInterval(() => {
       setSlideVisible(false);
@@ -108,12 +108,12 @@ export default function Landing() {
       <section className="relative overflow-hidden bg-black">
         <div className="relative">
           {/* Stadium image: full-bleed on desktop, a clear banner on top for phones */}
-          <div className="absolute inset-x-0 top-0 h-[15.5rem] sm:h-[22rem] md:inset-0 md:h-auto">
+          <div className="absolute inset-x-0 top-0 h-[56vw] bg-black md:inset-0 md:h-auto">
             <img
               key={slideIdx}
               src={HERO_SLIDES[slideIdx]}
               alt="Talanta Stadium, Nairobi"
-              className={`h-full w-full object-cover object-[50%_45%] transition-opacity duration-700 ${slideVisible ? "opacity-100" : "opacity-0"}`}
+              className={`h-full w-full object-contain object-center transition-opacity duration-700 md:object-cover md:object-[50%_45%] ${slideVisible ? "opacity-100" : "opacity-0"}`}
             />
             {/* phones: fade the photo into the page below it */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-black/30 md:hidden" />
@@ -132,7 +132,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-[13.5rem] sm:pt-[19rem] md:pb-16 md:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-[calc(56vw+1.5rem)] md:pb-16 md:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-black/50 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur">
                 <Trophy className="h-3.5 w-3.5" /> footballarena254.co.ke
@@ -147,7 +147,7 @@ export default function Landing() {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">
-                Kenya&apos;s home for booking football match tickets — the brand-new 60,000-seat Talanta Stadium and FKF Premier League
+                Kenya&apos;s home for booking football match tickets - the brand-new 60,000-seat Talanta Stadium and FKF Premier League
                 matches across the country, paid securely by M-PESA.
               </p>
 
@@ -196,7 +196,7 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Clubs strip — crests clearly visible */}
+        {/* Clubs strip - crests clearly visible */}
         <div className="relative border-t border-white/10 bg-black">
           <div className="mx-auto max-w-6xl px-4 py-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">FKF Premier League clubs</p>
@@ -217,7 +217,7 @@ export default function Landing() {
         <div className="flag-stripe" />
       </section>
 
-      {/* TALANTA OPENING MATCH — top priority */}
+      {/* TALANTA OPENING MATCH - top priority */}
       <section className="mx-auto max-w-6xl px-4 pt-12">
         <OpeningMatch />
       </section>
@@ -297,7 +297,7 @@ export default function Landing() {
               key={e.title}
               className="group overflow-hidden rounded-xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow"
             >
-              <div className="relative aspect-[3/4] overflow-hidden">
+              <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[3/4]">
                 <img src={e.img} alt={e.title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                 <span className="absolute left-2 top-2 rounded-full bg-gradient-ember px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow-ember">
                   {e.tag}
@@ -325,7 +325,7 @@ export default function Landing() {
                 Booking for a fan club, school or company?
               </h2>
               <p className="mt-4 max-w-md text-sm text-primary-foreground/80">
-                Group seats, hospitality and matchday transport — tell us the match and the headcount and we&apos;ll sort the rest.
+                Group seats, hospitality and matchday transport - tell us the match and the headcount and we&apos;ll sort the rest.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">

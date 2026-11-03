@@ -5,7 +5,7 @@ let _cfEnv: any = null;
 async function getCFEnv(): Promise<any> {
   if (_cfEnv) return _cfEnv;
   try {
-    // @ts-ignore — cloudflare:workers is a Cloudflare runtime virtual module
+    // @ts-ignore - cloudflare:workers is a Cloudflare runtime virtual module
     const { env } = await import("cloudflare:workers");
     _cfEnv = env ?? {};
   } catch {
