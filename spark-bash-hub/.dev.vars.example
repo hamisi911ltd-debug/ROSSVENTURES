@@ -1,0 +1,7 @@
+# Local development secrets — copy to .dev.vars (git-ignored). In production use: npx wrangler secret put <NAME>
+PAYHERO_API_USERNAME=
+PAYHERO_API_PASSWORD=
+PAYHERO_CHANNEL_ID=
+PAYHERO_CALLBACK_SECRET=a-long-random-string
+ADMIN_PASSWORD=
+# ALLOW_SAMPLE_FIXTURES=true   # only for demos: lets the built-in sample fixtures be paid for

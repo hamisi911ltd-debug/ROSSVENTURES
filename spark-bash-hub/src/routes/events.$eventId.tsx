@@ -8,94 +8,27 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import type { EventRow, BookingRow } from "@/lib/types";
 
-import comrades from "@/assets/comrades-festival.jpg";
-import extravaganza from "@/assets/event-jkuat-extravaganza.png";
-import usaniifest from "@/assets/event-usaniifest.png";
-
-// ─── Static events (always available) ────────────────────────────────────────
-const STATIC: Record<string, Omit<EventRow, "created_at" | "is_published">> = {
-  "comrades-festival": {
-    id: "comrades-festival",
-    title: "Comrades Festival 1.0",
-    venue: "JKUAT, Juja",
-    event_date: "16 September 2026 · From 2PM",
-    tag: "2026 · Headline",
-    description:
-      "Experience the ultimate campus celebration featuring afro-fusion artists, interactive games, amazing food, and unforgettable vibes. RV Entertainment × JKUSA.",
-    poster_url: comrades,
-    tiers: [
-      { name: "Early Bird", price: 450, description: "Limited slots available" },
-      { name: "Advance",    price: 600, description: "Standard entry" },
-      { name: "Gate",       price: 800, description: "Day-of pricing" },
-      { name: "VVIP",       price: 2000, description: "Premium experience" },
-    ],
-  },
-  "jkuat-extravaganza": {
-    id: "jkuat-extravaganza",
-    title: "JKUAT Extravaganza",
-    venue: "JKUAT Pavilion Grounds",
-    event_date: "27 March 2026 · From 3PM",
-    tag: "2026",
-    description:
-      "Produced with the Office of the Sports & Entertainment Secretary and JKUSA — food, games, art & craft, live performances.",
-    poster_url: extravaganza,
-    tiers: [
-      { name: "Early Bird", price: 300, description: "Limited slots" },
-      { name: "Advance",    price: 500, description: "Standard entry" },
-      { name: "Gate",       price: 700, description: "Day-of pricing" },
-    ],
-  },
-  "usaniifest": {
-    id: "usaniifest",
-    title: "UsaniiFest 001",
-    venue: "JKUAT Assembly Hall",
-    event_date: "6 March 2026 · From 2PM",
-    tag: "2026",
-    description:
-      "STADA-JKUAT presents UsaniiFest in partnership with ArtsyRenaissance — music, food, art & vibes celebrating campus creativity.",
-    poster_url: usaniifest,
-    tiers: [
-      { name: "Early Bird", price: 200, description: "Limited slots" },
-      { name: "Standard",   price: 350, description: "General entry" },
-    ],
-  },
-};
-
-// ─── localStorage helpers ─────────────────────────────────────────────────────
-const LS_EVENTS = "rossventures-admin-events";
-const LS_BOOKINGS = "rossventures-bookings";
-
-function saveBooking(b: BookingRow) {
-  if (typeof window === "undefined") return;
-  try {
-    const raw = window.localStorage.getItem(LS_BOOKINGS);
-    const all: BookingRow[] = raw ? JSON.parse(raw) : [];
-    const idx = all.findIndex(x => x.id === b.id);
-    if (idx >= 0) all[idx] = b; else all.unshift(b);
-    window.localStorage.setItem(LS_BOOKINGS, JSON.stringify(all));
-  } catch {}
-}
-
-function patchBooking(id: string, patch: Partial<BookingRow>) {
-  if (typeof window === "undefined") return;
-  try {
-    const raw = window.localStorage.getItem(LS_BOOKINGS);
-    const all: BookingRow[] = raw ? JSON.parse(raw) : [];
-    const idx = all.findIndex(x => x.id === id);
-    if (idx >= 0) {
-      all[idx] = { ...all[idx], ...patch };
-      window.localStorage.setItem(LS_BOOKINGS, JSON.stringify(all));
-    }
-  } catch {}
-}
+import { FIXTURES_BY_ID, FALLBACK_POSTER } from "@/lib/fixtures";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/events/$eventId")({
-  head: () => ({ meta: [{ title: "Purchase Ticket — Ross Ventures Limited" }] }),
+  head: () => ({ meta: [{ title: "Book Match Tickets — Football Arena254" }] }),
   component: EventDetailPage,
 });
 
 type Step = "form" | "mpesa" | "waiting" | "done";
+
+const POLL_MS = 3000;
+const MAX_POLLS = 40; // ~2 minutes
+
+async function api<T>(url: string, init?: RequestInit): Promise<T & { ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(url, init);
+    return (await res.json()) as T & { ok: boolean; error?: string };
+  } catch {
+    return { ok: false, error: "Network error. Check your connection and try again." } as T & { ok: boolean; error?: string };
+  }
+}
 
 function EventDetailPage() {
   const { eventId } = Route.useParams();
@@ -107,6 +40,7 @@ function EventDetailPage() {
   // Booking wizard state
   const [step, setStep]         = useState<Step>("form");
   const [bookingId, setBookingId] = useState("");
+  const [serverAmount, setServerAmount] = useState<number | null>(null);
   const [confirmedBooking, setConfirmedBooking] = useState<BookingRow | null>(null);
 
   // Form fields
@@ -115,48 +49,31 @@ function EventDetailPage() {
   const [phone,    setPhone]     = useState("");
   const [tierName, setTierName]  = useState("");
   const [qty,      setQty]       = useState(1);
+  const [agreed,   setAgreed]    = useState(false);
+  const [creating, setCreating]  = useState(false);
 
   // Payment
   const [mpesaPhone, setMpesaPhone] = useState("");
   const [paying,     setPaying]     = useState(false);
+  const [timedOut,   setTimedOut]   = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Load event from three sources ──
+  // ── Load the match: built-in fixture first, then the published list from the server ──
   useEffect(() => {
-    // 1. Static
-    const s = STATIC[eventId];
-    if (s) {
-      setEvent({ ...s, is_published: true, created_at: "" });
-      setTierName(s.tiers[0]?.name ?? "");
+    const fixture = FIXTURES_BY_ID[eventId];
+    if (fixture) {
+      setEvent(fixture);
+      setTierName(fixture.tiers[0]?.name ?? "");
       setLoadingEvent(false);
     }
-
-    // 2. Admin localStorage (same device)
-    try {
-      const raw = typeof window !== "undefined" ? window.localStorage.getItem(LS_EVENTS) : null;
-      if (raw) {
-        const arr = JSON.parse(raw) as any[];
-        const found = arr.find((e: any) => e.id === eventId);
-        if (found?.title) {
-          const tiers = Array.isArray(found.tiers) ? found.tiers : [];
-          setEvent({ ...found, tiers, is_published: true, created_at: found.created_at ?? "" });
-          if (tiers.length) setTierName(tiers[0].name);
-          setLoadingEvent(false);
-        }
-      }
-    } catch {}
-
-    // 3. Server (cross-device)
-    fetch("/admin-events", { cache: "no-store" })
+    fetch("/api/events", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { ok: boolean; events: EventRow[] }) => {
-        if (data.ok && Array.isArray(data.events)) {
-          const found = data.events.find(e => e.id === eventId);
-          if (found) {
-            const tiers = Array.isArray(found.tiers) ? found.tiers : [];
-            setEvent({ ...found, tiers });
-            if (tiers.length) setTierName(tiers[0].name);
-          }
+        const found = data.ok && Array.isArray(data.events) ? data.events.find(e => e.id === eventId) : undefined;
+        if (found) {
+          const tiers = Array.isArray(found.tiers) ? found.tiers : [];
+          setEvent({ ...found, tiers });
+          setTierName(prev => (tiers.some(t => t.name === prev) ? prev : tiers[0]?.name ?? ""));
         }
       })
       .catch(() => {})
@@ -165,10 +82,11 @@ function EventDetailPage() {
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  // Navigate to ticket after success
+  // Navigate to the ticket once payment is confirmed
   useEffect(() => {
     if (step === "done" && bookingId) {
-      setTimeout(() => navigate({ to: `/ticket/${bookingId}` }), 1800);
+      const t = setTimeout(() => navigate({ to: "/ticket/$bookingId", params: { bookingId } }), 1800);
+      return () => clearTimeout(t);
     }
   }, [step, bookingId, navigate]);
 
@@ -182,9 +100,9 @@ function EventDetailPage() {
   if (!event) {
     return (
       <main className="mx-auto max-w-6xl px-4 py-20 text-center">
-        <h1 className="font-display text-4xl font-bold">Event not found</h1>
+        <h1 className="font-display text-4xl font-bold">Match not found</h1>
         <Link to="/events" className="mt-6 inline-flex items-center gap-2 text-accent hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Browse events
+          <ArrowLeft className="h-4 w-4" /> Browse fixtures
         </Link>
       </main>
     );
@@ -192,143 +110,93 @@ function EventDetailPage() {
 
   const tiers      = event.tiers ?? [];
   const selTier    = tiers.find(t => t.name === tierName) ?? tiers[0];
-  const amount     = (selTier?.price ?? 0) * qty;
+  // Display estimate while filling the form; the authoritative total comes back from the server
+  const amount     = serverAmount ?? (selTier?.price ?? 0) * qty;
   const stepIndex  = (["form", "mpesa", "waiting", "done"] as Step[]).indexOf(step);
 
-  // ── Step 1: Purchase form ──────────────────────────────────────────────────
-  function handlePurchase() {
+  // ── Step 1: create the booking on the server (it prices the order) ─────────
+  async function handleContinue() {
     if (!fullName.trim()) { toast.error("Enter your full name"); return; }
     if (!email.trim())    { toast.error("Enter your email address"); return; }
     if (!phone.trim())    { toast.error("Enter your phone number"); return; }
-    if (!tiers.length)    { toast.error("No ticket types available"); return; }
+    if (!tiers.length || !selTier) { toast.error("No ticket types available"); return; }
+    if (!agreed)          { toast.error("Please confirm the details to continue"); return; }
 
-    const bId = crypto.randomUUID();
-    const booking: BookingRow = {
-      id: bId,
-      event_id:    event.id,
-      event_title: event.title,
-      event_date:  event.event_date,
-      event_venue: event.venue,
-      full_name:   fullName.trim(),
-      email:       email.trim().toLowerCase(),
-      phone:       phone.trim(),
-      ticket_type:  tierName || tiers[0]?.name || "General",
-      ticket_price: selTier?.price ?? 0,
-      quantity:    qty,
-      amount,
-      status:      "pending",
-      mpesa_receipt:     null,
-      mpesa_checkout_id: null,
-      created_at:  new Date().toISOString(),
-      paid_at:     null,
-    };
-    saveBooking(booking);
-    setBookingId(bId);
-    setConfirmedBooking(booking);
-    setMpesaPhone(phone.trim());
+    setCreating(true);
+    const data = await api<{ bookingId: string; amount: number; phone: string }>("/api/bookings", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        eventId: event!.id, tierName: selTier.name, quantity: qty,
+        fullName: fullName.trim(), email: email.trim(), phone: phone.trim(),
+      }),
+    });
+    setCreating(false);
+
+    if (!data.ok) { toast.error(data.error ?? "Could not create your booking"); return; }
+    setBookingId(data.bookingId);
+    setServerAmount(data.amount);
+    setMpesaPhone(data.phone);
     setStep("mpesa");
   }
 
-  // ── Step 2: Send M-Pesa STK Push ──────────────────────────────────────────
+  // ── Step 2: ask the server to send the M-Pesa prompt (via PayHero) ─────────
   async function handlePay() {
     if (!mpesaPhone.trim()) { toast.error("Enter your M-Pesa phone number"); return; }
     setPaying(true);
-
-    let simulationMode = true;
-    try {
-      const res = await fetch("/admin-mpesa", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ bookingId, phone: mpesaPhone.trim(), amount }),
-      });
-      if (res.ok) {
-        const data = await res.json() as { ok: boolean; simulation?: boolean; error?: string };
-        if (data.ok) simulationMode = data.simulation ?? true;
-      }
-    } catch {}
-
+    const data = await api<{ alreadySent?: boolean }>("/api/payments/initiate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ bookingId, phone: mpesaPhone.trim() }),
+    });
     setPaying(false);
+
+    if (!data.ok) { toast.error(data.error ?? "Could not send the M-Pesa prompt"); return; }
+    setTimedOut(false);
     setStep("waiting");
-    pollForConfirmation(bookingId, simulationMode);
+    pollForConfirmation(bookingId);
   }
 
-  // ── Step 3: Poll / simulate confirmation ──────────────────────────────────
-  function pollForConfirmation(bId: string, isSimulation: boolean) {
+  // ── Step 3: wait for the server-verified result ───────────────────────────
+  function pollForConfirmation(bId: string) {
+    if (pollRef.current) clearInterval(pollRef.current);
     let attempts = 0;
-    const MAX = isSimulation ? 4 : 60;
 
     pollRef.current = setInterval(async () => {
       attempts++;
+      const data = await api<{ booking?: BookingRow }>(`/api/bookings/${bId}`, { cache: "no-store" });
 
-      if (isSimulation && attempts >= MAX) {
+      if (data.ok && data.booking?.status === "paid") {
         clearInterval(pollRef.current!);
-        confirmBooking(bId, `SIM${Date.now().toString().slice(-8)}`);
+        setConfirmedBooking(data.booking);
+        setStep("done");
         return;
       }
-
-      if (!isSimulation) {
-        try {
-          const res = await fetch(`/api/bookings/${bId}`);
-          if (res.ok) {
-            const data = await res.json() as { ok: boolean; booking?: BookingRow };
-            if (data.ok && data.booking?.status === "paid") {
-              clearInterval(pollRef.current!);
-              saveBooking(data.booking);
-              setConfirmedBooking(data.booking);
-              setStep("done");
-              return;
-            }
-            if (data.ok && data.booking?.status === "failed") {
-              clearInterval(pollRef.current!);
-              patchBooking(bId, { status: "failed" });
-              toast.error("Payment cancelled. Please try again.");
-              setStep("mpesa");
-              return;
-            }
-          }
-        } catch {}
-        if (attempts >= MAX) {
-          clearInterval(pollRef.current!);
-          toast.error("Payment timed out. Please try again.");
-          setStep("mpesa");
-        }
+      if (data.ok && data.booking?.status === "failed") {
+        clearInterval(pollRef.current!);
+        toast.error("The M-Pesa payment was not completed. You have not been charged — please try again.");
+        setStep("mpesa");
+        return;
       }
-    }, 3000);
+      if (attempts >= MAX_POLLS) {
+        clearInterval(pollRef.current!);
+        setTimedOut(true);
+      }
+    }, POLL_MS);
   }
 
-  function confirmBooking(bId: string, receipt: string) {
-    const paid_at = new Date().toISOString();
-    const updated: BookingRow = {
-      ...(confirmedBooking ?? {
-        id: bId, event_id: event.id, event_title: event.title,
-        event_date: event.event_date, event_venue: event.venue,
-        full_name: fullName, email, phone: mpesaPhone,
-        ticket_type: tierName, ticket_price: selTier?.price ?? 0,
-        quantity: qty, amount, mpesa_checkout_id: null,
-        created_at: new Date().toISOString(),
-      } as BookingRow),
-      status: "paid",
-      mpesa_receipt: receipt,
-      paid_at,
-    };
-    saveBooking(updated);
-    patchBooking(bId, { status: "paid", mpesa_receipt: receipt, paid_at });
-    setConfirmedBooking(updated);
-    setStep("done");
-  }
-
-  // ─── Render ────────────────────────────────────────────────────────────────
+// ─── Render ────────────────────────────────────────────────────────────────
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
       <Link to="/events" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8">
-        <ArrowLeft className="h-4 w-4" /> All events
+        <ArrowLeft className="h-4 w-4" /> All fixtures
       </Link>
 
       <div className="grid gap-10 lg:grid-cols-3">
         {/* ── Event info ── */}
         <div className="lg:col-span-2 space-y-8">
           <div className="rounded-2xl overflow-hidden border border-border/60">
-            <img src={event.poster_url ?? comrades} alt={event.title}
+            <img src={event.poster_url ?? FALLBACK_POSTER} alt={event.title}
               className="h-72 w-full object-cover sm:h-96" />
           </div>
 
@@ -399,9 +267,9 @@ function EventDetailPage() {
               <div className="space-y-4">
                 <div>
                   <h2 className="font-display text-xl font-bold flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-accent" /> Purchase Ticket
+                    <CreditCard className="h-5 w-5 text-accent" /> Book your seat
                   </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">Fill in your details to buy your ticket</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Your ticket is issued instantly after M-Pesa payment</p>
                 </div>
 
                 <Field icon={User} label="Full Name" value={fullName} onChange={setFullName} placeholder="Your full name" />
@@ -443,10 +311,16 @@ function EventDetailPage() {
                   </div>
                 </div>
 
-                <button type="button" onClick={handlePurchase}
-                  className="w-full rounded-xl bg-gradient-ember px-6 py-3.5 font-bold text-primary-foreground shadow-ember transition hover:shadow-glow text-sm flex items-center justify-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Purchase Ticket — KES {amount.toLocaleString()}
+                <label className="flex items-start gap-2 text-[11px] leading-snug text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 h-3.5 w-3.5" />
+                  <span>I confirm my details are correct and understand my ticket is issued only after my M-Pesa payment is confirmed.</span>
+                </label>
+
+                <button type="button" onClick={handleContinue} disabled={creating}
+                  className="w-full rounded-xl bg-gradient-ember px-6 py-3.5 font-bold text-primary-foreground shadow-ember transition hover:shadow-glow text-sm flex items-center justify-center gap-2 disabled:opacity-60">
+                  {creating
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Reserving…</>
+                    : <><CreditCard className="h-4 w-4" /> Continue to payment — KES {amount.toLocaleString()}</>}
                 </button>
               </div>
             )}
@@ -464,7 +338,7 @@ function EventDetailPage() {
                 {/* Order summary */}
                 <div className="rounded-xl border border-border/60 bg-background/60 p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Event</span>
+                    <span className="text-muted-foreground">Match</span>
                     <span className="font-medium text-right max-w-[140px] truncate">{event.title}</span>
                   </div>
                   <div className="flex justify-between">
@@ -495,7 +369,7 @@ function EventDetailPage() {
 
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-muted-foreground flex items-start gap-2">
                   <Smartphone className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Do NOT share your M-Pesa PIN with anyone. Ross Ventures will never ask for it.</span>
+                  <span>Do NOT share your M-Pesa PIN with anyone. Football Arena254 will never ask for it.</span>
                 </div>
 
                 <button type="button" onClick={handlePay} disabled={paying}
@@ -506,7 +380,7 @@ function EventDetailPage() {
                   }
                 </button>
 
-                <button type="button" onClick={() => setStep("form")}
+                <button type="button" onClick={() => { setServerAmount(null); setBookingId(""); setStep("form"); }}
                   className="w-full text-center text-xs text-muted-foreground hover:text-foreground py-1">
                   ← Edit details
                 </button>
@@ -531,9 +405,25 @@ function EventDetailPage() {
                   </p>
                   <p className="mt-3 text-xs text-muted-foreground">Enter your M-Pesa PIN to confirm payment of <strong>KES {amount.toLocaleString()}</strong></p>
                 </div>
-                <div className="rounded-xl border border-border/40 bg-background/60 p-3 text-xs text-muted-foreground">
-                  Waiting for confirmation… this can take up to 30 seconds.
-                </div>
+                {!timedOut ? (
+                  <div className="rounded-xl border border-border/40 bg-background/60 p-3 text-xs text-muted-foreground">
+                    Waiting for confirmation… this can take up to a minute. Don&apos;t close this page.
+                  </div>
+                ) : (
+                  <div className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-left text-xs text-muted-foreground">
+                    <p>
+                      We haven&apos;t received confirmation yet. <strong className="text-foreground">If M-Pesa already charged you, your ticket will be
+                      ready automatically</strong> — open the link below to check. If you cancelled the prompt, you haven&apos;t been charged.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => { setTimedOut(false); pollForConfirmation(bookingId); }}
+                        className="rounded-lg bg-gradient-ember px-3 py-1.5 font-semibold text-primary-foreground">Check again</button>
+                      <Link to="/ticket/$bookingId" params={{ bookingId }} className="rounded-lg border border-border px-3 py-1.5 font-semibold text-foreground hover:bg-secondary">Open my ticket page</Link>
+                      <button type="button" onClick={() => setStep("mpesa")} className="rounded-lg border border-border px-3 py-1.5 font-semibold hover:bg-secondary">Try again</button>
+                    </div>
+                    <p>Save this link: <span className="font-mono break-all text-foreground">/ticket/{bookingId}</span></p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -554,7 +444,7 @@ function EventDetailPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">Redirecting to your ticket…</p>
                 {bookingId && (
-                  <Link to={`/ticket/${bookingId}`}
+                  <Link to="/ticket/$bookingId" params={{ bookingId }}
                     className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-6 py-3 text-sm font-bold text-primary-foreground shadow-ember">
                     <Ticket className="h-4 w-4" /> View My Ticket
                   </Link>

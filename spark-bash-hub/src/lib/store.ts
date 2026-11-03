@@ -1,4 +1,5 @@
 import type { EventRow, BookingRow } from "./types";
+import { getEnvBinding } from "./runtime-env";
 
 // ─── In-process singletons ────────────────────────────────────────────────────
 // Cloudflare Workers isolates persist for hours; this acts as a fast cache and
@@ -22,6 +23,14 @@ export function extractKV(ctx: unknown): KVStore | null {
   const kv = env?.EVENTS_KV;
   if (kv && typeof kv.get === "function") return kv as KVStore;
   return null;
+}
+
+/** KV from the request context, falling back to the Worker env binding. */
+export async function getKV(ctx: unknown): Promise<KVStore | null> {
+  const fromCtx = extractKV(ctx);
+  if (fromCtx) return fromCtx;
+  const b = await getEnvBinding("EVENTS_KV");
+  return b && typeof b.get === "function" ? (b as KVStore) : null;
 }
 
 // ─── Key helpers ──────────────────────────────────────────────────────────────
@@ -119,13 +128,8 @@ export async function bulkSyncEvents(events: EventRow[], kv: KVStore | null): Pr
 export async function createBooking(booking: BookingRow, kv: KVStore | null): Promise<void> {
   _bookings.set(booking.id, booking);
   if (kv) {
-    try {
-      await kv.put(keyBooking(booking.id), JSON.stringify(booking));
-      const listRaw = await kv.get(KEY_BOOKINGS_LIST);
-      const ids: string[] = listRaw ? JSON.parse(listRaw) : [];
-      ids.unshift(booking.id);
-      await kv.put(KEY_BOOKINGS_LIST, JSON.stringify(ids));
-    } catch {}
+    // One key per booking (no shared list → no lost updates under concurrency)
+    await kv.put(keyBooking(booking.id), JSON.stringify(booking));
   }
 }
 
@@ -153,9 +157,7 @@ export async function updateBooking(
   const updated: BookingRow = { ...existing, ...patch };
   _bookings.set(id, updated);
   if (kv) {
-    try {
-      await kv.put(keyBooking(id), JSON.stringify(updated));
-    } catch {}
+    await kv.put(keyBooking(id), JSON.stringify(updated));
   }
   return updated;
 }
@@ -163,12 +165,17 @@ export async function updateBooking(
 export async function listBookings(kv: KVStore | null): Promise<BookingRow[]> {
   if (kv) {
     try {
-      const listRaw = await kv.get(KEY_BOOKINGS_LIST);
-      if (listRaw) {
-        const ids: string[] = JSON.parse(listRaw);
-        const rows = await Promise.all(ids.map(id => getBookingById(id, kv)));
-        return rows.filter((b): b is BookingRow => b !== null);
+      const ids: string[] = [];
+      let cursor: string | undefined;
+      // KV list is paginated (max 1000 keys per call)
+      for (let i = 0; i < 20; i++) {
+        const page: any = await (kv as any).list({ prefix: "bookings:v1:item:", limit: 1000, cursor });
+        for (const k of page.keys) ids.push(k.name.slice("bookings:v1:item:".length));
+        if (page.list_complete || !page.cursor) break;
+        cursor = page.cursor;
       }
+      const rows = await Promise.all(ids.map(id => getBookingById(id, kv)));
+      return rows.filter((b): b is BookingRow => b !== null).sort((a, b) => b.created_at.localeCompare(a.created_at));
     } catch {}
   }
   return [..._bookings.values()].sort((a, b) => b.created_at.localeCompare(a.created_at));

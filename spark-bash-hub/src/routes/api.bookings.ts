@@ -1,81 +1,92 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createBooking, extractKV, listBookings } from "@/lib/store";
+import { createBooking, getKV, listBookings } from "@/lib/store";
+import { resolveEvent } from "@/lib/catalog";
+import { isAdminRequest, json } from "@/lib/admin-auth";
+import { getEnvVar } from "@/lib/runtime-env";
+import { normalizeKenyanPhone } from "@/lib/payhero";
 import type { BookingRow } from "@/lib/types";
+
+// Tiny per-isolate throttle so one client can't spam booking creation
+const recent = new Map<string, number[]>();
+function throttled(ip: string): boolean {
+  const now = Date.now();
+  const hits = (recent.get(ip) ?? []).filter((t) => now - t < 10 * 60_000);
+  hits.push(now);
+  recent.set(ip, hits);
+  return hits.length > 15;
+}
 
 export const Route = createFileRoute("/api/bookings")({
   beforeLoad: () => { throw redirect({ to: "/" }); },
   server: {
     handlers: {
-      GET: async ({ context }) => {
-        const kv = extractKV(context);
-        const bookings = await listBookings(kv);
-        return new Response(JSON.stringify({ ok: true, bookings }), {
-          headers: { "content-type": "application/json; charset=utf-8" },
-        });
+      // Admin only — contains customers' names, emails and phone numbers
+      GET: async ({ request, context }) => {
+        if (!(await isAdminRequest(request))) return json({ ok: false, error: "Unauthorized" }, 401);
+        const kv = await getKV(context);
+        return json({ ok: true, bookings: await listBookings(kv) });
       },
 
+      // Create a PENDING booking. Price and amount are computed here — never taken from the client.
       POST: async ({ request, context }) => {
-        const kv = extractKV(context);
         try {
-          // Accept all event + booking data from the client.
-          // We do NOT look up the event server-side because events live in
-          // localStorage (admin's browser) and may not be in the server store.
-          type Body = {
-            eventId: string;
-            eventTitle: string;
-            eventDate: string;
-            eventVenue: string;
-            fullName: string;
-            email: string;
-            phone: string;
-            ticketType: string;
-            ticketPrice: number;
-            quantity: number;
-          };
-          const body = await request.json() as Body;
-          const { eventId, eventTitle, eventDate, eventVenue,
-                  fullName, email, phone, ticketType, ticketPrice, quantity } = body;
+          const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+          if (throttled(ip)) return json({ ok: false, error: "Too many attempts. Please wait a few minutes." }, 429);
 
-          if (!eventId || !fullName || !email || !phone || !ticketType) {
-            return new Response(JSON.stringify({ ok: false, error: "Missing required fields" }), {
-              status: 400, headers: { "content-type": "application/json; charset=utf-8" },
-            });
+          const body = (await request.json()) as {
+            eventId?: string; tierName?: string; quantity?: number;
+            fullName?: string; email?: string; phone?: string;
+          };
+
+          const fullName = String(body.fullName ?? "").trim();
+          const email = String(body.email ?? "").trim().toLowerCase();
+          const phone = normalizeKenyanPhone(String(body.phone ?? ""));
+          const quantity = Math.floor(Number(body.quantity));
+
+          if (fullName.length < 2 || fullName.length > 80) return json({ ok: false, error: "Enter your full name" }, 400);
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 120) return json({ ok: false, error: "Enter a valid email address" }, 400);
+          if (!phone) return json({ ok: false, error: "Enter a valid Kenyan phone number (07XX XXX XXX)" }, 400);
+          if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) return json({ ok: false, error: "Choose between 1 and 10 tickets" }, 400);
+
+          const found = await resolveEvent(String(body.eventId ?? ""));
+          if (!found) return json({ ok: false, error: "This match is not available for booking" }, 404);
+
+          if (found.sample && (await getEnvVar("ALLOW_SAMPLE_FIXTURES")) !== "true") {
+            return json({ ok: false, error: "Ticket sales for this fixture have not opened yet. Please check back soon." }, 409);
           }
 
-          const qty = Math.max(1, Math.min(20, Number(quantity) || 1));
-          const price = Number(ticketPrice) || 0;
-          const bookingId = crypto.randomUUID();
+          const tier = (found.event.tiers ?? []).find((t) => t.name === body.tierName);
+          if (!tier || !(Number(tier.price) > 0)) return json({ ok: false, error: "Choose a valid ticket type" }, 400);
 
+          const kv = await getKV(context);
+          const price = Math.round(Number(tier.price));
           const booking: BookingRow = {
-            id: bookingId,
-            event_id: eventId,
-            event_title: eventTitle ?? "Event",
-            event_date: eventDate ?? "",
-            event_venue: eventVenue ?? "",
-            full_name: String(fullName).trim(),
-            email: String(email).trim().toLowerCase(),
-            phone: String(phone).trim(),
-            ticket_type: ticketType,
+            id: crypto.randomUUID(),
+            event_id: found.event.id,
+            event_title: found.event.title,
+            event_date: found.event.event_date,
+            event_venue: found.event.venue,
+            full_name: fullName,
+            email,
+            phone,
+            ticket_type: tier.name,
             ticket_price: price,
-            quantity: qty,
-            amount: price * qty,
+            quantity,
+            amount: price * quantity,
             status: "pending",
             mpesa_receipt: null,
             mpesa_checkout_id: null,
             created_at: new Date().toISOString(),
             paid_at: null,
+            payment_reference: null,
+            payment_requested_at: null,
+            checked_in_at: null,
           };
 
           await createBooking(booking, kv);
-
-          return new Response(
-            JSON.stringify({ ok: true, bookingId, amount: booking.amount }),
-            { headers: { "content-type": "application/json; charset=utf-8" } },
-          );
+          return json({ ok: true, bookingId: booking.id, amount: booking.amount, phone });
         } catch {
-          return new Response(JSON.stringify({ ok: false, error: "Server error" }), {
-            status: 500, headers: { "content-type": "application/json; charset=utf-8" },
-          });
+          return json({ ok: false, error: "We could not create your booking. Please try again." }, 500);
         }
       },
     },

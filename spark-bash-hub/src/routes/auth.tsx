@@ -5,7 +5,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Admin Access — Ross Ventures" },
+      { title: "Admin Access — Football Arena254" },
       { name: "robots", content: "noindex" },
     ],
   }),

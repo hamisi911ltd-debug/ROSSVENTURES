@@ -46,4 +46,9 @@ export type BookingRow = {
   mpesa_checkout_id: string | null;
   created_at: string;
   paid_at: string | null;
+  /** PayHero payment reference returned when the STK push was queued */
+  payment_reference?: string | null;
+  payment_requested_at?: string | null;
+  /** Set when the ticket is verified at the gate */
+  checked_in_at?: string | null;
 };

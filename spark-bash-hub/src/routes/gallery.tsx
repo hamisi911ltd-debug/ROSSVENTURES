@@ -6,9 +6,9 @@ import type { GalleryPhoto } from "@/lib/types";
 export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
-      { title: "Gallery — Ross Ventures Limited" },
-      { name: "description", content: "Photos from events and productions by Ross Ventures Limited across Kenya." },
-      { property: "og:title", content: "Gallery — Ross Ventures Limited" },
+      { title: "Gallery — Football Arena254" },
+      { name: "description", content: "Photos of Talanta Stadium and Kenyan football matchdays." },
+      { property: "og:title", content: "Gallery — Football Arena254" },
     ],
   }),
   component: GalleryPage,
@@ -16,27 +16,16 @@ export const Route = createFileRoute("/gallery")({
 
 const GALLERY_STORAGE_KEY = "rossventures-gallery";
 
-// Static photos from the local gallery folder (public/gallery/)
+// Static photos from public/gallery — Talanta Stadium first
 const STATIC_PHOTOS: Array<{ id: string; url: string; caption?: string }> = [
-  { id: "s01", url: "/gallery/CPS_6969.JPG",   caption: "Event moments" },
-  { id: "s02", url: "/gallery/CPS_7066.JPG",   caption: "Event moments" },
-  { id: "s03", url: "/gallery/CPS_7140.JPG",   caption: "Event moments" },
-  { id: "s04", url: "/gallery/CPS_7152.JPG",   caption: "Event moments" },
-  { id: "s05", url: "/gallery/CPS_7157.JPG",   caption: "Event moments" },
-  { id: "s06", url: "/gallery/CPS_7176.JPG",   caption: "Event moments" },
-  { id: "s07", url: "/gallery/0d152c6a-b9be-4564-a251-c30a4373ecde.jfif" },
-  { id: "s08", url: "/gallery/106a6018-1b4f-4011-b1a9-662051b96d8a.jfif" },
-  { id: "s09", url: "/gallery/46238536-eb7f-4a00-909d-10c07f76fd30.jfif" },
-  { id: "s10", url: "/gallery/69cd27d7-1484-4a4e-b5fd-4ccc11a2f1e2.jfif" },
-  { id: "s11", url: "/gallery/69cd27d7-1484-4a4e-b5fd-4ccc11a2f1e2-dupe.jfif" },
-  { id: "s12", url: "/gallery/7c7e8c54-452f-476e-a49f-134b43506fdd.jfif" },
-  { id: "s13", url: "/gallery/a3f7b033-8e48-4ee6-87fc-af1f4ee750de.jfif" },
-  { id: "s14", url: "/gallery/a4055781-d521-403f-a83c-16f519d2a3d5.jfif" },
-  { id: "s15", url: "/gallery/b1df3aa6-9554-4a75-8289-17b2d7e51102.jfif" },
-  { id: "s16", url: "/gallery/b6aef1b1-2128-41a2-a430-83bcf3dd91b3.jfif" },
-  { id: "s17", url: "/gallery/b7b953e4-aac4-4a89-a464-f6e944fef889.jfif" },
-  { id: "s18", url: "/gallery/d8fb1ff1-6921-4269-9d33-7d1e2a6802f0.jfif" },
-  { id: "s19", url: "/gallery/dfc52382-5736-4bec-8315-b386ac355346.jfif" },
+  { id: "s01", url: "/gallery/talanta-stadium.jpg",          caption: "Talanta Stadium, Nairobi" },
+  { id: "s02", url: "/gallery/talanta-shield.jpg",           caption: "Talanta Stadium — the shield façade" },
+  { id: "s03", url: "/gallery/talanta-aerial.jpg",           caption: "Talanta Stadium from above" },
+  { id: "s04", url: "/gallery/talanta-roof.jpg",             caption: "Talanta Stadium — roof and bowl" },
+  { id: "s05", url: "/gallery/match-kasarani-inside.jpg",    caption: "League matchday at Kasarani" },
+  { id: "s06", url: "/gallery/match-action-green-yellow.jpg", caption: "League action" },
+  { id: "s07", url: "/gallery/match-action-league.jpg",      caption: "Premier League clash" },
+  { id: "s08", url: "/gallery/fans-kasarani.jpg",            caption: "Fans heading into Kasarani" },
 ];
 
 function getLocalGallery(): GalleryPhoto[] {
@@ -109,15 +98,19 @@ function GalleryPage() {
       {/* Header */}
       <header className="mb-12 text-center">
         <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-          <Camera className="h-3.5 w-3.5" /> Event Gallery
+          <Camera className="h-3.5 w-3.5" /> Stadium Gallery
         </span>
         <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">
-          Captured <span className="text-gradient-ember">moments</span>
+          Talanta &amp; <span className="text-gradient-ember">matchday</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
-          Behind-the-scenes and on-stage shots from our events and productions across Kenya.
+          The new Talanta Stadium and the atmosphere of Kenyan football — photos via Wikimedia Commons.
         </p>
       </header>
+
+      <p className="mb-6 text-center text-xs text-muted-foreground">
+        Credits: Talanta Stadium photo by Raymond Omollo (CC0). Match photos by Sila Kiplagat, Endesia94 and Eriksson1904 (CC BY-SA 4.0), Wikimedia Commons.
+      </p>
 
       {/* Gallery grid — uniform square tiles, object-cover so images fill with no borders */}
       {allPhotos.length === 0 ? (

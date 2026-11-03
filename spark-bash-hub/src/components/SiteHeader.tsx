@@ -1,14 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X, Phone, Mail, Instagram, Music2 } from "lucide-react";
-import logo from "@/assets/ross-ventures-logo.png";
+import logo from "@/assets/football-arena254-logo.svg";
 
 const navLinks = [
   { to: "/", label: "Home" },
-  { to: "/organizers", label: "Services" },
-  { to: "/events", label: "Events" },
+  { to: "/organizers", label: "Stadiums" },
+  { to: "/events", label: "Fixtures" },
   { to: "/gallery", label: "Gallery" },
-  { to: "/ambassadors", label: "Ambassadors" },
+  { to: "/ambassadors", label: "Fan Clubs" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ] as const;
@@ -18,15 +18,16 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50">
+      <div className="flag-stripe" />
       <div className="mx-auto mt-3 max-w-6xl px-4">
         <div className="glass flex items-center justify-between rounded-2xl px-4 py-3">
           <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-            <img src={logo} alt="Ross Ventures Limited" className="h-9 w-9 rounded-lg object-contain" />
+            <img src={logo} alt="Football Arena254" className="h-9 w-9 object-contain" />
             <span className="font-display text-base font-bold tracking-tight leading-tight sm:text-lg">
-              <span className="text-gradient-ember">ROSS</span>
-              <span className="ml-1 text-foreground/90">Ventures Limited</span>
+              <span className="text-gradient-ember">FOOTBALL</span>
+              <span className="ml-1 text-foreground/90">ARENA254</span>
               <span className="ml-2 hidden text-xs font-medium uppercase tracking-wider text-muted-foreground sm:inline">
-                · Marketing & Event Planners · Nairobi
+                · Kenyan Football Match Booking
               </span>
             </span>
           </Link>
@@ -61,12 +62,12 @@ export function SiteHeader() {
               <a href="tel:+254705333198" className="inline-flex items-center gap-2 hover:text-foreground">
                 <Phone className="h-4 w-4 text-accent" />+254 705 333 198
               </a>
-              <a href="mailto:hello@rossventures.co.ke" className="inline-flex items-center gap-2 hover:text-foreground">
-                <Mail className="h-4 w-4 text-accent" />hello@rossventures.co.ke
+              <a href="mailto:hello@footballarena254.co.ke" className="inline-flex items-center gap-2 hover:text-foreground">
+                <Mail className="h-4 w-4 text-accent" />hello@footballarena254.co.ke
               </a>
               <div className="mt-2 flex gap-2">
-                <a href="https://www.instagram.com/ross_ventures1?igsh=MWluZnAyMDVtaTNrNA==" target="_blank" rel="noreferrer" aria-label="Instagram" className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 transition hover:bg-secondary"><Instagram className="h-4 w-4" /></a>
-                <a href="https://www.tiktok.com/@ross.ventures" target="_blank" rel="noreferrer" aria-label="TikTok" className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 transition hover:bg-secondary"><Music2 className="h-4 w-4" /></a>
+                <a href="https://www.instagram.com/footballarena254" target="_blank" rel="noreferrer" aria-label="Instagram" className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 transition hover:bg-secondary"><Instagram className="h-4 w-4" /></a>
+                <a href="https://www.tiktok.com/@footballarena254" target="_blank" rel="noreferrer" aria-label="TikTok" className="grid h-9 w-9 place-items-center rounded-lg border border-border/60 transition hover:bg-secondary"><Music2 className="h-4 w-4" /></a>
               </div>
             </div>
             <Link
@@ -74,7 +75,7 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
               className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-gradient-ember px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-ember"
             >
-              Plan an Event
+              Book a Match
             </Link>
           </div>
         </div>

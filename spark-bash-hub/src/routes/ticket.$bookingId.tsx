@@ -5,24 +5,12 @@ import {
   Ticket, User, Mail, Phone, Hash,
 } from "lucide-react";
 import type { BookingRow } from "@/lib/types";
-import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
+import arenaLogo from "@/assets/football-arena254-logo.svg";
 
 export const Route = createFileRoute("/ticket/$bookingId")({
-  head: () => ({ meta: [{ title: "Your Ticket — Ross Ventures Limited" }] }),
+  head: () => ({ meta: [{ title: "Your Match Ticket — Football Arena254" }] }),
   component: TicketPage,
 });
-
-const LS_BOOKINGS_KEY = "rossventures-bookings";
-
-function getBookingFromLocalStorage(id: string): BookingRow | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(LS_BOOKINGS_KEY);
-    if (!raw) return null;
-    const all: BookingRow[] = JSON.parse(raw);
-    return Array.isArray(all) ? (all.find(b => b.id === id) ?? null) : null;
-  } catch { return null; }
-}
 
 function TicketPage() {
   const { bookingId } = Route.useParams();
@@ -31,24 +19,31 @@ function TicketPage() {
   const [error, setError] = useState<string | null>(null);
   const ticketRef = useRef<HTMLDivElement>(null);
 
+  // The server is the only source of truth. While payment is pending, keep re-checking.
   useEffect(() => {
-    // 1. Try localStorage first (fastest, works without server)
-    const local = getBookingFromLocalStorage(bookingId);
-    if (local) {
-      setBooking(local);
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-    // 2. Fall back to server API
-    fetch(`/api/bookings/${bookingId}`)
-      .then(r => r.json())
-      .then((data: { ok: boolean; booking: BookingRow; error?: string }) => {
-        if (data.ok) setBooking(data.booking);
-        else setError(data.error ?? "Booking not found");
-      })
-      .catch(() => setError("Failed to load booking"))
-      .finally(() => setLoading(false));
+    async function load() {
+      try {
+        const r = await fetch(`/api/bookings/${bookingId}`, { cache: "no-store" });
+        const data = (await r.json()) as { ok: boolean; booking: BookingRow; error?: string };
+        if (cancelled) return;
+        if (data.ok) {
+          setBooking(data.booking);
+          setError(null);
+          if (data.booking.status === "pending") timer = setTimeout(load, 4000);
+        } else {
+          setError(data.error ?? "Booking not found");
+        }
+      } catch {
+        if (!cancelled) setError("Failed to load booking");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [bookingId]);
 
   function handleDownload() {
@@ -69,14 +64,38 @@ function TicketPage() {
       <main className="mx-auto max-w-2xl px-4 py-20 text-center">
         <p className="text-destructive">{error ?? "Ticket not found"}</p>
         <Link to="/events" className="mt-4 inline-flex items-center gap-2 text-accent hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Browse events
+          <ArrowLeft className="h-4 w-4" /> Browse fixtures
         </Link>
       </main>
     );
   }
 
+  if (booking.status !== "paid") {
+    const pending = booking.status === "pending";
+    return (
+      <main className="mx-auto max-w-lg px-4 py-20 text-center">
+        <div className="rounded-2xl border border-border/60 bg-card/60 p-8">
+          {pending ? <Loader2 className="mx-auto h-10 w-10 animate-spin text-accent" /> : null}
+          <h1 className="mt-4 font-display text-2xl font-bold">
+            {pending ? "Waiting for your payment" : booking.status === "failed" ? "Payment not completed" : "Booking cancelled"}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {pending
+              ? "This is not a valid ticket yet. As soon as your M-Pesa payment is confirmed it will appear here automatically — you can keep this page open."
+              : "No ticket has been issued for this booking. If you were charged, contact us with your M-Pesa message and we will sort it out."}
+          </p>
+          <p className="mt-4 text-xs text-muted-foreground">{booking.event_title} · {booking.ticket_type} × {booking.quantity} · KES {booking.amount.toLocaleString()}</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link to="/events" className="rounded-xl bg-gradient-ember px-5 py-2.5 text-sm font-semibold text-primary-foreground">Browse fixtures</Link>
+            <a href="tel:+254705333198" className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold hover:bg-secondary">Call support</a>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const shortRef = booking.id.slice(0, 8).toUpperCase();
-  const isPaid = booking.status === "paid";
+  const isPaid = true;
 
   return (
     <>
@@ -92,7 +111,7 @@ function TicketPage() {
       <main className="mx-auto max-w-2xl px-4 py-10 sm:py-14">
         <div className="no-print flex items-center justify-between mb-8">
           <Link to="/events" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Back to events
+            <ArrowLeft className="h-4 w-4" /> Back to fixtures
           </Link>
           <button onClick={handleDownload}
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-4 py-2 text-sm font-semibold text-primary-foreground shadow-ember">
@@ -119,16 +138,16 @@ function TicketPage() {
           className="relative rounded-3xl overflow-hidden border border-primary/30 bg-card shadow-glow"
           style={{ fontFamily: "Inter, sans-serif" }}>
 
-          <div className="h-2 w-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-600" />
+          <div className="h-2 w-full bg-gradient-to-r from-black via-red-600 to-green-600" />
 
           <div className="bg-[#0a0a0a] px-6 py-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={rossVenturesLogo} alt="Ross Ventures" className="h-10 w-10 rounded-xl object-contain" />
+              <img src={arenaLogo} alt="Football Arena254" className="h-10 w-10 object-contain" />
               <div>
                 <p className="font-bold text-white leading-none" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-                  <span style={{ color: "#f97316" }}>ROSS</span> Ventures
+                  <span style={{ color: "#22c55e" }}>FOOTBALL</span> ARENA254
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">Marketing & Event Planners · Kenya</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">Kenyan Football Match Tickets</p>
               </div>
             </div>
             <div className="text-right">
@@ -137,20 +156,20 @@ function TicketPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-[#1a0a00] to-[#0a0a0a] px-6 py-6">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-orange-400">Event</p>
+          <div className="bg-gradient-to-br from-[#03140a] to-[#0a0a0a] px-6 py-6">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-green-400">Match</p>
             <h2 className="mt-1 text-2xl font-bold text-white leading-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
               {booking.event_title}
             </h2>
             <div className="mt-3 flex flex-wrap gap-4">
               {booking.event_date && (
                 <span className="inline-flex items-center gap-1.5 text-sm text-gray-300">
-                  <Calendar className="h-4 w-4 text-orange-400" />{booking.event_date}
+                  <Calendar className="h-4 w-4 text-green-400" />{booking.event_date}
                 </span>
               )}
               {booking.event_venue && (
                 <span className="inline-flex items-center gap-1.5 text-sm text-gray-300">
-                  <MapPin className="h-4 w-4 text-orange-400" />{booking.event_venue}
+                  <MapPin className="h-4 w-4 text-green-400" />{booking.event_venue}
                 </span>
               )}
             </div>
@@ -170,12 +189,12 @@ function TicketPage() {
             <TicketField icon={Phone} label="Phone" value={booking.phone} />
             <div>
               <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-1">Amount paid</p>
-              <p className="font-bold text-orange-400 text-lg">KES {booking.amount.toLocaleString()}</p>
+              <p className="font-bold text-green-400 text-lg">KES {booking.amount.toLocaleString()}</p>
             </div>
           </div>
 
           <div className="bg-[#0a0a0a] px-6 py-5 flex items-center gap-6">
-            <QRBlock value={shortRef} />
+            <QRBlock value={`AR254-${shortRef}`} />
             <div className="flex-1">
               <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400">Booking reference</p>
               <p className="font-mono text-xl font-bold text-white tracking-widest mt-0.5">{shortRef}</p>
@@ -185,12 +204,12 @@ function TicketPage() {
                   <p className="font-mono text-sm font-semibold text-emerald-400">{booking.mpesa_receipt}</p>
                 </>
               )}
-              <p className="text-[11px] text-gray-500 mt-3">Show this reference at the gate for entry.</p>
+              <p className="text-[11px] text-gray-500 mt-3">Show this reference at the gate for entry. Each ticket can be scanned in once.</p>
             </div>
           </div>
 
           <div className="bg-[#111] px-6 py-4 flex items-center justify-between gap-4">
-            <p className="text-[11px] text-gray-500">+254 705 333 198 · hello@rossventures.co.ke</p>
+            <p className="text-[11px] text-gray-500">+254 705 333 198 · hello@footballarena254.co.ke</p>
             <p className="text-[10px] text-gray-600">Issued {new Date(booking.created_at).toLocaleDateString("en-KE")}</p>
           </div>
         </div>
@@ -201,7 +220,7 @@ function TicketPage() {
             <Download className="h-4 w-4" /> Save / Print ticket
           </button>
           <Link to="/events" className="inline-flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold hover:bg-secondary">
-            Browse more events
+            Browse more matches
           </Link>
         </div>
         <p className="no-print mt-4 text-center text-xs text-muted-foreground">
@@ -226,19 +245,20 @@ function TicketField({ icon: Icon, label, value }: {
 }
 
 function QRBlock({ value }: { value: string }) {
-  const size = 7;
-  const grid = Array.from({ length: size * size }, (_, i) => {
-    const x = i % size, y = Math.floor(i / size);
-    const isCorner = (x < 2 && y < 2) || (x > size - 3 && y < 2) || (x < 2 && y > size - 3);
-    const charCode = value.charCodeAt(i % value.length);
-    return isCorner || (charCode + i + x * 3 + y * 7) % 3 === 0;
-  });
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    import("qrcode")
+      .then((m) => m.toDataURL(value, { margin: 1, width: 192, errorCorrectionLevel: "M" }))
+      .then((url) => { if (!cancelled) setSrc(url); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [value]);
+
   return (
-    <div className="grid shrink-0 gap-[2px] p-2 bg-white rounded-lg"
-      style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, width: 72, height: 72 }}>
-      {grid.map((filled, i) => (
-        <div key={i} className={`rounded-[1px] ${filled ? "bg-black" : "bg-white"}`} />
-      ))}
+    <div className="grid shrink-0 place-items-center rounded-lg bg-white p-1.5" style={{ width: 96, height: 96 }}>
+      {src ? <img src={src} alt={`Ticket QR ${value}`} width={84} height={84} /> : <Loader2 className="h-5 w-5 animate-spin text-black/40" />}
     </div>
   );
 }

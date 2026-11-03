@@ -1,43 +1,38 @@
 import { useState, useEffect, useRef } from "react";
 import type { EventRow } from "@/lib/types";
-import { PurchaseTicketModal } from "@/components/PurchaseTicketModal";
-import comrades from "@/assets/comrades-festival.jpg";
-import usaniifest from "@/assets/event-usaniifest.png";
-import extravaganza from "@/assets/event-jkuat-extravaganza.png";
-import adani from "@/assets/event-adani-chill.png";
-import jkuatTakeover from "@/assets/event-jkuat-takeover.png";
-import culturJkuat from "@/assets/event-cultur-jkuat.png";
-import extravaganzaMejja from "@/assets/event-extravaganza-mejja.png";
-import rossVenturesLogo from "@/assets/ross-ventures-logo.png";
+import { FIXTURES, FALLBACK_POSTER } from "@/lib/fixtures";
+import talantaStadium from "@/assets/talanta-stadium.jpg";
+import talantaShield from "@/assets/talanta-shield.jpg";
+import talantaRoof from "@/assets/talanta-roof.jpg";
+import talantaAerial from "@/assets/talanta-aerial.jpg";
+import kasaraniInside from "@/assets/match-kasarani-inside.jpg";
+import actionGreenYellow from "@/assets/match-action-green-yellow.jpg";
+import fansKasarani from "@/assets/fans-kasarani.jpg";
+import arenaLogo from "@/assets/football-arena254-logo.svg";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   Calendar,
   CalendarDays,
-  Users,
-  Sparkles,
+  Trophy,
+  Ticket,
+  Smartphone,
+  ShieldCheck,
   MapPin,
   Phone,
   Instagram,
 } from "lucide-react";
 
-// Gallery images for the hero slideshow — only clean cropped event photos
-const HERO_SLIDES = [
-  "/gallery/CPS_6969.JPG",
-  "/gallery/CPS_7066.JPG",
-  "/gallery/CPS_7140.JPG",
-  "/gallery/CPS_7152.JPG",
-  "/gallery/CPS_7157.JPG",
-  "/gallery/CPS_7176.JPG",
-];
+// Hero slideshow — Talanta Stadium first, then matchday shots
+const HERO_SLIDES = [talantaStadium, talantaAerial, talantaShield, talantaRoof, kasaraniInside];
 
 // Phrases cycled by the typewriter in the hero heading
 const TYPEWRITER_PHRASES = [
-  "Lit upcoming events to book.",
-  "Full-service event production.",
-  "Building Kenya's best experiences.",
-  "Where culture meets entertainment.",
-  "Your vision. Our energy. Real impact.",
+  "Book your seat at Talanta Stadium.",
+  "Kenyan football. Live. In person.",
+  "Derbies, league nights, Harambee Stars.",
+  "Pay by M-PESA. Walk in with your ticket.",
+  "Be there when Kenya's new home opens.",
 ];
 
 function useTypewriter(phrases: string[], typingSpeed = 55, deleteSpeed = 30, pauseMs = 2200) {
@@ -72,74 +67,21 @@ function useTypewriter(phrases: string[], typingSpeed = 55, deleteSpeed = 30, pa
   return { text, isTyping: phase === "typing" };
 }
 
-const partnerLogos = [
-  { name: "Cultur FM",       url: "/partners/cultur fm.jpeg" },
-  { name: "JKUAT Got Talent",url: "/partners/jkuat got talent .jpeg" },
-  { name: "JKUAT",           url: "/partners/jkuat logo.jpeg" },
-  { name: "JKUSA",           url: "/partners/jkusa logo.jpeg" },
-  { name: "Safaricom",       url: "/partners/safaricom logo.jpeg" },
-  { name: "Steam",           url: "/partners/steam logo.jpeg" },
-  { name: "Find",            url: "/partners/find logo.jpeg" },
-  { name: "Opera",           url: "/partners/opera logo.jpeg" },
-  { name: "Wrens",           url: "/partners/wrens logo.jpeg" },
+// Clubs and competitions shown in the marquee
+const CLUBS = [
+  "Harambee Stars", "Gor Mahia", "AFC Leopards", "Tusker FC", "KCB FC", "Kakamega Homeboyz",
+  "Bandari FC", "Kenya Police FC", "Sofapaka", "FKF Premier League", "Super Cup", "Talanta Stadium",
 ];
 
-const portfolio = [
-  {
-    img: comrades,
-    tag: "2026 · Headline",
-    title: "Comrades Festival 1.0",
-    venue: "JKUAT Juja · 16 Sep 2026",
-    note: "RV Entertainment x JKUSA — afro-fusion artists, games and cool vibes for the campus crowd.",
-  },
-  {
-    img: extravaganza,
-    tag: "2026",
-    title: "JKUAT Extravaganza",
-    venue: "JKUAT Pavilion Grounds · 27 Mar 2026",
-    note: "Produced with the Office of the Sports & Entertainment Secretary and JKUSA — food, games, art & craft.",
-  },
-  {
-    img: usaniifest,
-    tag: "2026",
-    title: "UsaniiFest 001",
-    venue: "JKUAT Assembly Hall · 6 Mar 2026",
-    note: "STADA-JKUAT presents UsaniiFest in partnership with ArtsyRenaissance — music, food, art & vibes.",
-  },
-  {
-    img: adani,
-    tag: "Recent",
-    title: "Adani Chill & Vibe",
-    venue: "Club 033, Juja · 16 May",
-    note: "Music by MC Pharaoh, hosted by Clinton Chief Yokabiso. Twerk competition, muratina & live vibes.",
-  },
-  {
-    img: jkuatTakeover,
-    tag: "Cultur FM",
-    title: "JKUAT Takeover",
-    venue: "JKUAT Main Campus · 5–6 May",
-    note: "Cultur FM x Ross Ventures — two-day campus takeover with the Cultur FM collective.",
-  },
-  {
-    img: culturJkuat,
-    tag: "Cultur FM",
-    title: "Cultur FM is Coming to JKUAT",
-    venue: "JKUAT · 5–6 May",
-    note: "Afro music is the future. Nairobi DJs rule the world — Cultur FM always wins.",
-  },
-  {
-    img: extravaganzaMejja,
-    tag: "2026 · Guest",
-    title: "JKUAT Extravaganza ft. Mejja",
-    venue: "JKUAT Assembly Hall · 18 Apr 2026",
-    note: "Office of the Sports & Entertainment Secretary x JKUSA — guest artist Mejja, from 5PM till late.",
-  },
+const MOMENTS = [
+  { img: talantaShield, tag: "Talanta Stadium", title: "The Maasai shield façade", note: "Talanta's signature shield motif up close." },
+  { img: talantaAerial, tag: "Talanta Stadium", title: "Nairobi's new football home", note: "The roofed bowl rising above Nairobi." },
+  { img: actionGreenYellow, tag: "Matchday", title: "Fifty-fifty", note: "League football, full intensity." },
+  { img: fansKasarani, tag: "Fans", title: "Walking in to Kasarani", note: "Fans queue for a Gor Mahia matchday." },
 ];
-
 
 export default function Landing() {
   const [dynamicEvents, setDynamicEvents] = useState<EventRow[]>([]);
-  const [modalEvent, setModalEvent] = useState<EventRow | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
   const [slideVisible, setSlideVisible] = useState(true);
   const { text: heroText, isTyping } = useTypewriter(TYPEWRITER_PHRASES);
@@ -169,6 +111,9 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, []);
 
+  // Published matches from the admin panel win; otherwise show the built-in fixtures
+  const matches = dynamicEvents.length > 0 ? dynamicEvents : FIXTURES;
+
   return (
     <main>
       {/* HERO */}
@@ -183,7 +128,7 @@ export default function Landing() {
             className={`h-full w-full object-cover object-center transition-opacity duration-700 ${slideVisible ? "opacity-100" : "opacity-0"}`}
           />
           {/* Dark veil so text stays readable */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/60 to-black/85" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/90" />
           {/* Slide dots */}
           <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
             {HERO_SLIDES.map((_, i) => (
@@ -200,31 +145,17 @@ export default function Landing() {
         {/* Accent light overlays */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute left-10 top-16 h-32 w-32 rounded-full bg-accent/15 blur-3xl animate-sparkle" />
-          <div className="absolute right-12 top-24 h-24 w-24 rounded-full bg-primary/10 blur-3xl animate-sparkle" />
+          <div className="absolute right-12 top-24 h-24 w-24 rounded-full bg-crimson/20 blur-3xl animate-sparkle" />
           <div className="absolute h-full w-1/3 bg-gradient-to-r from-transparent via-accent/10 to-transparent animate-spotlight-sweep" />
-          <span className="absolute left-12 top-12 h-2 w-2 rounded-full bg-accent animate-confetti" style={{ animationDelay: "0s" }} />
-          <span className="absolute left-32 top-28 h-2 w-2 rounded-full bg-primary animate-confetti" style={{ animationDelay: "1.3s" }} />
-          <span className="absolute right-24 top-20 h-2 w-2 rounded-full bg-foreground animate-confetti" style={{ animationDelay: "2.2s" }} />
-          <span className="absolute right-16 top-48 h-2 w-2 rounded-full bg-accent animate-confetti" style={{ animationDelay: "3.7s" }} />
-          <span className="absolute left-1/2 top-32 h-2 w-2 rounded-full bg-primary animate-confetti" style={{ animationDelay: "5.1s" }} />
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-8 sm:pt-10 md:pt-12">
-          {/* Logo watermark */}
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 pointer-events-none">
-            <img
-              src={rossVenturesLogo}
-              alt="Ross Ventures logo"
-              className="opacity-10 w-32 sm:w-44 md:w-56 lg:w-72 xl:w-80 object-contain"
-            />
-          </div>
-
+        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-8 sm:pt-10 md:pt-12">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/40 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur animate-ticket-slide">
-            <Sparkles className="h-3.5 w-3.5" /> Book the next event
+            <Trophy className="h-3.5 w-3.5" /> footballarena254.co.ke
           </span>
 
           {/* Typewriter heading */}
-          <h1 className="mt-4 max-w-4xl font-display text-2xl font-extrabold leading-[1.1] tracking-tight sm:text-4xl md:text-6xl text-white">
+          <h1 className="mt-4 max-w-4xl min-h-[2.4em] font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white sm:min-h-[2.2em] sm:text-5xl md:text-6xl">
             {heroText}
             <span
               className={`ml-0.5 inline-block h-[1em] w-[3px] bg-accent align-middle ${isTyping ? "animate-caret-blink" : "opacity-100"}`}
@@ -232,147 +163,179 @@ export default function Landing() {
             />
           </h1>
 
-          <p className="mt-4 max-w-3xl text-sm text-white/75 sm:text-base leading-relaxed">
-            Ross Ventures Limited is a full-service event production and marketing agency built in Kenya and made for the culture. We specialize in creating unforgettable experiences—from intimate campus activations to headline festivals—combining creative excellence with audience reach.
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/80 sm:text-base">
+            Football Arena254 is Kenya&apos;s home for booking football match tickets. Get your seat at the brand-new,
+            60,000-seat Talanta Stadium and at Kasarani and Nyayo — league fixtures, cup finals and Harambee Stars
+            internationals, all paid securely by M-PESA.
           </p>
 
-          <div className="mt-7 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <Link
-              to="/contact"
-              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-4 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold text-primary-foreground shadow-card-soft transition hover:shadow-ember animate-float"
+              to="/events"
+              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card-soft transition hover:shadow-ember animate-float sm:px-6 sm:py-3.5"
             >
-              Become a partner
+              <Ticket className="h-4 w-4" /> Book a match
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </Link>
             <Link
-              to="/events"
-              className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20 justify-center"
+              to="/organizers"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto sm:px-6 sm:py-3.5"
             >
-              See our events
+              Explore Talanta Stadium
             </Link>
           </div>
 
           <div className="mt-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
-              Brands and people we&apos;ve worked with
+              Clubs &amp; competitions you can book
             </p>
             {/* Infinite horizontal marquee */}
             <div className="relative mt-4 overflow-hidden">
-              {/* Fade edges */}
               <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-black/60 to-transparent" />
               <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-black/60 to-transparent" />
-              {/* Doubled list for seamless loop */}
-              <div className="flex animate-marquee gap-8 w-max items-center py-1">
-                {[...partnerLogos, ...partnerLogos].map((partner, idx) => (
-                  <div key={idx} title={partner.name} className="flex-shrink-0 flex items-center justify-center">
-                    <img
-                      src={partner.url}
-                      alt={partner.name}
-                      className="h-10 w-auto max-w-[80px] object-contain opacity-75 hover:opacity-100 transition-opacity duration-300"
-                    />
-                  </div>
+              <div className="flex w-max animate-marquee items-center gap-3 py-1">
+                {[...CLUBS, ...CLUBS].map((club, idx) => (
+                  <span
+                    key={idx}
+                    className="flex-shrink-0 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/85 backdrop-blur"
+                  >
+                    {club}
+                  </span>
                 ))}
               </div>
             </div>
           </div>
         </div>
+        <div className="flag-stripe" />
       </section>
 
-      {/* UPCOMING EVENTS TO BOOK */}
+      {/* TALANTA SPOTLIGHT */}
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <div className="relative overflow-hidden rounded-3xl border border-primary/40 shadow-glow">
+          <img src={talantaAerial} alt="Aerial view of the new Talanta Stadium in Nairobi" loading="lazy" className="h-[22rem] w-full object-cover sm:h-[30rem]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10">
+            <span className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary-foreground shadow-ember">
+              <MapPin className="h-3.5 w-3.5" /> Nairobi · Newly built
+            </span>
+            <h2 className="mt-3 max-w-2xl font-display text-3xl font-extrabold leading-tight text-white sm:text-5xl">
+              Talanta Stadium — Kenya&apos;s new home of football
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm text-white/80 sm:text-base">
+              A fully roofed, 60,000-seat bowl wrapped in Maasai-shield inspired design. Be among the first to watch a
+              match here — pick your stand and book in under two minutes.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link to="/events" className="inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-semibold text-primary-foreground shadow-ember">
+                See Talanta fixtures <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link to="/gallery" className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur hover:bg-white/20">
+                Stadium gallery
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* UPCOMING MATCHES TO BOOK */}
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="flex items-end justify-between gap-6">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
               <CalendarDays className="h-3.5 w-3.5" /> Book Now
             </span>
-            <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Upcoming events to book</h2>
+            <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Upcoming matches</h2>
           </div>
+          <Link to="/events" className="hidden items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground sm:inline-flex">
+            All fixtures <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
-        {dynamicEvents.length === 0 && (
-          <p className="mt-10 rounded-2xl border border-dashed border-border/60 p-10 text-center text-sm text-muted-foreground">
-            No upcoming events right now — check back soon.
-          </p>
-        )}
-
-        <div className="mt-10 grid gap-4 grid-cols-2">
-          {dynamicEvents.slice(0, 6).map(e => ({
-            eventObj: e,
-            id: e.id,
-            img: e.poster_url ?? comrades,
-            title: e.title,
-            date: e.event_date,
-            venue: e.venue,
-            desc: (e.description ?? "").slice(0, 80),
-          })).map((ev) => (
-            <div key={ev.id}
-              className="group overflow-hidden rounded-xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow cursor-pointer"
-              onClick={() => setModalEvent(ev.eventObj)}
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {matches.slice(0, 6).map((ev) => (
+            <Link
+              key={ev.id}
+              to="/events/$eventId"
+              params={{ eventId: ev.id }}
+              className="group block overflow-hidden rounded-xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow"
             >
               <div className="relative aspect-video overflow-hidden">
-                <img src={ev.img} alt={ev.title} loading="lazy"
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110" />
+                <img
+                  src={ev.poster_url ?? FALLBACK_POSTER}
+                  alt={ev.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                />
+                {ev.tag && (
+                  <span className="absolute left-2 top-2 rounded-full bg-gradient-ember px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow-ember">
+                    {ev.tag}
+                  </span>
+                )}
               </div>
-              <div className="p-3">
-                <h3 className="font-display text-sm font-bold leading-tight line-clamp-1">{ev.title}</h3>
-                <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3 text-accent" /> {ev.date}
+              <div className="p-4">
+                <h3 className="line-clamp-2 font-display text-sm font-bold leading-tight">{ev.title}</h3>
+                <p className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3 text-accent" /> {ev.event_date}
                 </p>
                 <p className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3 text-accent" /> {ev.venue}
                 </p>
-                <button type="button"
-                  onClick={e => { e.stopPropagation(); setModalEvent(ev.eventObj); }}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-ember px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-ember transition hover:shadow-glow">
-                  Purchase Ticket <ArrowRight className="h-3 w-3" />
-                </button>
+                <span className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-ember px-3 py-2 text-xs font-bold text-primary-foreground shadow-ember transition group-hover:shadow-glow">
+                  Book Tickets <ArrowRight className="h-3 w-3" />
+                </span>
               </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            { icon: Ticket, t: "Pick your match", d: "Choose a fixture and your stand — Regular, Covered, VIP or VVIP." },
+            { icon: Smartphone, t: "Pay by M-PESA", d: "An STK Push lands on your phone. Enter your PIN and you're done." },
+            { icon: ShieldCheck, t: "Show & walk in", d: "Your e-ticket with a reference number is ready instantly for the gate." },
+          ].map((s, i) => (
+            <div key={s.t} className="rounded-2xl border border-border/60 bg-card/60 p-6">
+              <span className="font-display text-3xl font-bold text-gradient-ember">0{i + 1}</span>
+              <span className="mt-3 grid h-10 w-10 place-items-center rounded-xl bg-secondary"><s.icon className="h-5 w-5 text-accent" /></span>
+              <h3 className="mt-4 font-semibold">{s.t}</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">{s.d}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Purchase Ticket Modal */}
-      <PurchaseTicketModal
-        event={modalEvent}
-        open={modalEvent !== null}
-        onClose={() => setModalEvent(null)}
-      />
-
-      {/* PORTFOLIO */}
+      {/* MATCHDAY MOMENTS */}
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="flex items-end justify-between gap-6">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent">
-              <Users className="h-3.5 w-3.5" /> Selected work
+              <Trophy className="h-3.5 w-3.5" /> Matchday moments
             </span>
-            <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Events we've made happen</h2>
+            <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Feel the atmosphere</h2>
           </div>
-          <Link to="/events" className="hidden items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground sm:inline-flex">
-            See all <ArrowRight className="h-4 w-4" />
+          <Link to="/gallery" className="hidden items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground sm:inline-flex">
+            Full gallery <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 max-w-4xl mx-auto">
-          {portfolio.map((e) => (
+        <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {MOMENTS.map((e) => (
             <article
               key={e.title}
               className="group overflow-hidden rounded-xl border border-border/60 bg-card shadow-card-soft transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow"
             >
               <div className="relative aspect-[3/4] overflow-hidden">
-                <img
-                  src={e.img}
-                  alt={e.title}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                />
+                <img src={e.img} alt={e.title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                 <span className="absolute left-2 top-2 rounded-full bg-gradient-ember px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow-ember">
                   {e.tag}
                 </span>
               </div>
               <div className="p-3">
-                <h3 className="font-display text-sm font-bold leading-tight line-clamp-2">{e.title}</h3>
-                <p className="mt-1 text-[11px] text-muted-foreground line-clamp-1">{e.venue}</p>
+                <h3 className="line-clamp-2 font-display text-sm font-bold leading-tight">{e.title}</h3>
+                <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{e.note}</p>
               </div>
             </article>
           ))}
@@ -382,44 +345,35 @@ export default function Landing() {
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="relative overflow-hidden rounded-3xl border border-primary/40 bg-hero-soft p-10 shadow-card-soft sm:p-14">
+          <img src={talantaRoof} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-20" />
           <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
-          <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-crimson/20 blur-3xl" />
           <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
             <div>
-              <h2 className="font-display text-2xl font-bold leading-tight sm:text-4xl">
-                Have an event or a brand to launch?
+              <img src={arenaLogo} alt="" className="h-14 w-14" />
+              <h2 className="mt-4 font-display text-2xl font-bold leading-tight sm:text-4xl">
+                Booking for a fan club, school or company?
               </h2>
               <p className="mt-4 max-w-md text-sm text-primary-foreground/80">
-                Tell us the vision. We'll bring the production, the audience and the energy.
+                Group seats, hospitality and matchday transport — tell us the match and the headcount and we&apos;ll sort the rest.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <a
-                href="https://wa.me/254705333198?text=Hi%20Ross%20Ventures%2C%20I%20have%20an%20event%20or%20brand%20launch%20idea.%20Let%27s%20talk."
+                href="https://wa.me/254705333198?text=Hi%20Football%20Arena254%2C%20I%27d%20like%20to%20book%20group%20tickets."
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl bg-foreground px-3 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold text-background transition hover:opacity-90 justify-center"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background transition hover:opacity-90 sm:w-auto"
               >
                 <Phone className="h-4 w-4" /> WhatsApp us
               </a>
               <a
-                href="https://instagram.com/rv_entertainment"
+                href="https://instagram.com/footballarena254"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-foreground/30 bg-foreground/10 px-3 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-foreground/20 justify-center"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-foreground/30 bg-foreground/10 px-4 py-3 text-sm font-semibold backdrop-blur transition hover:bg-foreground/20 sm:w-auto"
               >
-                <Instagram className="h-4 w-4" /> Follow @rv_entertainment
-              </a>
-              <a
-                href="https://www.tiktok.com/@rv_entertainment"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full sm:w-auto items-center gap-2 rounded-xl border border-foreground/30 bg-foreground/10 px-3 py-2 sm:px-6 sm:py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-foreground/20 justify-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
-                  <path fill="currentColor" d="M16.5 6.5v4.1c0 1.1-.9 2-2 2-1.1 0-2-.9-2-2V7c.6.2 1.2.3 1.9.3 0 0 .1 0 .1 0V6.5h.1c.4 0 .8-.1 1.1-.3zM19 8.3c-.3.1-.6.1-.9.1-.3 0-.5-.1-.8-.1v6.1c0 2.9-2.4 5.3-5.3 5.3-2.9 0-5.3-2.4-5.3-5.3S9.1 9 12 9c.2 0 .4 0 .6.0v2.2c-.2 0-.4 0-.6 0-1.7 0-3 1.4-3 3.1s1.3 3.1 3 3.1 3-1.4 3-3.1V8.3h.4c.4 0 .8 0 1.2-.1v-1.2c-.4.1-.8.2-1.2.2z"/>
-                </svg>
-                TikTok
+                <Instagram className="h-4 w-4" /> @footballarena254
               </a>
             </div>
           </div>

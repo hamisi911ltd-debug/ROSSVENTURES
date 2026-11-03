@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { EventRow } from "@/lib/types";
 import { extractKV, bulkSyncEvents, listPublishedEvents } from "@/lib/store";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 // ─── Cache API layer (fast, PoP-local fallback when KV is available) ──────────
 const CACHE_TTL = 60 * 60 * 24; // 24 hours
@@ -68,6 +69,11 @@ export const Route = createFileRoute("/admin-events")({
 
       // POST /admin-events — admin saves/syncs events to all devices
       POST: async ({ request, context }) => {
+        if (!(await isAdminRequest(request))) {
+          return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+            status: 401, headers: { "content-type": "application/json; charset=utf-8" },
+          });
+        }
         const origin = new URL(request.url).origin;
         const kv = extractKV(context);
         try {
@@ -94,6 +100,11 @@ export const Route = createFileRoute("/admin-events")({
 
       // DELETE /admin-events — clear all event storage
       DELETE: async ({ request, context }) => {
+        if (!(await isAdminRequest(request))) {
+          return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+            status: 401, headers: { "content-type": "application/json; charset=utf-8" },
+          });
+        }
         const origin = new URL(request.url).origin;
         const kv = extractKV(context);
         try {

@@ -13,7 +13,7 @@ import type { EventRow, BookingRow, TicketTier } from "@/lib/types";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin — Manage Events · Ross Ventures" },
+      { title: "Admin — Manage Matches · Football Arena254" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -43,7 +43,7 @@ async function syncGalleryToServer(photos: GalleryPhoto[]): Promise<boolean> {
   try {
     const res = await fetch("/admin-gallery", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "X-Admin-Key": getAdminKey() },
       body: JSON.stringify({ photos }),
     });
     return res.ok;
@@ -79,17 +79,11 @@ function getAdminKey(): string {
 
 async function fetchBookings(): Promise<BookingRow[]> {
   try {
-    const res = await fetch("/api/bookings");
+    const res = await fetch("/api/bookings", { headers: { "X-Admin-Key": getAdminKey() } });
     const data = await res.json() as { ok: boolean; bookings: BookingRow[] };
     if (data.ok && Array.isArray(data.bookings)) return data.bookings;
   } catch {}
-  // fallback to localStorage
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem("rossventures-bookings");
-    if (!raw) return [];
-    return JSON.parse(raw) as BookingRow[];
-  } catch { return []; }
+  return [];
 }
 
 function AdminPage() {
@@ -292,7 +286,7 @@ function AdminPage() {
       if (!data.ok) throw new Error(data.error ?? "Failed to publish");
 
       if (data.event) setEvents(prev => [data.event!, ...prev]);
-      toast.success("Event published to all devices ✓");
+      toast.success("Match published to all devices ✓");
 
       setTitle(""); setVenue(""); setEventDate(""); setTag(""); setDescription("");
       setTiers([
@@ -303,7 +297,7 @@ function AdminPage() {
       ]);
       onPickFile(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to add event");
+      toast.error(err instanceof Error ? err.message : "Failed to add match");
     } finally { setSubmitting(false); }
   }
 
@@ -354,7 +348,7 @@ function AdminPage() {
             Admin dashboard
           </span>
           <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
-            Manage <span className="text-gradient-ember">events</span>
+            Manage <span className="text-gradient-ember">matches</span>
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -399,7 +393,7 @@ function AdminPage() {
         <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_1.2fr]">
           {/* Add Event Form */}
           <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-border/60 bg-card/60 p-6">
-            <h2 className="font-display text-xl font-bold">Add new event</h2>
+            <h2 className="font-display text-xl font-bold">Add new match</h2>
 
             <label className="block">
               <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Poster image</span>
@@ -417,10 +411,10 @@ function AdminPage() {
 
             <Field label="Title *" value={title} onChange={setTitle} required maxLength={120} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Tag (e.g. 2026 · Headline)" value={tag} onChange={setTag} maxLength={40} />
-              <Field label="Date / time" value={eventDate} onChange={setEventDate} placeholder="16 Sep 2026 · 2PM" maxLength={60} />
+              <Field label="Tag (e.g. Talanta Stadium)" value={tag} onChange={setTag} maxLength={40} />
+              <Field label="Date / time" value={eventDate} onChange={setEventDate} placeholder="13 Feb 2027 · 3PM" maxLength={60} />
             </div>
-            <Field label="Venue" value={venue} onChange={setVenue} placeholder="JKUAT, Juja" maxLength={160} />
+            <Field label="Venue" value={venue} onChange={setVenue} placeholder="Talanta Stadium, Nairobi" maxLength={160} />
 
             <label className="block">
               <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Description</span>
@@ -456,7 +450,7 @@ function AdminPage() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Search className="h-4 w-4 text-muted-foreground" />
-              <input type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search events"
+              <input type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search matches"
                 className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary" />
             </div>
             {loading ? (
@@ -556,9 +550,9 @@ function AdminPage() {
             </div>
 
             <label className="block">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Event name</span>
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Match / venue name</span>
               <input type="text" value={galleryEventName} onChange={e => setGalleryEventName(e.target.value)}
-                placeholder="e.g. Comrades Festival 1.0" maxLength={80}
+                placeholder="e.g. Talanta Stadium" maxLength={80}
                 className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary" />
             </label>
 
@@ -627,6 +621,7 @@ function AdminPage() {
 
       {tab === "bookings" && (
         <div className="mt-6">
+          <GateCheck onChanged={() => fetchBookings().then(setBookings)} />
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl font-bold">All bookings</h2>
             <button onClick={() => fetchBookings().then(setBookings)} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
@@ -640,7 +635,7 @@ function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="border-b border-border/60 bg-card/40">
                   <tr>
-                    {["Name", "Event", "Ticket", "Qty", "Amount", "Status", "M-Pesa Receipt", "Date"].map(h => (
+                    {["Name", "Event", "Ticket", "Qty", "Amount", "Status", "M-Pesa Receipt", "Entry", "Date"].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
                     ))}
                   </tr>
@@ -659,6 +654,7 @@ function AdminPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{b.mpesa_receipt ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{b.checked_in_at ? "Used" : "—"}</td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(b.created_at).toLocaleDateString()}</td>
                     </tr>
                   ))}
@@ -669,6 +665,52 @@ function AdminPage() {
         </div>
       )}
     </main>
+  );
+}
+
+function GateCheck({ onChanged }: { onChanged: () => void }) {
+  const [ref, setRef] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function run(action: "lookup" | "checkin") {
+    const code = ref.trim().replace(/^AR254-/i, "");
+    if (code.length < 8) { setResult({ ok: false, text: "Enter the 8-character ticket reference" }); return; }
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/bookings/${encodeURIComponent(code)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json", "X-Admin-Key": getAdminKey() },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json() as { ok: boolean; error?: string; booking?: BookingRow };
+      if (data.ok && data.booking) {
+        const b = data.booking;
+        setResult({ ok: true, text: `${action === "checkin" ? "ADMITTED" : "VALID"} — ${b.full_name} · ${b.event_title} · ${b.ticket_type} × ${b.quantity}` });
+        if (action === "checkin") onChanged();
+      } else {
+        setResult({ ok: false, text: data.error ?? "Ticket not valid" });
+      }
+    } catch {
+      setResult({ ok: false, text: "Network error" });
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="mb-8 rounded-2xl border border-border/60 bg-card/60 p-5">
+      <h2 className="font-display text-lg font-bold">Gate check-in</h2>
+      <p className="mt-1 text-xs text-muted-foreground">Enter the reference printed on the customer&apos;s ticket.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <input value={ref} onChange={e => setRef(e.target.value.toUpperCase())} placeholder="e.g. 1A2B3C4D" maxLength={14}
+          className="w-48 rounded-xl border border-border bg-background px-4 py-2.5 font-mono text-sm tracking-widest outline-none focus:border-primary" />
+        <button disabled={busy} onClick={() => run("lookup")} className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary disabled:opacity-60">Verify</button>
+        <button disabled={busy} onClick={() => run("checkin")} className="rounded-xl bg-gradient-ember px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">Admit &amp; mark used</button>
+      </div>
+      {result && (
+        <p className={`mt-3 rounded-lg px-3 py-2 text-sm font-semibold ${result.ok ? "bg-emerald-500/15 text-emerald-400" : "bg-destructive/15 text-destructive"}`}>{result.text}</p>
+      )}
+    </div>
   );
 }
 

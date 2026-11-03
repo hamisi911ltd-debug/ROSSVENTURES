@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { isAdminRequest } from "@/lib/admin-auth";
 import type { GalleryPhoto } from "@/lib/types";
 
 const _mem: GalleryPhoto[] = [];
@@ -54,6 +55,11 @@ export const Route = createFileRoute("/admin-gallery")({
       },
 
       POST: async ({ request }) => {
+        if (!(await isAdminRequest(request))) {
+          return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+            status: 401, headers: { "content-type": "application/json; charset=utf-8" },
+          });
+        }
         const origin = new URL(request.url).origin;
         try {
           const body = (await request.json()) as { photos?: GalleryPhoto[] };
@@ -74,6 +80,11 @@ export const Route = createFileRoute("/admin-gallery")({
       },
 
       DELETE: async ({ request }) => {
+        if (!(await isAdminRequest(request))) {
+          return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+            status: 401, headers: { "content-type": "application/json; charset=utf-8" },
+          });
+        }
         const origin = new URL(request.url).origin;
         try {
           await (caches as any).default.delete(cacheKey(origin));

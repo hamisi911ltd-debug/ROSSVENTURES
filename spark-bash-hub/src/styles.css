@@ -40,50 +40,50 @@
   --radius: 0.875rem;
 
   /* Sophisticated dark theme with subtle warmth */
-  --background: oklch(0.12 0.01 260);
-  --foreground: oklch(0.98 0.005 260);
-  --card: oklch(0.16 0.015 260);
-  --card-foreground: oklch(0.98 0.005 260);
-  --popover: oklch(0.16 0.015 260);
-  --popover-foreground: oklch(0.98 0.005 260);
+  --background: oklch(0.12 0.01 165);
+  --foreground: oklch(0.98 0.005 165);
+  --card: oklch(0.16 0.015 165);
+  --card-foreground: oklch(0.98 0.005 165);
+  --popover: oklch(0.16 0.015 165);
+  --popover-foreground: oklch(0.98 0.005 165);
 
-  --primary: oklch(0.55 0.18 25);              /* refined coral-red */
-  --primary-foreground: oklch(0.99 0.005 20);
-  --secondary: oklch(0.20 0.02 260);
-  --secondary-foreground: oklch(0.98 0.005 260);
-  --muted: oklch(0.20 0.02 260);
-  --muted-foreground: oklch(0.65 0.015 260);
-  --accent: oklch(0.60 0.20 30);
-  --accent-foreground: oklch(0.99 0.005 20);
+  --primary: oklch(0.52 0.17 150);              /* pitch green */
+  --primary-foreground: oklch(0.99 0.005 150);
+  --secondary: oklch(0.20 0.02 165);
+  --secondary-foreground: oklch(0.98 0.005 165);
+  --muted: oklch(0.20 0.02 165);
+  --muted-foreground: oklch(0.65 0.015 165);
+  --accent: oklch(0.74 0.20 148);              /* bright pitch green */
+  --accent-foreground: oklch(0.14 0.02 165);
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.99 0.005 20);
-  --border: oklch(0.25 0.02 260 / 50%);
-  --input: oklch(0.25 0.02 260);
-  --ring: oklch(0.55 0.18 25);
+  --border: oklch(0.25 0.02 165 / 50%);
+  --input: oklch(0.25 0.02 165);
+  --ring: oklch(0.60 0.18 150);
 
-  --blood: oklch(0.35 0.15 25);
-  --crimson: oklch(0.50 0.18 27);
-  --ember: oklch(0.65 0.20 30);
+  --blood: oklch(0.35 0.15 27);
+  --crimson: oklch(0.52 0.22 27);          /* Kenyan flag red */
+  --ember: oklch(0.68 0.20 148);
   --gold: oklch(0.75 0.15 70);
 
-  --gradient-deep-red: linear-gradient(135deg, oklch(0.12 0.01 260) 0%, oklch(0.18 0.08 25) 50%, oklch(0.25 0.12 30) 100%);
-  --gradient-hero-soft: linear-gradient(135deg, oklch(0.15 0.03 260 / 0.95), oklch(0.17 0.05 35 / 0.92), oklch(0.14 0.04 260 / 0.96));
-  --gradient-ember: linear-gradient(135deg, oklch(0.45 0.16 25), oklch(0.65 0.20 30));
-  --gradient-radial-glow: radial-gradient(60% 60% at 50% 0%, oklch(0.45 0.18 28 / 20%) 0%, transparent 70%);
-  --gradient-hero-veil: linear-gradient(180deg, oklch(0.12 0.01 260 / 0.2) 0%, oklch(0.12 0.01 260 / 0.65) 70%, oklch(0.12 0.01 260) 100%);
+  --gradient-deep-red: linear-gradient(135deg, oklch(0.12 0.01 165) 0%, oklch(0.20 0.08 152) 55%, oklch(0.30 0.13 148) 100%);
+  --gradient-hero-soft: linear-gradient(135deg, oklch(0.15 0.03 165 / 0.95), oklch(0.19 0.07 150 / 0.92), oklch(0.14 0.04 165 / 0.96));
+  --gradient-ember: linear-gradient(135deg, oklch(0.44 0.15 152), oklch(0.62 0.19 146));
+  --gradient-radial-glow: radial-gradient(60% 60% at 50% 0%, oklch(0.50 0.18 150 / 20%) 0%, transparent 70%);
+  --gradient-hero-veil: linear-gradient(180deg, oklch(0.12 0.01 165 / 0.2) 0%, oklch(0.12 0.01 165 / 0.65) 70%, oklch(0.12 0.01 165) 100%);
 
-  --shadow-glow: 0 20px 60px -20px oklch(0.50 0.20 28 / 0.35);
-  --shadow-card: 0 10px 30px -15px oklch(0.05 0.01 260 / 0.6);
-  --shadow-ember: 0 0 40px oklch(0.60 0.20 30 / 0.25);
+  --shadow-glow: 0 20px 60px -20px oklch(0.55 0.19 150 / 0.40);
+  --shadow-card: 0 10px 30px -15px oklch(0.05 0.01 165 / 0.6);
+  --shadow-ember: 0 0 40px oklch(0.65 0.19 148 / 0.25);
 
-  --sidebar: oklch(0.14 0.01 260);
-  --sidebar-foreground: oklch(0.98 0.005 260);
-  --sidebar-primary: oklch(0.55 0.18 25);
-  --sidebar-primary-foreground: oklch(0.99 0.005 20);
-  --sidebar-accent: oklch(0.20 0.02 260);
-  --sidebar-accent-foreground: oklch(0.98 0.005 260);
-  --sidebar-border: oklch(0.25 0.02 260 / 50%);
-  --sidebar-ring: oklch(0.55 0.18 25);
+  --sidebar: oklch(0.14 0.01 165);
+  --sidebar-foreground: oklch(0.98 0.005 165);
+  --sidebar-primary: oklch(0.52 0.17 150);
+  --sidebar-primary-foreground: oklch(0.99 0.005 150);
+  --sidebar-accent: oklch(0.20 0.02 165);
+  --sidebar-accent-foreground: oklch(0.98 0.005 165);
+  --sidebar-border: oklch(0.25 0.02 165 / 50%);
+  --sidebar-ring: oklch(0.60 0.18 150);
 }
 
 @layer base {
@@ -99,40 +99,46 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     background-image:
-      radial-gradient(50% 40% at 80% 0%, oklch(0.35 0.15 30 / 0.12), transparent 70%),
-      radial-gradient(40% 30% at 0% 30%, oklch(0.25 0.12 260 / 0.10), transparent 70%),
-      radial-gradient(30% 25% at 50% 100%, oklch(0.30 0.14 25 / 0.08), transparent 70%);
+      radial-gradient(50% 40% at 80% 0%, oklch(0.40 0.16 150 / 0.14), transparent 70%),
+      radial-gradient(40% 30% at 0% 30%, oklch(0.40 0.20 27 / 0.08), transparent 70%),
+      radial-gradient(30% 25% at 50% 100%, oklch(0.35 0.14 150 / 0.10), transparent 70%);
     background-attachment: fixed;
   }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
 }
 
 @layer utilities {
+  .bg-gradient-ember { background-image: var(--gradient-ember); }
   .bg-gradient-deep-red { background-image: var(--gradient-deep-red); }
   .bg-hero-soft { background-image: var(--gradient-hero-soft); }
   .bg-radial-glow { background-image: var(--gradient-radial-glow); }
   .bg-hero-veil { background: var(--gradient-hero-veil); }
   .text-gradient-ember {
-    background-image: var(--gradient-ember);
+    background-image: linear-gradient(135deg, oklch(0.72 0.20 148), oklch(0.86 0.20 135));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  /* Kenyan flag stripe: black / red / white / green */
+  .flag-stripe {
+    height: 4px;
+    background: linear-gradient(90deg, #0b0b0b 0 25%, #bb0000 25% 50%, #ffffff 50% 62%, #006600 62% 100%);
   }
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .shadow-ember { box-shadow: var(--shadow-ember); }
   .shadow-card-soft { box-shadow: var(--shadow-card); }
   .glass {
-    background: oklch(0.16 0.015 260 / 0.50);
+    background: oklch(0.16 0.015 165 / 0.50);
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
-    border: 1px solid oklch(0.35 0.08 25 / 0.20);
+    border: 1px solid oklch(0.45 0.10 150 / 0.25);
   }
   .ring-ember {
-    box-shadow: 0 0 0 1px oklch(0.60 0.20 30 / 0.35), 0 0 30px oklch(0.60 0.20 30 / 0.20);
+    box-shadow: 0 0 0 1px oklch(0.65 0.19 148 / 0.35), 0 0 30px oklch(0.65 0.19 148 / 0.20);
   }
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 30px oklch(0.60 0.20 30 / 0.25); }
-    50% { box-shadow: 0 0 60px oklch(0.60 0.20 30 / 0.45); }
+    0%, 100% { box-shadow: 0 0 30px oklch(0.65 0.19 148 / 0.25); }
+    50% { box-shadow: 0 0 60px oklch(0.65 0.19 148 / 0.45); }
   }
   .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
   @keyframes float {
