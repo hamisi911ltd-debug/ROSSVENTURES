@@ -30,16 +30,12 @@ export async function extractR2(_req?: Request): Promise<R2Bucket | null> {
   return env?.IMAGES ?? null;
 }
 
+// Only a real Worker secret (wrangler secret put ADMIN_PASSWORD) can unlock the admin-only API.
+// Build-time VITE_ variables are baked into the bundle and are never trusted.
 export async function getAdminPassword(_req?: Request): Promise<string | undefined> {
   const env = await getCFEnv();
   if (env?.ADMIN_PASSWORD) return env.ADMIN_PASSWORD;
-  if (env?.VITE_ADMIN_PASSWORD) return env.VITE_ADMIN_PASSWORD;
-  // Fallback: Vite embeds VITE_ vars from .env at build time
-  const vitePw = (import.meta as any)?.env?.VITE_ADMIN_PASSWORD;
-  if (vitePw) return vitePw;
-  if (typeof process !== "undefined") {
-    return process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD;
-  }
+  if (typeof process !== "undefined" && process.env.ADMIN_PASSWORD) return process.env.ADMIN_PASSWORD;
   return undefined;
 }
 

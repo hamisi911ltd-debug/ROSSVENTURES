@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { X, ZoomIn, ChevronLeft, ChevronRight, Camera } from "lucide-react";
-import type { GalleryPhoto } from "@/lib/types";
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
@@ -13,8 +12,6 @@ export const Route = createFileRoute("/gallery")({
   }),
   component: GalleryPage,
 });
-
-const GALLERY_STORAGE_KEY = "rossventures-gallery";
 
 // Static photos from public/gallery — Talanta Stadium first
 const STATIC_PHOTOS: Array<{ id: string; url: string; caption?: string }> = [
@@ -28,47 +25,13 @@ const STATIC_PHOTOS: Array<{ id: string; url: string; caption?: string }> = [
   { id: "s08", url: "/gallery/fans-kasarani.jpg",            caption: "Fans heading into Kasarani" },
 ];
 
-function getLocalGallery(): GalleryPhoto[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(GALLERY_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((p: any) => p.is_published) : [];
-  } catch {
-    return [];
-  }
-}
-
 type PhotoItem = { id: string; url: string; caption?: string; event_name?: string };
 
 function GalleryPage() {
-  const [adminPhotos, setAdminPhotos] = useState<GalleryPhoto[]>([]);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
-  useEffect(() => {
-    const local = getLocalGallery();
-    if (local.length > 0) setAdminPhotos(local);
-
-    fetch("/admin-gallery", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data: { ok: boolean; photos: GalleryPhoto[] }) => {
-        if (data.ok && Array.isArray(data.photos) && data.photos.length > 0) {
-          const published = data.photos.filter((p) => p.is_published);
-          setAdminPhotos(published);
-          window.localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(published));
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   // Merge: static photos first, then any admin-only ones
-  const staticIds = new Set(STATIC_PHOTOS.map((p) => p.id));
-  const adminExtra: PhotoItem[] = adminPhotos
-    .filter((p) => !staticIds.has(p.id))
-    .map((p) => ({ id: p.id, url: p.url, caption: p.caption, event_name: p.event_name }));
-
-  const allPhotos: PhotoItem[] = [...STATIC_PHOTOS, ...adminExtra];
+  const allPhotos: PhotoItem[] = STATIC_PHOTOS;
 
   const closeLightbox = useCallback(() => setLightboxIdx(null), []);
 

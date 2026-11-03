@@ -1,6 +1,6 @@
 import type { EventRow } from "./types";
 import { extractDB, rowToEvent } from "./db";
-import { FIXTURES_BY_ID } from "./fixtures";
+import { FIXTURES_BY_ID, TEST_FIXTURE_ID } from "./fixtures";
 
 /**
  * Server-side source of truth for what can be bought and at what price.
@@ -16,5 +16,6 @@ export async function resolveEvent(eventId: string): Promise<{ event: EventRow; 
     } catch {}
   }
   const fixture = FIXTURES_BY_ID[eventId];
-  return fixture ? { event: fixture, sample: true } : null;
+  // The hidden KES 10 test ticket is always payable; other built-in fixtures are placeholders
+  return fixture ? { event: fixture, sample: fixture.id !== TEST_FIXTURE_ID } : null;
 }

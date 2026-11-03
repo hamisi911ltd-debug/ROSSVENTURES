@@ -2,8 +2,10 @@
 //
 // Worker secrets (wrangler secret put <NAME>):
 //   PAYHERO_API_USERNAME + PAYHERO_API_PASSWORD   (or PAYHERO_AUTH_TOKEN = the full "Basic xxxx" header value)
-//   PAYHERO_ACCOUNT_ID                            (your FinoQ/PayHero account id — payments settle to its payments wallet)
-//   PAYHERO_CHANNEL_ID                            (optional: pin a specific payment channel; leave unset to use the wallet)
+//   PAYHERO_ACCOUNT_ID                            (your FinoQ/PayHero account id)
+//   PAYHERO_CHANNEL_ID                            (optional: pin a till/paybill/bank channel. Leave UNSET so
+//                                                  collections are wallet-based and settle to the payments wallet)
+//   PAYHERO_NETWORK_CODE                          (optional, wallet mode only; default "63902" = M-Pesa)
 //   PAYHERO_CALLBACK_SECRET                       (random string that signs callback URLs)
 //
 // Written against the v2 API (POST /payments, JSON callback). All provider-specific field
@@ -16,6 +18,11 @@ const DEFAULT_BASE_URL = "https://api.finoq.africa/api/v2";
 // PAYHERO_BASE_URL exists so the flow can be tested against a mock server
 async function baseUrl(): Promise<string> {
   return (await getEnvVar("PAYHERO_BASE_URL")) ?? DEFAULT_BASE_URL;
+}
+
+// Host root (the status endpoint lives under /api/global, not /api/v2)
+async function apiRoot(): Promise<string> {
+  return (await baseUrl()).replace(/\/api\/v2\/?$/, "");
 }
 
 export type PaymentState = "paid" | "failed" | "pending";
@@ -46,8 +53,7 @@ async function authHeader(): Promise<string | null> {
 }
 
 export async function payheroConfigured(): Promise<boolean> {
-  const hasTarget = !!(await getEnvVar("PAYHERO_ACCOUNT_ID")) || !!(await getEnvVar("PAYHERO_CHANNEL_ID"));
-  return !!(await authHeader()) && hasTarget;
+  return !!(await authHeader()) && !!(await getEnvVar("PAYHERO_ACCOUNT_ID"));
 }
 
 /** Kenyan mobile → local 07XXXXXXXX / 01XXXXXXXX. Returns null when not a valid number. */
@@ -99,17 +105,20 @@ export async function initiateStkPush(args: {
   const channelId = await getEnvVar("PAYHERO_CHANNEL_ID");
   const accountId = await getEnvVar("PAYHERO_ACCOUNT_ID");
   const token = await callbackToken(args.bookingId);
-  if (!auth || (!channelId && !accountId) || !token) return { ok: false, error: "Payments are not configured" };
+  if (!auth || !accountId || !token) return { ok: false, error: "Payments are not configured" };
+
+  // Wallet collection (default): money is credited to the account's payments wallet, no channel routing.
+  // Channel collection: only when PAYHERO_CHANNEL_ID is explicitly set.
+  const route = channelId
+    ? { provider: "m-pesa", channel_id: Number(channelId) }
+    : { provider: "sasapay", network_code: (await getEnvVar("PAYHERO_NETWORK_CODE")) ?? "63902" };
 
   const body = {
     amount: Math.round(args.amount),
     phone_number: args.phone,
-    // No channel_id unless explicitly configured → money settles to the account's payments wallet
-    ...(channelId ? { channel_id: Number(channelId) } : {}),
-    ...(accountId ? { account_id: Number(accountId) } : {}),
-    provider: "m-pesa",
+    ...route,
+    account_id: Number(accountId),
     external_reference: args.bookingId,
-    customer_name: args.customerName,
     callback_url: `${args.origin}/api/payhero/callback?b=${encodeURIComponent(args.bookingId)}&t=${token}`,
   };
 
@@ -145,11 +154,14 @@ export async function fetchPaymentStatus(reference: string): Promise<StatusResul
   const auth = await authHeader();
   if (!auth || !reference) return { ok: false };
   try {
-    const res = await fetch(`${await baseUrl()}/transaction-status?reference=${encodeURIComponent(reference)}`, {
-      headers: { Authorization: auth },
+    const res = await fetch(`${await apiRoot()}/api/global/transaction-status`, {
+      method: "POST",
+      headers: { Authorization: auth, "Content-Type": "application/json" },
+      body: JSON.stringify({ request_id: reference }),
     });
     if (!res.ok) return { ok: false };
-    const d = (await res.json()) as any;
+    const raw = (await res.json()) as any;
+    const d = raw?.data && typeof raw.data === "object" ? raw.data : raw;
     if (d?.status === undefined) return { ok: false };
     const receipt = d.provider_reference ?? d.mpesa_receipt_number ?? d.MpesaReceiptNumber ?? null;
     const amount = d.amount !== undefined && d.amount !== null ? Number(d.amount) : null;

@@ -12,12 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OrganizersRouteImport } from './routes/organizers'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AmbassadorsRouteImport } from './routes/ambassadors'
-import { Route as AdminLoginRouteImport } from './routes/admin-login'
-import { Route as AdminGalleryRouteImport } from './routes/admin-gallery'
-import { Route as AdminEventsRouteImport } from './routes/admin-events'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
@@ -46,34 +41,9 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AmbassadorsRoute = AmbassadorsRouteImport.update({
   id: '/ambassadors',
   path: '/ambassadors',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin-login',
-  path: '/admin-login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminGalleryRoute = AdminGalleryRouteImport.update({
-  id: '/admin-gallery',
-  path: '/admin-gallery',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEventsRoute = AdminEventsRouteImport.update({
-  id: '/admin-events',
-  path: '/admin-events',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -140,12 +110,7 @@ const ApiBookingsBookingIdRoute = ApiBookingsBookingIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
-  '/admin-events': typeof AdminEventsRoute
-  '/admin-gallery': typeof AdminGalleryRoute
-  '/admin-login': typeof AdminLoginRoute
   '/ambassadors': typeof AmbassadorsRoute
-  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
@@ -163,12 +128,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
-  '/admin-events': typeof AdminEventsRoute
-  '/admin-gallery': typeof AdminGalleryRoute
-  '/admin-login': typeof AdminLoginRoute
   '/ambassadors': typeof AmbassadorsRoute
-  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
@@ -187,12 +147,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
-  '/admin-events': typeof AdminEventsRoute
-  '/admin-gallery': typeof AdminGalleryRoute
-  '/admin-login': typeof AdminLoginRoute
   '/ambassadors': typeof AmbassadorsRoute
-  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
@@ -212,12 +167,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/admin'
-    | '/admin-events'
-    | '/admin-gallery'
-    | '/admin-login'
     | '/ambassadors'
-    | '/auth'
     | '/contact'
     | '/gallery'
     | '/organizers'
@@ -235,12 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/admin'
-    | '/admin-events'
-    | '/admin-gallery'
-    | '/admin-login'
     | '/ambassadors'
-    | '/auth'
     | '/contact'
     | '/gallery'
     | '/organizers'
@@ -258,12 +203,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/admin'
-    | '/admin-events'
-    | '/admin-gallery'
-    | '/admin-login'
     | '/ambassadors'
-    | '/auth'
     | '/contact'
     | '/gallery'
     | '/organizers'
@@ -282,12 +222,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
-  AdminEventsRoute: typeof AdminEventsRoute
-  AdminGalleryRoute: typeof AdminGalleryRoute
-  AdminLoginRoute: typeof AdminLoginRoute
   AmbassadorsRoute: typeof AmbassadorsRoute
-  AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   GalleryRoute: typeof GalleryRoute
   OrganizersRoute: typeof OrganizersRoute
@@ -324,46 +259,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/ambassadors': {
       id: '/ambassadors'
       path: '/ambassadors'
       fullPath: '/ambassadors'
       preLoaderRoute: typeof AmbassadorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin-login': {
-      id: '/admin-login'
-      path: '/admin-login'
-      fullPath: '/admin-login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin-gallery': {
-      id: '/admin-gallery'
-      path: '/admin-gallery'
-      fullPath: '/admin-gallery'
-      preLoaderRoute: typeof AdminGalleryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin-events': {
-      id: '/admin-events'
-      path: '/admin-events'
-      fullPath: '/admin-events'
-      preLoaderRoute: typeof AdminEventsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -480,12 +380,7 @@ const ApiEventsRouteWithChildren = ApiEventsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
-  AdminEventsRoute: AdminEventsRoute,
-  AdminGalleryRoute: AdminGalleryRoute,
-  AdminLoginRoute: AdminLoginRoute,
   AmbassadorsRoute: AmbassadorsRoute,
-  AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   GalleryRoute: GalleryRoute,
   OrganizersRoute: OrganizersRoute,
