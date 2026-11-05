@@ -11,7 +11,7 @@ import type { EventRow, BookingRow } from "@/lib/types";
 import { FIXTURES_BY_ID, FALLBACK_POSTER } from "@/lib/fixtures";
 import { TeamCrest } from "@/components/TeamCrest";
 import { Squads } from "@/components/Squads";
-import { OPENING_MATCH_ID, VENUE_TBC } from "@/lib/league";
+import { OPENING_MATCH_ID, OPENING_POSTER, VENUE_TBC } from "@/lib/league";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/events/$eventId")({
@@ -187,6 +187,7 @@ function EventDetailPage() {
       <div className="grid gap-10 lg:grid-cols-3">
         {/* ── Event info ── */}
         <div className="lg:col-span-2 space-y-8">
+          {event.id === OPENING_MATCH_ID && (<img src={OPENING_POSTER} alt="Bayern Munich vs Ajax - Raila Odinga International Stadium at Talanta Sports City, 5 January 2027" className="mx-auto w-full max-w-xl rounded-2xl border border-primary/30 shadow-glow" />)}
           {event.home_team && event.away_team ? (
             <div className="relative overflow-hidden rounded-2xl border border-primary/30 shadow-glow">
               <img src={event.poster_url ?? FALLBACK_POSTER} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
@@ -256,7 +257,7 @@ function EventDetailPage() {
                       {tierName === t.name && <span className="h-2 w-2 rounded-full bg-accent" />}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
-                    <p className="mt-2 font-display text-2xl font-bold text-gradient-ember">KES {t.price.toLocaleString()}</p>
+                    <p className="mt-2 font-display text-2xl font-bold text-gradient-ember">KES {t.price.toLocaleString()}{t.was ? <span className="ml-2 text-sm font-medium text-muted-foreground line-through">KES {t.was.toLocaleString()}</span> : null}</p>
                   </div>
                 ))}
               </div>

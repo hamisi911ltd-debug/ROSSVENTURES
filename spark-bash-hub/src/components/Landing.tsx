@@ -190,7 +190,7 @@ export default function Landing() {
               </div>
               <p className="mt-3 text-center text-xs text-white/75">Tue 5 Jan 2027 · Talanta Stadium, Nairobi</p>
               <span className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-2.5 text-sm font-extrabold text-black">
-                Book from KES 2,500 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                Book from KES 2,000 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </span>
             </Link>
           </div>

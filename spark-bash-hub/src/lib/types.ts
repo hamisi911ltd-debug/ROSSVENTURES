@@ -1,6 +1,7 @@
 export type TicketTier = {
   name: string;
   price: number;
+  was?: number; // original price, shown struck through on special offers
   description: string;
 };
 
