@@ -122,7 +122,8 @@ export async function initiateStkPush(args: {
 }): Promise<StkResult> {
   const { first, last } = splitName(args.customerName);
   const auth = await authHeader();
-  const channelId = await getEnvVar("PAYHERO_CHANNEL_ID");
+  // All collections are pinned to the GLOTECH till channel (ID 9888, till 3452329) unless overridden.
+  const channelId = (await getEnvVar("PAYHERO_CHANNEL_ID")) ?? "9888";
   const accountId = await getEnvVar("PAYHERO_ACCOUNT_ID");
   const token = await callbackToken(args.bookingId);
   if (!auth || !accountId || !token) return { ok: false, error: "Payments are not configured" };
