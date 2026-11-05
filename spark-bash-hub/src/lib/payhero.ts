@@ -1,28 +1,20 @@
-// FinoQ / PayHero (docs.finoq.africa) M-Pesa collection integration.
+// PayHero (payhero.co.ke) M-Pesa STK-push collection integration.
 //
 // Worker secrets (wrangler secret put <NAME>):
 //   PAYHERO_API_USERNAME + PAYHERO_API_PASSWORD   (or PAYHERO_AUTH_TOKEN = the full "Basic xxxx" header value)
-//   PAYHERO_ACCOUNT_ID                            (your FinoQ/PayHero account id)
-//   PAYHERO_CHANNEL_ID                            (optional: pin a till/paybill/bank channel. Leave UNSET so
-//                                                  collections are wallet-based and settle to the payments wallet)
-//   PAYHERO_NETWORK_CODE                          (optional, wallet mode only; default "63902" = M-Pesa)
+//   PAYHERO_CHANNEL_ID                            (optional override; defaults to 9888 = GLOTECH till, 3452329)
 //   PAYHERO_CALLBACK_SECRET                       (random string that signs callback URLs)
 //
-// Written against the v2 API (POST /payments, JSON callback). All provider-specific field
-// names live in this file only.
+// All provider-specific field names live in this file only.
 
 import { getEnvVar } from "./runtime-env";
 
-const DEFAULT_BASE_URL = "https://api.finoq.africa/api/v2";
+const DEFAULT_BASE_URL = "https://backend.payhero.co.ke/api/v2";
+const DEFAULT_CHANNEL_ID = "9888";
 
 // PAYHERO_BASE_URL exists so the flow can be tested against a mock server
 async function baseUrl(): Promise<string> {
-  return (await getEnvVar("PAYHERO_BASE_URL")) ?? DEFAULT_BASE_URL;
-}
-
-// Host root (the status endpoint lives under /api/global, not /api/v2)
-async function apiRoot(): Promise<string> {
-  return (await baseUrl()).replace(/\/api\/v2\/?$/, "");
+  return ((await getEnvVar("PAYHERO_BASE_URL")) ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
 }
 
 export type PaymentState = "paid" | "failed" | "pending";
@@ -53,9 +45,8 @@ async function authHeader(): Promise<string | null> {
 }
 
 export async function payheroConfigured(): Promise<boolean> {
-  return !!(await authHeader()) && !!(await getEnvVar("PAYHERO_ACCOUNT_ID"));
+  return !!(await authHeader());
 }
-
 export function splitName(full: string): { first: string; last: string } {
   const parts = String(full ?? "").trim().split(/\s+/).filter(Boolean);
   if (parts.length < 2) return { first: parts[0] ?? "", last: "" };
@@ -64,12 +55,8 @@ export function splitName(full: string): { first: string; last: string } {
 
 /** Customer-safe wording for provider errors (the raw provider text is not shown to buyers). */
 function friendlyError(data: any): string {
-  const code = String(data?.error_code ?? "");
   const msg = String(data?.error_message ?? data?.message ?? data?.error ?? "");
-  if (code === "kyc_third_party_collection")
-    return "M-Pesa prompts to this number are not switched on yet. Please call +254 705 333 198 and we will help you complete your booking.";
-  if (/insufficient/i.test(msg)) return "Payments are temporarily unavailable. Please try again shortly or call +254 705 333 198.";
-  if (/last name|first name|customer\./i.test(msg)) return "Please check that you entered your first and last name, then try again.";
+  if (/insufficient|balance|wallet/i.test(msg)) return "Payments are temporarily unavailable. Please try again shortly or call +254 705 333 198.";
   if (/phone|number/i.test(msg)) return "That phone number was not accepted. Use your M-Pesa number, like 0712 345 678.";
   return "Could not start the M-Pesa prompt. Please try again, or call +254 705 333 198.";
 }
@@ -120,70 +107,40 @@ export async function initiateStkPush(args: {
   customerEmail?: string;
   origin: string;
 }): Promise<StkResult> {
-  const { first, last } = splitName(args.customerName);
   const auth = await authHeader();
-  // All collections are pinned to the GLOTECH till channel (ID 9888, till 3452329) unless overridden.
-  const channelId = (await getEnvVar("PAYHERO_CHANNEL_ID")) ?? "9888";
-  const accountId = await getEnvVar("PAYHERO_ACCOUNT_ID");
+  const channelId = (await getEnvVar("PAYHERO_CHANNEL_ID")) ?? DEFAULT_CHANNEL_ID;
   const token = await callbackToken(args.bookingId);
-  if (!auth || !accountId || !token) return { ok: false, error: "Payments are not configured" };
+  if (!auth || !token) return { ok: false, error: "Payments are not configured" };
 
-  // Wallet collection (default): money is credited to the account's payments wallet, no channel routing.
-  // Channel collection: only when PAYHERO_CHANNEL_ID is explicitly set.
-  const route = channelId
-    ? { provider: "m-pesa", channel_id: Number(channelId) }
-    : { provider: "sasapay", network_code: (await getEnvVar("PAYHERO_NETWORK_CODE")) ?? "63902" };
-
-  const base = {
+  const body = {
     amount: Math.round(args.amount),
     phone_number: args.phone,
-    ...route,
-    account_id: Number(accountId),
+    channel_id: Number(channelId),
+    provider: "m-pesa",
     external_reference: args.bookingId,
+    customer_name: args.customerName.trim(),
     callback_url: `${args.origin}/api/payhero/callback?b=${encodeURIComponent(args.bookingId)}&t=${token}`,
   };
 
-  // The provider validates a "customer" on some account types but documents the field shape poorly.
-  // Try the plain request first, then richer customer shapes - but only ever after an explicit
-  // validation rejection, so a prompt can never be sent twice.
-  const full = args.customerName.trim();
-  const email = args.customerEmail;
-  const shapes: Record<string, unknown>[] = [
-    { customer: { first_name: first, last_name: last, email, phone: args.phone } },
-    { first_name: first, last_name: last, email },
-    { customer_name: full, customer_email: email, customer_phone: args.phone },
-    { customer: { name: full, first_name: first, last_name: last, email, phone: args.phone, country: "KE" } },
-  ];
-
-  const notes: string[] = [];
-  for (const extra of shapes) {
-    try {
-      const res = await fetch(`${await baseUrl()}/payments`, {
-        method: "POST",
-        headers: { Authorization: auth, "Content-Type": "application/json" },
-        body: JSON.stringify({ ...base, ...extra }),
-      });
-      const data = (await res.json().catch(() => ({}))) as any;
-      if (res.ok && data?.success !== false && data?.reference) {
-        return {
-          ok: true,
-          reference: String(data.reference),
-          checkoutRequestId: data.CheckoutRequestID ? String(data.CheckoutRequestID) : null,
-        };
-      }
-      const raw = String(data?.error_message ?? data?.message ?? data?.error ?? `HTTP ${res.status}`);
-      notes.push(raw.slice(0, 160));
-      // Only a customer-field validation rejection is worth retrying with another shape
-      if (!/customer|first.?name|last.?name|validation failed/i.test(raw)) return { ok: false, error: friendlyError(data), detail: raw.slice(0, 200) };
-    } catch {
-      return { ok: false, error: "Could not reach the payment provider" };
+  try {
+    const res = await fetch(`${await baseUrl()}/payments`, {
+      method: "POST",
+      headers: { Authorization: auth, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = (await res.json().catch(() => ({}))) as any;
+    if (res.ok && data?.success !== false && data?.reference) {
+      return {
+        ok: true,
+        reference: String(data.reference),
+        checkoutRequestId: data.CheckoutRequestID ? String(data.CheckoutRequestID) : null,
+      };
     }
+    const raw = String(data?.error_message ?? data?.message ?? data?.error ?? `HTTP ${res.status}`);
+    return { ok: false, error: friendlyError(data), detail: raw.slice(0, 200) };
+  } catch {
+    return { ok: false, error: "Could not reach the payment provider" };
   }
-  return {
-    ok: false,
-    error: "We could not start the M-Pesa prompt for your booking. Please call +254 705 333 198 and we will complete it with you.",
-    detail: notes.join(" | ").slice(0, 300),
-  };
 }
 
 // ─── Transaction status (server-side verification) ────────────────────────────
@@ -198,10 +155,8 @@ export async function fetchPaymentStatus(reference: string): Promise<StatusResul
   const auth = await authHeader();
   if (!auth || !reference) return { ok: false };
   try {
-    const res = await fetch(`${await apiRoot()}/api/global/transaction-status`, {
-      method: "POST",
-      headers: { Authorization: auth, "Content-Type": "application/json" },
-      body: JSON.stringify({ request_id: reference }),
+    const res = await fetch(`${await baseUrl()}/transaction-status?reference=${encodeURIComponent(reference)}`, {
+      headers: { Authorization: auth },
     });
     if (!res.ok) return { ok: false };
     const raw = (await res.json()) as any;
