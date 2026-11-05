@@ -81,11 +81,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Talanta Sports City - Book Kenyan Football Matches" },
       { property: "og:description", content: "Tickets for Kenyan football at the new Talanta Stadium and beyond. Pay by M-PESA." },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/gallery/talanta-stadium.jpg" },
+      { property: "og:image", content: "https://talantasportscity.rossventures.co.ke/gallery/talanta-stadium.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Talanta Sports City" },
       { name: "twitter:description", content: "Book Kenyan football matches - Talanta Stadium, Kasarani, Nyayo." },
-      { name: "twitter:image", content: "/gallery/talanta-stadium.jpg" },
+      { name: "twitter:image", content: "https://talantasportscity.rossventures.co.ke/gallery/talanta-stadium.jpg" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

@@ -15,7 +15,30 @@ import { OPENING_MATCH_ID, OPENING_POSTER, VENUE_TBC } from "@/lib/league";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/events/$eventId")({
-  head: () => ({ meta: [{ title: "Book Match Tickets - Talanta Sports City" }] }),
+  head: ({ params }) => {
+    if (params.eventId === OPENING_MATCH_ID) {
+      const title = "Bayern Munich vs Ajax - Talanta Sports City, 5 January 2027";
+      const desc = "Raila Odinga International Stadium at Talanta Sports City, Nairobi. 5th January 2027. Tickets on sale now: special offer KSh 2,000 (was KSh 2,500) for 24 hours only. Max 10 tickets per person. Book now!";
+      const image = "https://talantasportscity.rossventures.co.ke/bayern-ajax-share.jpg";
+      return {
+        meta: [
+          { title },
+          { name: "description", content: desc },
+          { property: "og:type", content: "website" },
+          { property: "og:title", content: title },
+          { property: "og:description", content: desc },
+          { property: "og:image", content: image },
+          { property: "og:image:width", content: "900" },
+          { property: "og:image:height", content: "1082" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:title", content: title },
+          { name: "twitter:description", content: desc },
+          { name: "twitter:image", content: image },
+        ],
+      };
+    }
+    return { meta: [{ title: "Book Match Tickets - Talanta Sports City" }] };
+  },
   component: EventDetailPage,
 });
 
