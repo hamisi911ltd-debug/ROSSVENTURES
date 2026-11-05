@@ -5,10 +5,10 @@ import {
   Ticket, User, Mail, Phone, Hash,
 } from "lucide-react";
 import type { BookingRow } from "@/lib/types";
-import arenaLogo from "@/assets/football-arena254-logo.svg";
+import arenaLogo from "@/assets/talanta-sports-city-logo.png";
 
 export const Route = createFileRoute("/ticket/$bookingId")({
-  head: () => ({ meta: [{ title: "Your Match Ticket - Arena 254" }] }),
+  head: () => ({ meta: [{ title: "Your Match Ticket - Talanta Sports City" }] }),
   component: TicketPage,
 });
 
@@ -142,7 +142,7 @@ function TicketPage() {
 
           <div className="bg-[#0a0a0a] px-6 py-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={arenaLogo} alt="Arena 254" className="h-10 w-10 object-contain" />
+              <img src={arenaLogo} alt="Talanta Sports City" className="h-10 w-auto object-contain" />
               <div>
                 <p className="font-bold text-white leading-none" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                   <span style={{ color: "#22c55e" }}>ARENA</span> 254
@@ -209,7 +209,7 @@ function TicketPage() {
           </div>
 
           <div className="bg-[#111] px-6 py-4 flex items-center justify-between gap-4">
-            <p className="text-[11px] text-gray-500">+254 705 333 198 · hello@footballarena254.co.ke</p>
+            <p className="text-[11px] text-gray-500">+254 705 333 198</p>
             <p className="text-[10px] text-gray-600">Issued {new Date(booking.created_at).toLocaleDateString("en-KE")}</p>
           </div>
         </div>

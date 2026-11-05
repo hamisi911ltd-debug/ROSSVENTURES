@@ -5,9 +5,9 @@ import { X, ZoomIn, ChevronLeft, ChevronRight, Camera } from "lucide-react";
 export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
-      { title: "Gallery - Arena 254" },
+      { title: "Gallery - Talanta Sports City" },
       { name: "description", content: "Photos of Talanta Stadium and Kenyan football matchdays." },
-      { property: "og:title", content: "Gallery - Arena 254" },
+      { property: "og:title", content: "Gallery - Talanta Sports City" },
     ],
   }),
   component: GalleryPage,

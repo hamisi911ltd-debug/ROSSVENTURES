@@ -4,8 +4,8 @@ import talantaStadium from "@/assets/talanta-stadium.jpg";
 // ─── Ticket prices ───────────────────────────────────────────────────────────
 // A match with NO tiers cannot be bought (the server refuses the booking and the site shows
 // "tickets on sale soon").
-export const LEAGUE_TICKET_TIERS: TicketTier[] = [{ name: "Regular", price: 500, description: "General admission" }];
-export const OPENING_TICKET_TIERS: TicketTier[] = [{ name: "General admission", price: 1500, description: "Opening match entry" }];
+export const LEAGUE_TICKET_TIERS: TicketTier[] = [{ name: "Regular", price: 2500, description: "General admission" }];
+export const OPENING_TICKET_TIERS: TicketTier[] = [{ name: "General admission", price: 2500, description: "Opening match entry" }];
 
 // ─── Talanta Stadium opening match: Bayern Munich vs Ajax, 5 January 2027 ────
 // (announced by President Ruto and both clubs; kick-off time not yet published)

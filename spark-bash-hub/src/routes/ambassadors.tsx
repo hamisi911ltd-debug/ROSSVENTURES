@@ -5,9 +5,9 @@ import fansKasarani from "@/assets/fans-kasarani.jpg";
 export const Route = createFileRoute("/ambassadors")({
   head: () => ({
     meta: [
-      { title: "Fan Club Ambassadors - Arena 254" },
-      { name: "description", content: "Rally your fan club. Promote Kenyan football matches on Arena 254 and earn commission on every ticket, paid by M-PESA." },
-      { property: "og:title", content: "Become a Fan Club Ambassador - Arena 254" },
+      { title: "Fan Club Ambassadors - Talanta Sports City" },
+      { name: "description", content: "Rally your fan club. Promote Kenyan football matches on Talanta Sports City and earn commission on every ticket, paid by M-PESA." },
+      { property: "og:title", content: "Become a Fan Club Ambassador - Talanta Sports City" },
       { property: "og:description", content: "Share the match. Earn commission. Get paid weekly via M-PESA." },
     ],
   }),
@@ -28,7 +28,7 @@ function AmbassadorsPage() {
           <p className="mt-5 max-w-xl text-lg text-white/80">
             Run a fan club, a supporters&apos; group or a WhatsApp community? Share your own trackable link for matches at <strong className="text-white">Talanta Stadium</strong> and beyond, and we send commission straight to your M-PESA every Friday.
           </p>
-          <Link to="/contact" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow">Apply to be an ambassador</Link>
+          <Link to="/events" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-ember px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow">Book a match</Link>
         </div>
       </section>
 

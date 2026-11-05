@@ -11,9 +11,9 @@ import actionLeague from "@/assets/match-action-league.jpg";
 export const Route = createFileRoute("/organizers")({
   head: () => ({
     meta: [
-      { title: "Stadiums - Arena 254" },
+      { title: "Stadiums - Talanta Sports City" },
       { name: "description", content: "Where you can watch Kenyan football: the new Talanta Stadium, Kasarani and Nyayo National Stadium. See the venues and book your seat." },
-      { property: "og:title", content: "Stadiums - Arena 254" },
+      { property: "og:title", content: "Stadiums - Talanta Sports City" },
       { property: "og:description", content: "Talanta Stadium, Kasarani and Nyayo - book your seat." },
     ],
   }),

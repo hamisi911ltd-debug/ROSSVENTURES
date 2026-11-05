@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OrganizersRouteImport } from './routes/organizers'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as CreditsRouteImport } from './routes/credits'
-import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AmbassadorsRouteImport } from './routes/ambassadors'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -40,11 +39,6 @@ const GalleryRoute = GalleryRouteImport.update({
 const CreditsRoute = CreditsRouteImport.update({
   id: '/credits',
   path: '/credits',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AmbassadorsRoute = AmbassadorsRouteImport.update({
@@ -117,7 +111,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/ambassadors': typeof AmbassadorsRoute
-  '/contact': typeof ContactRoute
   '/credits': typeof CreditsRoute
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
@@ -136,7 +129,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/ambassadors': typeof AmbassadorsRoute
-  '/contact': typeof ContactRoute
   '/credits': typeof CreditsRoute
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
@@ -156,7 +148,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/ambassadors': typeof AmbassadorsRoute
-  '/contact': typeof ContactRoute
   '/credits': typeof CreditsRoute
   '/gallery': typeof GalleryRoute
   '/organizers': typeof OrganizersRoute
@@ -177,7 +168,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/ambassadors'
-    | '/contact'
     | '/credits'
     | '/gallery'
     | '/organizers'
@@ -196,7 +186,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/ambassadors'
-    | '/contact'
     | '/credits'
     | '/gallery'
     | '/organizers'
@@ -215,7 +204,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/ambassadors'
-    | '/contact'
     | '/credits'
     | '/gallery'
     | '/organizers'
@@ -235,7 +223,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AmbassadorsRoute: typeof AmbassadorsRoute
-  ContactRoute: typeof ContactRoute
   CreditsRoute: typeof CreditsRoute
   GalleryRoute: typeof GalleryRoute
   OrganizersRoute: typeof OrganizersRoute
@@ -270,13 +257,6 @@ declare module '@tanstack/react-router' {
       path: '/credits'
       fullPath: '/credits'
       preLoaderRoute: typeof CreditsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ambassadors': {
@@ -401,7 +381,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AmbassadorsRoute: AmbassadorsRoute,
-  ContactRoute: ContactRoute,
   CreditsRoute: CreditsRoute,
   GalleryRoute: GalleryRoute,
   OrganizersRoute: OrganizersRoute,

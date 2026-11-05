@@ -15,7 +15,7 @@ import { OPENING_MATCH_ID, VENUE_TBC } from "@/lib/league";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/events/$eventId")({
-  head: () => ({ meta: [{ title: "Book Match Tickets - Arena 254" }] }),
+  head: () => ({ meta: [{ title: "Book Match Tickets - Talanta Sports City" }] }),
   component: EventDetailPage,
 });
 
@@ -277,7 +277,7 @@ function EventDetailPage() {
                     : "Ticket sales for this match have not opened yet. Message us and we will tell you the moment they do."}
                 </p>
                 <a
-                  href={`https://wa.me/254705333198?text=${encodeURIComponent(`Hi Arena 254, tell me when tickets for ${event.title} go on sale.`)}`}
+                  href={`https://wa.me/254705333198?text=${encodeURIComponent(`Hi Talanta Sports City, tell me when tickets for ${event.title} go on sale.`)}`}
                   target="_blank" rel="noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-ember px-5 py-3 text-sm font-bold text-primary-foreground shadow-ember"
                 >
@@ -408,7 +408,7 @@ function EventDetailPage() {
 
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-muted-foreground flex items-start gap-2">
                   <Smartphone className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Do NOT share your M-Pesa PIN with anyone. Arena 254 will never ask for it.</span>
+                  <span>Do NOT share your M-Pesa PIN with anyone. Talanta Sports City will never ask for it.</span>
                 </div>
 
                 <button type="button" onClick={handlePay} disabled={paying}

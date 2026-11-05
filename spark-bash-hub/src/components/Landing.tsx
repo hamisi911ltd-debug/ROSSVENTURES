@@ -8,8 +8,6 @@ import {
   Ticket,
   Smartphone,
   ShieldCheck,
-  Phone,
-  Instagram,
 } from "lucide-react";
 import { MATCHDAYS, CLUBS, OPENING_MATCH } from "@/lib/league";
 import { MatchCard } from "@/components/MatchCard";
@@ -24,7 +22,7 @@ import talantaAerial from "@/assets/talanta-aerial.jpg";
 import kasaraniInside from "@/assets/match-kasarani-inside.jpg";
 import actionGreenYellow from "@/assets/match-action-green-yellow.jpg";
 import fansKasarani from "@/assets/fans-kasarani.jpg";
-import arenaLogo from "@/assets/football-arena254-logo.svg";
+import arenaLogo from "@/assets/talanta-sports-city-logo.png";
 
 // Hero slideshow - Talanta Stadium first, then matchday shots
 const HERO_SLIDES = [talantaStadium, talantaAerial, kasaraniInside];
@@ -137,7 +135,7 @@ export default function Landing() {
           <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-[calc(52vw+68px+1.5rem)] md:pb-16 md:pt-[calc(68px+4.5rem)] lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-black/50 px-3 py-1 text-xs font-medium uppercase tracking-wider text-accent backdrop-blur">
-                <Trophy className="h-3.5 w-3.5" /> footballarena254.co.ke
+                <Trophy className="h-3.5 w-3.5" /> Talanta Sports City
               </span>
 
               <h1 className="mt-4 max-w-3xl min-h-[2.25em] font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:min-h-[2.2em] sm:text-5xl md:text-6xl">
@@ -192,7 +190,7 @@ export default function Landing() {
               </div>
               <p className="mt-3 text-center text-xs text-white/75">Tue 5 Jan 2027 · Talanta Stadium, Nairobi</p>
               <span className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-2.5 text-sm font-extrabold text-black">
-                Book from KES 1,500 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                Book from KES 2,500 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </span>
             </Link>
           </div>
@@ -322,7 +320,7 @@ export default function Landing() {
           <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-crimson/20 blur-3xl" />
           <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
             <div>
-              <img src={arenaLogo} alt="" className="h-16 w-16" />
+              <img src={arenaLogo} alt="Talanta Sports City" className="h-14 w-auto" />
               <h2 className="mt-4 font-display text-2xl font-bold leading-tight sm:text-4xl">
                 Booking for a fan club, school or company?
               </h2>
@@ -330,24 +328,7 @@ export default function Landing() {
                 Group seats, hospitality and matchday transport - tell us the match and the headcount and we&apos;ll sort the rest.
               </p>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <a
-                href="https://wa.me/254705333198?text=Hi%20Football%20Arena254%2C%20I%27d%20like%20to%20book%20group%20tickets."
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background transition hover:opacity-90 sm:w-auto"
-              >
-                <Phone className="h-4 w-4" /> WhatsApp us
-              </a>
-              <a
-                href="https://instagram.com/footballarena254"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-foreground/30 bg-foreground/10 px-4 py-3 text-sm font-semibold backdrop-blur transition hover:bg-foreground/20 sm:w-auto"
-              >
-                <Instagram className="h-4 w-4" /> @footballarena254
-              </a>
-            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end"><Link to="/events" className="inline-flex w-full items-center justify-center rounded-xl bg-foreground px-4 py-3 text-sm font-semibold text-background transition hover:opacity-90 sm:w-auto">Book a match</Link></div>
           </div>
         </div>
       </section>

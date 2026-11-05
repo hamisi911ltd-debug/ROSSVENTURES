@@ -5,8 +5,8 @@ import clubLogos from "@/lib/club-logo-sources.json";
 export const Route = createFileRoute("/credits")({
   head: () => ({
     meta: [
-      { title: "Photo credits - Arena 254" },
-      { name: "description", content: "Credits and licences for the photos and logos used on Arena 254." },
+      { title: "Photo credits - Talanta Sports City" },
+      { name: "description", content: "Credits and licences for the photos and logos used on Talanta Sports City." },
     ],
   }),
   component: CreditsPage,
@@ -47,7 +47,7 @@ function CreditsPage() {
     <main className="mx-auto max-w-3xl px-4 py-14 sm:py-20">
       <h1 className="font-display text-4xl font-bold">Photo credits</h1>
       <p className="mt-3 text-muted-foreground">
-        Arena 254 uses freely licensed images from Wikimedia Commons. Each image remains the work of its author and is used under
+        Talanta Sports City uses freely licensed images from Wikimedia Commons. Each image remains the work of its author and is used under
         the licence shown. Club names and badges belong to their clubs and are shown only to identify the matches on sale.
       </p>
 
@@ -81,7 +81,7 @@ function CreditsPage() {
       <h2 className="mt-10 font-display text-2xl font-bold">Club badges</h2>
       <p className="mt-3 text-sm text-muted-foreground">
         Club names and badges are trademarks of their respective clubs and are shown only to identify the matches on sale. They are not
-        owned by Arena 254, and no endorsement is implied.
+        owned by Talanta Sports City, and no endorsement is implied.
       </p>
       <ul className="mt-3">
         {Object.entries(clubLogos as Record<string, { page?: string }>).map(([n, v]) => (

@@ -49,7 +49,7 @@ export function OpeningMatch({ events = [] }: { events?: EventRow[] }) {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
-                href="https://wa.me/254705333198?text=Hi%20Football%20Arena254%2C%20tell%20me%20when%20Talanta%20opening%20match%20tickets%20go%20on%20sale."
+                href="https://wa.me/254705333198?text=Hi%20Talanta%20Sports%20City%2C%20tell%20me%20when%20Talanta%20opening%20match%20tickets%20go%20on%20sale."
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-gold px-5 py-3 text-sm font-bold text-black shadow-gold"

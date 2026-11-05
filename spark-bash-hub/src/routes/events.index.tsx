@@ -8,9 +8,9 @@ import talantaAerial from "@/assets/talanta-aerial.jpg";
 export const Route = createFileRoute("/events/")({
   head: () => ({
     meta: [
-      { title: "Fixtures & Tickets - Arena 254" },
+      { title: "Fixtures & Tickets - Talanta Sports City" },
       { name: "description", content: "Book tickets for the FKF Premier League and the Talanta Stadium opening match. Every matchday, every club. Pay by M-PESA." },
-      { property: "og:title", content: "Fixtures & Tickets - Arena 254" },
+      { property: "og:title", content: "Fixtures & Tickets - Talanta Sports City" },
       { property: "og:description", content: "Book your seat at Talanta Stadium and FKF Premier League matches." },
     ],
   }),
